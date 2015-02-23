@@ -23,7 +23,7 @@
 #define WRITE8(base,off,val) REG8(base,off)=val
 
 
-typedef void* dd_vme_handle_t;
+typedef void* vmewrap_vme_handle_t;
 /**
    @return us time
  */
@@ -41,7 +41,7 @@ unsigned long long getUsTime();
  	@param slave_addressing (16, 32)
 	@return an handle or zero if error
 */
-dd_vme_handle_t dd_vme_open(uint32_t master_add,uint32_t master_size,uint32_t master_addressing,uint32_t slave_add,uint32_t slave_size,uint32_t slave_addressing);
+vmewrap_vme_handle_t vmewrap_vme_open(uint32_t master_add,uint32_t master_size,uint32_t master_addressing,uint32_t slave_add,uint32_t slave_size,uint32_t slave_addressing);
 
 
 /**
@@ -49,21 +49,21 @@ dd_vme_handle_t dd_vme_open(uint32_t master_add,uint32_t master_size,uint32_t ma
 	@param hand
 	@return zero if success
 */
-int32_t dd_vme_close(dd_vme_handle_t  handle);
+int32_t vmewrap_vme_close(vmewrap_vme_handle_t  handle);
 
 /**
    
 	@param handle
 	@return the master mapped address
 */
-uint32_t dd_get_vme_master_linux_add(dd_vme_handle_t  handle);
+uint32_t vmewrap_get_vme_master_linux_add(vmewrap_vme_handle_t  handle);
 
 /**
    
 	@param handle
 	@return the slave mapped address
 */
-uint32_t dd_get_vme_slave_linux_add(dd_vme_handle_t  handle);
+uint32_t vmewrap_get_vme_slave_linux_add(vmewrap_vme_handle_t  handle);
 
 
 

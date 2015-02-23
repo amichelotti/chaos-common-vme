@@ -4,27 +4,15 @@
   @author: Andrea Michelotti
 */
 // clear data buffer each acquisition AMI 28/10/13
-#include "caen960_lib.h"
+#include "caen960_drv.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#ifdef DEBUG
-#define DPRINT(str,ARGS...) printf("* %s:" str,__FUNCTION__,##ARGS)
-#else
-#define DPRINT(str,ARGS...) 
-#endif
-#define PRINT(str,ARGS...) printf("*" str,##ARGS)
-
-#define ERR(str,ARGS...) printf("# %s:" str,__FUNCTION__,##ARGS)
-
-#include <vme/vme.h>
-#include <vme/vme_api.h>
+#include "vmewrap.h"
 #include <sys/time.h>
 
 // Register map
-#define REG32(base,x) *((volatile uint32_t*)(base+x))
-#define REG16(base,x) *((volatile uint16_t*)(base+x))
+
 #define FW_REVISION_REG(base) REG16(base,0x1000)
 #define BOARD_ID_REG(base) REG16(base,0x803A)
 #define BOARD_ID_LSB_REG(base) REG16(base,0x803E)
@@ -111,58 +99,39 @@ typedef struct __evt_buffer {
     handle
 */
 typedef struct __vme_handle__ {
-  vme_bus_handle_t bus;
-  vme_master_handle_t handle;
+ vmewrap_vme_handle_t vme;
   uint32_t mapped_address;
   uint32_t event_counter;
   uint64_t cycle;
-} vme_handle_t;
+} _caen960_handle_t ;
 
 
 
 
 caen960_handle_t caen960_open(uint32_t address ){
   int am,flags;
-  vme_bus_handle_t bus_handle;
-  vme_master_handle_t handle;
   uint32_t mapped_address;
   int size = 0x10000;
   int boardid,manufactureid;
+  vmewrap_vme_handle_t vme;
   DPRINT("opening vme device at @0x%x\n",address);
-  if (vme_init(&bus_handle)) {
-    ERR("cannot initialize vme\n");
-    perror("vme_init");
+  vme = vmewrap_vme_open(address,size,32,0,0,0);
+  if(vme==NULL) return NULL;
 
-    return 0;
-  }
- 
-  am = VME_A32SD;
-    
-  flags = VME_CTL_PWEN;
-  if (vme_master_window_create(bus_handle, &handle, address, am, size,
-			       flags, NULL)) {
-    ERR("cannot create master window\n");
-    perror("vme_master_window_create");
-    return 0;
-  }
-
-  mapped_address =  (uint32_t)vme_master_window_map(bus_handle, handle, 0);
+  mapped_address =  vmewrap_get_vme_master_linux_add(vme);
   if (0 == mapped_address) {
     ERR("cannot map VME window\n");
     perror("vme_master_window_map");
     return 0;
   }
 
-  vme_handle_t *p = malloc(sizeof(vme_handle_t));
+  _caen960_handle_t *p = malloc(sizeof(_caen960_handle_t));
   if(p==NULL){
     ERR("cannot allocate resources\n");
-    vme_master_window_unmap(bus_handle, handle);
-    vme_master_window_release(bus_handle, handle);
-    vme_term(bus_handle);
+    vmewrap_vme_close(vme);
     return 0;
   }
-  p->bus = bus_handle;
-  p->handle = handle;
+  p->vme = vme;
   p->mapped_address = mapped_address;
   p->cycle = 0;
   boardid=BOARD_ID_REG(mapped_address)&0xFF;
@@ -181,39 +150,22 @@ caen960_handle_t caen960_open(uint32_t address ){
 }
 
 int32_t caen960_close(caen960_handle_t h){
-  vme_handle_t* handle = h;
+  _caen960_handle_t* handle = h;
   DPRINT("closing handle @0x%x\n",(unsigned)h);
   if(handle){
-    if (vme_master_window_unmap(handle->bus, handle->handle)) {
-     
-      ERR("Error unmapping the window\n");
-      vme_master_window_release(handle->bus, handle->handle);
-      vme_term(handle->bus);
-      free(handle);
-      return -1;
-    }
-        
-    if (vme_master_window_release(handle->bus, handle->handle)) {
-      ERR("Error releasing the window\n");
-      vme_term(handle->bus);
-      return -2;
-    }
-        
-    if (vme_term(handle->bus)) {
-      ERR("Error terminating VME\n");
-      return -3;
-    }
- 
+    int ret;
     DPRINT("caen960 sucessfully closed\n");
+    ret=vmewrap_vme_close(handle->vme);
     free(handle);
-    return 0;
+    return ret;
   }
+  
   return -4;
 }
 
 
 int32_t caen960_init(caen960_handle_t h,int32_t crate_num,int hwreset){
-  vme_handle_t* handle = h;
+  _caen960_handle_t* handle = h;
   DPRINT("intialiazing @0x%x\n",(uint32_t)h); 
   int cnt;
   if(hwreset){
@@ -237,7 +189,7 @@ int32_t caen960_init(caen960_handle_t h,int32_t crate_num,int hwreset){
 }
 
 int32_t caen960_setIped(caen960_handle_t h,int32_t ipedval){
-  vme_handle_t* handle = h;
+  _caen960_handle_t* handle = h;
   DPRINT("setting ipedval=x%x\n",ipedval);
   IPED_REG(handle->mapped_address)=ipedval;
   return 0;
@@ -245,7 +197,7 @@ int32_t caen960_setIped(caen960_handle_t h,int32_t ipedval){
 
 
 int32_t caen960_setThreashold(caen960_handle_t h,int16_t lowres,int16_t hires,int channel){
-  vme_handle_t* handle = h;
+  _caen960_handle_t* handle = h;
   if((channel<NCHANNELS) && (channel>=0)){
     DPRINT("setting threshold channel %d hires=x%x lores=x%x \n",channel,lowres,hires);
     BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT|OVERRANGE_EN_BIT|LOWTHR_EN_BIT;
@@ -258,7 +210,7 @@ int32_t caen960_setThreashold(caen960_handle_t h,int16_t lowres,int16_t hires,in
 
 
 int32_t caen960_getThreashold(caen960_handle_t h,int16_t* lowres,int16_t* hires,int channel){
-    vme_handle_t* handle = h;
+    _caen960_handle_t* handle = h;
     if((channel<NCHANNELS) && (channel>=0)){
       *lowres = THRS_CHANNEL_REG(handle->mapped_address,channel,1)&0xff;
       *hires = THRS_CHANNEL_REG(handle->mapped_address,channel,0)&0xff;
@@ -271,7 +223,7 @@ int32_t caen960_getThreashold(caen960_handle_t h,int16_t* lowres,int16_t* hires,
 
 uint16_t caen960_getStatus(caen960_handle_t h){
   uint16_t ret;
-  vme_handle_t* handle = h;
+  _caen960_handle_t* handle = h;
   ret = STATUS_REG(handle->mapped_address);
   DPRINT("Get Status 0x%x\n",ret);
   return ret;
@@ -279,14 +231,14 @@ uint16_t caen960_getStatus(caen960_handle_t h){
 
 uint16_t caen960_getBufferStatus(caen960_handle_t h){
   uint16_t ret;
-  vme_handle_t* handle = h;
+  _caen960_handle_t* handle = h;
   ret = STATUS2_REG(handle->mapped_address);
   return ret;
 }
 
 uint32_t caen960_getEventCounter(caen960_handle_t h,int reset){
   uint32_t ret;
-  vme_handle_t* handle = h;
+  _caen960_handle_t* handle = h;
   //  ret = EVT_CNT_REG(handle->mapped_address);
   ret = EVT_CNT_LOW_REG(handle->mapped_address)|EVT_CNT_HI_REG(handle->mapped_address)<<16;
   if(reset){
@@ -295,7 +247,7 @@ uint32_t caen960_getEventCounter(caen960_handle_t h,int reset){
   }
   return ret;
 }
-static uint32_t search_header(vme_handle_t* handle){
+static uint32_t search_header(_caen960_handle_t* handle){
   evt_buffer_t a;
   uint32_t ret=0;
   a.data  = REG32(handle->mapped_address,0);
@@ -305,7 +257,7 @@ static uint32_t search_header(vme_handle_t* handle){
   }
   return ret;
 }
-static uint32_t search_eoe(vme_handle_t* handle){
+static uint32_t search_eoe(_caen960_handle_t* handle){
   evt_buffer_t a;
   uint32_t ret=0;
   a.data  = REG32(handle->mapped_address,0);
@@ -317,7 +269,7 @@ static uint32_t search_eoe(vme_handle_t* handle){
 }
 //return the channels acquired 
 static int acquire_event_channels(caen960_handle_t h,uint32_t *lowres,uint32_t*hires,int start_chan,int max_chan){
-  vme_handle_t* handle = h;
+  _caen960_handle_t* handle = h;
   int cnt=0;
   evt_buffer_t a;
   int nchannels_acquired=0;
@@ -362,7 +314,7 @@ static int acquire_event_channels(caen960_handle_t h,uint32_t *lowres,uint32_t*h
 
 int32_t caen960_acquire_channels_poll(caen960_handle_t h,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms){
   int ret = 0;
-  vme_handle_t* handle = h;
+  _caen960_handle_t* handle = h;
   uint32_t status;
   uint32_t counter;
   uint32_t events;
@@ -429,11 +381,11 @@ return;
 
 caen960_handle_t caen960_LV_open(uint32_t mapped_address,errorStruct *error ){
   int boardid,manufactureid;
-  vme_handle_t *p;
+  _caen960_handle_t *p;
   if(error->status)
   	return 0;
   	
-  p = malloc(sizeof(vme_handle_t));
+  p = malloc(sizeof(_caen960_handle_t));
   if(p==NULL){
   	error->status = 2;
   	return 0;
@@ -473,7 +425,7 @@ int32_t caen960_LV_acquire_channels_poll(caen960_handle_t h,void *lowres,void*hi
   LV_vector_uint32_t** lv_hires=(LV_vector_uint32_t**)hires;
   uint64_t counter;
   int32_t ret=0;
-  vme_handle_t* handle = h;
+  _caen960_handle_t* handle = h;
   long numOfComp=NCHANNELS;
   if(error->status){
   	return 0;

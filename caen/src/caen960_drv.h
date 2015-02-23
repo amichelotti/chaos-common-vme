@@ -1,5 +1,5 @@
-#ifndef __CAEN265_H__
-#define __CAEN265_H__
+#ifndef __CAEN965_H__
+#define __CAEN965_H__
 #include <stdint.h>
 
 #define BOARD_ID 0x3

@@ -1,4 +1,4 @@
-#include "caen960_lib.h"
+#include "caen960_drv.h"
 #include <stdio.h>
 #include <stdlib.h>
 

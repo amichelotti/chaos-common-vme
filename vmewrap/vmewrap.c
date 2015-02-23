@@ -1,4 +1,4 @@
-#include "ddlib.h"
+#include "vmewrap.h"
 #include <sys/time.h>
 #include <vme/vme.h>
 #include <vme/vme_api.h>
@@ -9,7 +9,7 @@ typedef struct __vme_handle__ {
   vme_slave_handle_t slave_handle;
   uint32_t master_mapped_address;
   uint32_t slave_mapped_address;
-} * dd_int_vme_handle_t;
+} * vmewrap_int_vme_handle_t;
 
 
 unsigned long long getUsTime(){
@@ -26,7 +26,7 @@ unsigned long long getUsTime(){
 }
 
 
-static int  map_master(dd_int_vme_handle_t handle,uint32_t add,uint32_t size,uint32_t addressing){
+static int  map_master(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,uint32_t addressing){
   int am,flags;
   vme_bus_handle_t bus_handle;
   uint32_t mapped_address;
@@ -68,7 +68,7 @@ static int  map_master(dd_int_vme_handle_t handle,uint32_t add,uint32_t size,uin
   return 1;
 }
 
-static int  map_slave(dd_int_vme_handle_t handle,uint32_t add,uint32_t size,uint32_t addressing){
+static int  map_slave(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,uint32_t addressing){
   int am,flags;
   vme_bus_handle_t bus_handle;
   uint32_t mapped_address;
@@ -114,10 +114,10 @@ static int  map_slave(dd_int_vme_handle_t handle,uint32_t add,uint32_t size,uint
   return 1;
 }
 
-dd_vme_handle_t dd_vme_open(uint32_t master_add,uint32_t master_size,uint32_t master_addressing,uint32_t slave_add,uint32_t slave_size,uint32_t slave_addressing){
+vmewrap_vme_handle_t vmewrap_vme_open(uint32_t master_add,uint32_t master_size,uint32_t master_addressing,uint32_t slave_add,uint32_t slave_size,uint32_t slave_addressing){
 
   vme_bus_handle_t bus_handle;
-  dd_int_vme_handle_t p;
+  vmewrap_int_vme_handle_t p;
   if(master_size==0 && slave_size==0){
     return 0;
   }
@@ -127,7 +127,7 @@ dd_vme_handle_t dd_vme_open(uint32_t master_add,uint32_t master_size,uint32_t ma
 
     return 0;
   }
-  p = (dd_int_vme_handle_t)malloc(sizeof(dd_int_vme_handle_t));
+  p = (vmewrap_int_vme_handle_t)malloc(sizeof(vmewrap_int_vme_handle_t));
   if(p==NULL){
     ERR("cannot allocate resources\n");
     vme_term(bus_handle);
@@ -151,14 +151,14 @@ dd_vme_handle_t dd_vme_open(uint32_t master_add,uint32_t master_size,uint32_t ma
   }
 
   
-  return (dd_vme_handle_t) p; 
+  return (vmewrap_vme_handle_t) p; 
 
 }
 
 
 
-int32_t dd_vme_close(dd_vme_handle_t  h){
-  dd_int_vme_handle_t handle = h;
+int32_t vmewrap_vme_close(vmewrap_vme_handle_t  h){
+  vmewrap_int_vme_handle_t handle = h;
   DPRINT("closing handle @0x%x\n",(unsigned)h);
   if(handle){
     if(handle->master_handle){
@@ -204,8 +204,8 @@ int32_t dd_vme_close(dd_vme_handle_t  h){
 }
 
 
-uint32_t dd_get_vme_master_linux_add(dd_vme_handle_t  h){
-  dd_int_vme_handle_t handle = h;
+uint32_t vmewrap_get_vme_master_linux_add(vmewrap_vme_handle_t  h){
+  vmewrap_int_vme_handle_t handle = h;
   if(handle){
     return handle->master_mapped_address;
   }
@@ -217,8 +217,8 @@ uint32_t dd_get_vme_master_linux_add(dd_vme_handle_t  h){
 	@param handle
 	@return the slave mapped address
 */
-uint32_t dd_get_vme_slave_linux_add(dd_vme_handle_t  h){
-  dd_int_vme_handle_t handle = h;
+uint32_t vmewrap_get_vme_slave_linux_add(vmewrap_vme_handle_t  h){
+  vmewrap_int_vme_handle_t handle = h;
   if(handle){
     return handle->slave_mapped_address;
   }

@@ -31,7 +31,7 @@
 */
 
 #include <sys/time.h>
-#include "ddlib.h"
+#include "vmewrap.h"
 /* local definitions */
 #define	SCSR 0x40		/* Software Command and Status Register */
 #define CR   0x42		/* Control Register */
