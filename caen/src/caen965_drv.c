@@ -4,7 +4,7 @@
   @author: Andrea Michelotti
 */
 // clear data buffer each acquisition AMI 28/10/13
-#include "caen960_drv.h"
+#include "caen965_drv.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -103,12 +103,12 @@ typedef struct __vme_handle__ {
   uint32_t mapped_address;
   uint32_t event_counter;
   uint64_t cycle;
-} _caen960_handle_t ;
+} _caen965_handle_t ;
 
 
 
 
-caen960_handle_t caen960_open(uint32_t address ){
+caen965_handle_t caen965_open(uint32_t address ){
   int am,flags;
   uint32_t mapped_address;
   int size = 0x10000;
@@ -125,7 +125,7 @@ caen960_handle_t caen960_open(uint32_t address ){
     return 0;
   }
 
-  _caen960_handle_t *p = malloc(sizeof(_caen960_handle_t));
+  _caen965_handle_t *p = malloc(sizeof(_caen965_handle_t));
   if(p==NULL){
     ERR("cannot allocate resources\n");
     vmewrap_vme_close(vme);
@@ -136,25 +136,25 @@ caen960_handle_t caen960_open(uint32_t address ){
   p->cycle = 0;
   boardid=BOARD_ID_REG(mapped_address)&0xFF;
   manufactureid=OUI_REG(mapped_address)&0xFF;
-  DPRINT("caen960 successfully mapped at @0x%x\n",mapped_address);
+  DPRINT("caen965 successfully mapped at @0x%x\n",mapped_address);
   PRINT("CV 965 FW:0x%x\n",FW_REVISION_REG(mapped_address));
   PRINT("CV 965 BoardID:0x%x\n",boardid);
   PRINT("CV 965 Manufacture:0x%x\n",manufactureid);
   if(boardid!=BOARD_ID || manufactureid!=MANUFACTURE_ID){
     ERR("device not identified expected BoardId=0x%x ManufactureId=0x%x\n",BOARD_ID,MANUFACTURE_ID);
-    caen960_close((caen960_handle_t)p);
+    caen965_close((caen965_handle_t)p);
     return 0;
   }
   
-  return (caen960_handle_t) p; 
+  return (caen965_handle_t) p; 
 }
 
-int32_t caen960_close(caen960_handle_t h){
-  _caen960_handle_t* handle = h;
+int32_t caen965_close(caen965_handle_t h){
+  _caen965_handle_t* handle = h;
   DPRINT("closing handle @0x%x\n",(unsigned)h);
   if(handle){
     int ret;
-    DPRINT("caen960 sucessfully closed\n");
+    DPRINT("caen965 sucessfully closed\n");
     ret=vmewrap_vme_close(handle->vme);
     free(handle);
     return ret;
@@ -164,8 +164,8 @@ int32_t caen960_close(caen960_handle_t h){
 }
 
 
-int32_t caen960_init(caen960_handle_t h,int32_t crate_num,int hwreset){
-  _caen960_handle_t* handle = h;
+int32_t caen965_init(caen965_handle_t h,int32_t crate_num,int hwreset){
+  _caen965_handle_t* handle = h;
   DPRINT("intialiazing @0x%x\n",(uint32_t)h); 
   int cnt;
   if(hwreset){
@@ -188,16 +188,16 @@ int32_t caen960_init(caen960_handle_t h,int32_t crate_num,int hwreset){
   return 0;
 }
 
-int32_t caen960_setIped(caen960_handle_t h,int32_t ipedval){
-  _caen960_handle_t* handle = h;
+int32_t caen965_setIped(caen965_handle_t h,int32_t ipedval){
+  _caen965_handle_t* handle = h;
   DPRINT("setting ipedval=x%x\n",ipedval);
   IPED_REG(handle->mapped_address)=ipedval;
   return 0;
 }
 
 
-int32_t caen960_setThreashold(caen960_handle_t h,int16_t lowres,int16_t hires,int channel){
-  _caen960_handle_t* handle = h;
+int32_t caen965_setThreashold(caen965_handle_t h,int16_t lowres,int16_t hires,int channel){
+  _caen965_handle_t* handle = h;
   if((channel<NCHANNELS) && (channel>=0)){
     DPRINT("setting threshold channel %d hires=x%x lores=x%x \n",channel,lowres,hires);
     BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT|OVERRANGE_EN_BIT|LOWTHR_EN_BIT;
@@ -209,8 +209,8 @@ int32_t caen960_setThreashold(caen960_handle_t h,int16_t lowres,int16_t hires,in
 }
 
 
-int32_t caen960_getThreashold(caen960_handle_t h,int16_t* lowres,int16_t* hires,int channel){
-    _caen960_handle_t* handle = h;
+int32_t caen965_getThreashold(caen965_handle_t h,int16_t* lowres,int16_t* hires,int channel){
+    _caen965_handle_t* handle = h;
     if((channel<NCHANNELS) && (channel>=0)){
       *lowres = THRS_CHANNEL_REG(handle->mapped_address,channel,1)&0xff;
       *hires = THRS_CHANNEL_REG(handle->mapped_address,channel,0)&0xff;
@@ -221,24 +221,24 @@ int32_t caen960_getThreashold(caen960_handle_t h,int16_t* lowres,int16_t* hires,
 
 
 
-uint16_t caen960_getStatus(caen960_handle_t h){
+uint16_t caen965_getStatus(caen965_handle_t h){
   uint16_t ret;
-  _caen960_handle_t* handle = h;
+  _caen965_handle_t* handle = h;
   ret = STATUS_REG(handle->mapped_address);
   DPRINT("Get Status 0x%x\n",ret);
   return ret;
 }
 
-uint16_t caen960_getBufferStatus(caen960_handle_t h){
+uint16_t caen965_getBufferStatus(caen965_handle_t h){
   uint16_t ret;
-  _caen960_handle_t* handle = h;
+  _caen965_handle_t* handle = h;
   ret = STATUS2_REG(handle->mapped_address);
   return ret;
 }
 
-uint32_t caen960_getEventCounter(caen960_handle_t h,int reset){
+uint32_t caen965_getEventCounter(caen965_handle_t h,int reset){
   uint32_t ret;
-  _caen960_handle_t* handle = h;
+  _caen965_handle_t* handle = h;
   //  ret = EVT_CNT_REG(handle->mapped_address);
   ret = EVT_CNT_LOW_REG(handle->mapped_address)|EVT_CNT_HI_REG(handle->mapped_address)<<16;
   if(reset){
@@ -247,7 +247,7 @@ uint32_t caen960_getEventCounter(caen960_handle_t h,int reset){
   }
   return ret;
 }
-static uint32_t search_header(_caen960_handle_t* handle){
+static uint32_t search_header(_caen965_handle_t* handle){
   evt_buffer_t a;
   uint32_t ret=0;
   a.data  = REG32(handle->mapped_address,0);
@@ -257,7 +257,7 @@ static uint32_t search_header(_caen960_handle_t* handle){
   }
   return ret;
 }
-static uint32_t search_eoe(_caen960_handle_t* handle){
+static uint32_t search_eoe(_caen965_handle_t* handle){
   evt_buffer_t a;
   uint32_t ret=0;
   a.data  = REG32(handle->mapped_address,0);
@@ -268,8 +268,8 @@ static uint32_t search_eoe(_caen960_handle_t* handle){
   return ret;
 }
 //return the channels acquired 
-static int acquire_event_channels(caen960_handle_t h,uint32_t *lowres,uint32_t*hires,int start_chan,int max_chan){
-  _caen960_handle_t* handle = h;
+static int acquire_event_channels(caen965_handle_t h,uint32_t *lowres,uint32_t*hires,int start_chan,int max_chan){
+  _caen965_handle_t* handle = h;
   int cnt=0;
   evt_buffer_t a;
   int nchannels_acquired=0;
@@ -312,9 +312,9 @@ static int acquire_event_channels(caen960_handle_t h,uint32_t *lowres,uint32_t*h
   return nchannels_acquired;
 }
 
-int32_t caen960_acquire_channels_poll(caen960_handle_t h,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms){
+int32_t caen965_acquire_channels_poll(caen965_handle_t h,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms){
   int ret = 0;
-  _caen960_handle_t* handle = h;
+  _caen965_handle_t* handle = h;
   uint32_t status;
   uint32_t counter;
   uint32_t events;
@@ -333,7 +333,7 @@ int32_t caen960_acquire_channels_poll(caen960_handle_t h,uint32_t *lowres,uint32
   }
   //
   do{
-    // get the status from the caen960
+    // get the status from the caen965
     status = STATUS_REG(handle->mapped_address);
     //usleep(100);
     if(timeo_ms>0){
@@ -345,7 +345,7 @@ int32_t caen960_acquire_channels_poll(caen960_handle_t h,uint32_t *lowres,uint32
       }
 
     }
-  } while(((status&CAEN960_STATUS_DREADY)==0)&&((diff)<=(timeo_ms*1000)));
+  } while(((status&CAEN965_STATUS_DREADY)==0)&&((diff)<=(timeo_ms*1000)));
 
   counter = EVT_CNT_LOW_REG(handle->mapped_address)|EVT_CNT_HI_REG(handle->mapped_address)<<16;
   events = abs(counter - handle->event_counter);
@@ -353,7 +353,7 @@ int32_t caen960_acquire_channels_poll(caen960_handle_t h,uint32_t *lowres,uint32
   handle->cycle+= events;
   handle->event_counter =counter;
   // DPRINT("counter events %u, events %d, totcycle %Ld\n",counter,events,handle->cycle);
-  if(status&CAEN960_STATUS_DREADY){
+  if(status&CAEN965_STATUS_DREADY){
     ret = acquire_event_channels(handle,lowres,hires,start_channel,nchannels);
   }
   *cycle = handle->cycle;
@@ -379,13 +379,13 @@ return;
 }
 
 
-caen960_handle_t caen960_LV_open(uint32_t mapped_address,errorStruct *error ){
+caen965_handle_t caen965_LV_open(uint32_t mapped_address,errorStruct *error ){
   int boardid,manufactureid;
-  _caen960_handle_t *p;
+  _caen965_handle_t *p;
   if(error->status)
   	return 0;
   	
-  p = malloc(sizeof(_caen960_handle_t));
+  p = malloc(sizeof(_caen965_handle_t));
   if(p==NULL){
   	error->status = 2;
   	return 0;
@@ -394,11 +394,11 @@ caen960_handle_t caen960_LV_open(uint32_t mapped_address,errorStruct *error ){
   p->handle = 0;
   p->mapped_address = mapped_address;
   p->cycle = 0;
-  DPRINT("setting caen960 Linux address to @0x%x\n",mapped_address);
+  DPRINT("setting caen965 Linux address to @0x%x\n",mapped_address);
 
   boardid=BOARD_ID_REG(mapped_address)&0xFF;
   manufactureid=OUI_REG(mapped_address)&0xFF;
-  DPRINT("caen960 successfully mapped at @0x%x\n",mapped_address);
+  DPRINT("caen965 successfully mapped at @0x%x\n",mapped_address);
   PRINT("CV 965 FW:0x%x\n",FW_REVISION_REG(mapped_address));
   PRINT("CV 965 BoardID:0x%x\n",boardid);
   PRINT("CV 965 Manufacture:0x%x\n",manufactureid);
@@ -408,11 +408,11 @@ caen960_handle_t caen960_LV_open(uint32_t mapped_address,errorStruct *error ){
     return 0;
   }
   
-  return (caen960_handle_t) p; 
+  return (caen965_handle_t) p; 
 }
 
 
-int32_t caen960_LV_close(caen960_handle_t h,errorStruct *error){
+int32_t caen965_LV_close(caen965_handle_t h,errorStruct *error){
  DPRINT("LV close 0x@%x\n",(uint32_t)h);
   if(h){
     free(h);
@@ -420,12 +420,12 @@ int32_t caen960_LV_close(caen960_handle_t h,errorStruct *error){
   return 0;
 }
 
-int32_t caen960_LV_acquire_channels_poll(caen960_handle_t h,void *lowres,void*hires,int32_t* event_under_run,int timeo_ms,errorStruct*error){
+int32_t caen965_LV_acquire_channels_poll(caen965_handle_t h,void *lowres,void*hires,int32_t* event_under_run,int timeo_ms,errorStruct*error){
   LV_vector_uint32_t** lv_lowres=(LV_vector_uint32_t**)lowres;
   LV_vector_uint32_t** lv_hires=(LV_vector_uint32_t**)hires;
   uint64_t counter;
   int32_t ret=0;
-  _caen960_handle_t* handle = h;
+  _caen965_handle_t* handle = h;
   long numOfComp=NCHANNELS;
   if(error->status){
   	return 0;
@@ -479,7 +479,7 @@ int32_t caen960_LV_acquire_channels_poll(caen960_handle_t h,void *lowres,void*hi
   if((*lv_lowres)->arg && (*lv_hires)->arg){
     uint64_t old_counter = handle->cycle;
 
-    ret =caen960_acquire_channels_poll(h,(uint32_t *)(*lv_lowres)->arg,(uint32_t*)(*lv_hires)->arg,0,NCHANNELS,&counter,timeo_ms); 
+    ret =caen965_acquire_channels_poll(h,(uint32_t *)(*lv_lowres)->arg,(uint32_t*)(*lv_hires)->arg,0,NCHANNELS,&counter,timeo_ms); 
     *event_under_run = (handle->cycle - old_counter) -1;
     DPRINT("[x%x]acquired %d channels, event underrun %d\n",handle->mapped_address,ret,*event_under_run);
 

@@ -1,37 +1,39 @@
-#ifndef __CAEN965_H__
-#define __CAEN965_H__
+
+#ifndef __CAEN792_H__
+#define __CAEN792_H__
+
 #include <stdint.h>
 
 #define BOARD_ID 0x3
 #define MANUFACTURE_ID 0x40
-#define NCHANNELS 16
+#define NCHANNELS 32
 /* 
    status bits
 */
-#define CAEN960_STATUS_DREADY 0x1 /* data ready */
-#define CAEN960_STATUS_GDREADY 0x2 /* global data ready, at least one board has data ready */
+#define CAEN792_STATUS_DREADY 0x1 /* data ready */
+#define CAEN792_STATUS_GDREADY 0x2 /* global data ready, at least one board has data ready */
 
-#define CAEN960_STATUS_BUSY 0x4 /* board busy */
-#define CAEN960_STATUS_GBUSY 0x8 /* global busy */
+#define CAEN792_STATUS_BUSY 0x4 /* board busy */
+#define CAEN792_STATUS_GBUSY 0x8 /* global busy */
 
-#define CAEN960_STATUS_PURGE 0x20 /* board purged */
-#define CAEN960_STATUS_EVRDY 0x100 /* event ready */
+#define CAEN792_STATUS_PURGE 0x20 /* board purged */
+#define CAEN792_STATUS_EVRDY 0x100 /* event ready */
 
 /* 
    buffer status bits
 */
-#define CAEN960_STATUS_BUFFER_EMPTY 0x2
-#define CAEN960_STATUS_BUFFER_FULL 0x4
+#define CAEN792_STATUS_BUFFER_EMPTY 0x2
+#define CAEN792_STATUS_BUFFER_FULL 0x4
 
 
-typedef void* caen960_handle_t;
+typedef void* caen792_handle_t;
 
 /**
 	open the caen265 device and return an handle to it
 	@param address the vme address of the board
 	@return an handle or zero if error
 */
-caen960_handle_t caen960_open(uint32_t address);
+caen792_handle_t caen792_open(uint32_t address);
 
 
 /**
@@ -39,17 +41,17 @@ caen960_handle_t caen960_open(uint32_t address);
 	@param handle to the board
 	@return zero if success
 */
-int32_t caen960_close(caen960_handle_t handle);
+int32_t caen792_close(caen792_handle_t handle);
 
 
 /**
-	init 960 device and return
+	init 792 device and return
 	@param h handle to the board
 	@param crate_num crate number associated to this device
 	@param swreset if nonzero produce a Software Reset
 	@return zero if success, 
 */
-int32_t caen960_init(caen960_handle_t h,int32_t crate_num,int swreset);
+int32_t caen792_init(caen792_handle_t h,int32_t crate_num,int swreset);
 
 /**
 	set the Iped value
@@ -57,7 +59,7 @@ int32_t caen960_init(caen960_handle_t h,int32_t crate_num,int swreset);
 	@param ipedval iped value
 	@return zero if success, 
 */
-int32_t caen960_setIped(caen960_handle_t h,int32_t ipedval);
+int32_t caen792_setIped(caen792_handle_t h,int32_t ipedval);
 
 
 /**
@@ -68,7 +70,7 @@ int32_t caen960_setIped(caen960_handle_t h,int32_t ipedval);
 	@param channel channel id
 	@return zero if success, 
 */
-int32_t caen960_setThreashold(caen960_handle_t h,int16_t lowres,int16_t hires,int channel);
+int32_t caen792_setThreashold(caen792_handle_t h,int16_t lowres,int16_t hires,int channel);
 
 /**
 	get the threashold (hires,lowres) value for a given channel
@@ -78,7 +80,7 @@ int32_t caen960_setThreashold(caen960_handle_t h,int16_t lowres,int16_t hires,in
 	@param channel channel id
 	@return zero if success, 
 */
-int32_t caen960_getThreashold(caen960_handle_t h,int16_t* lowres,int16_t* hires,int channel);
+int32_t caen792_getThreashold(caen792_handle_t h,int16_t* lowres,int16_t* hires,int channel);
 
 
 /**
@@ -86,7 +88,7 @@ int32_t caen960_getThreashold(caen960_handle_t h,int16_t* lowres,int16_t* hires,
 	@param h handle to the board
 	@return the status
 */
-uint16_t caen960_getStatus(caen960_handle_t h);
+uint16_t caen792_getStatus(caen792_handle_t h);
 
 /**
 	get the event count register
@@ -94,14 +96,14 @@ uint16_t caen960_getStatus(caen960_handle_t h);
 	@param reset if not zero reset this counter
 	@return the counter
 */
-uint32_t caen960_getEventCounter(caen960_handle_t h,int reset);
+uint32_t caen792_getEventCounter(caen792_handle_t h,int reset);
 
 /**
 	get the status register of the buffer
 	@param h handle to the board
 	@return the status
 */
-uint16_t caen960_getBufferStatus(caen960_handle_t h);
+uint16_t caen792_getBufferStatus(caen792_handle_t h);
 /**
 	acquire the number of channels given
 	@param handle to the board
@@ -113,7 +115,7 @@ uint16_t caen960_getBufferStatus(caen960_handle_t h);
 	@return the number of events acquired (0 no events)
 */
 
-int32_t caen960_acquire_channels_poll(caen960_handle_t handle,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms);
+int32_t caen792_acquire_channels_poll(caen792_handle_t handle,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms);
 
 #ifdef LABVIEW
 #include "extcode.h"
@@ -137,7 +139,7 @@ typedef struct{
 	@param error LV error struct
 	@return zero if success
 */
-int32_t caen960_LV_close(caen960_handle_t handle,errorStruct* error);
+int32_t caen792_LV_close(caen792_handle_t handle,errorStruct* error);
 
 /**
 	open the caen265 device and return an handle to it, to be used from LV with a master window already mapped
@@ -145,7 +147,7 @@ int32_t caen960_LV_close(caen960_handle_t handle,errorStruct* error);
 	@param error LV error struct
 	@return an handle or zero if error
 */
-caen960_handle_t caen960_LV_open(uint32_t mapped_address,errorStruct* error);
+caen792_handle_t caen792_LV_open(uint32_t mapped_address,errorStruct* error);
 
 /**
 	acquire all the channels, to be used from LV
@@ -157,7 +159,7 @@ caen960_handle_t caen960_LV_open(uint32_t mapped_address,errorStruct* error);
 	@param error LV error struct
 	@return the number of events acquired (0 no events, negative error)
 */
-int32_t caen960_LV_acquire_channels_poll(caen960_handle_t handle,void *lowres,void*hires,int32_t* event_under_run,int timeo_ms,errorStruct* error);
+int32_t caen792_LV_acquire_channels_poll(caen792_handle_t handle,void *lowres,void*hires,int32_t* event_under_run,int timeo_ms,errorStruct* error);
 
 #endif
 
