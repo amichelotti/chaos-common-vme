@@ -14,10 +14,10 @@
 
 static int32_t caen_qdc_close(void* h){
     _caen_qdc_handle_t* handle = h;
-    DPRINT(CAEN_BOARD " closing handle @0x%x\n",(unsigned)h);
+    DPRINT(DEV_BOARD " closing handle @0x%x\n",(unsigned)h);
     if(handle){
         int ret;
-        DPRINT(CAEN_BOARD " caen_qdc sucessfully closed\n");
+        DPRINT(DEV_BOARD " caen_qdc sucessfully closed\n");
         ret=vmewrap_vme_close(handle->vme);
         free(handle);
         return ret;
@@ -27,12 +27,11 @@ static int32_t caen_qdc_close(void* h){
 }
 
 static void* caen_qdc_open(uint32_t address ){
-  int am,flags;
   uint32_t mapped_address;
   int size = 0x10000;
   int boardid,manufactureid;
   vmewrap_vme_handle_t vme;
-  DPRINT(CAEN_BOARD " opening vme device at @0x%x\n",address);
+  DPRINT(DEV_BOARD " opening vme device at @0x%x\n",address);
   vme = vmewrap_vme_open(address,size,32,0,0,0);
   if(vme==NULL) return NULL;
 
@@ -54,10 +53,13 @@ static void* caen_qdc_open(uint32_t address ){
   p->cycle = 0;
   boardid=BOARD_ID_REG(mapped_address)&0xFF;
   manufactureid=OUI_REG(mapped_address)&0xFF;
-  DPRINT(CAEN_BOARD " caen_qdc successfully mapped at @0x%x\n",mapped_address);
-  PRINT(CAEN_BOOARD " FW:0x%x\n",FW_REVISION_REG(mapped_address));
-  PRINT(CAEN_BOOARD " BoardID:0x%x\n",boardid);
-  PRINT(CAEN_BOOARD " ManufactureID:0x%x\n",manufactureid);
+    p->boardid=boardid;
+    p->manufactureid=manufactureid;
+    p->version=FW_REVISION_REG(mapped_address);
+  DPRINT(DEV_BOARD " caen_qdc successfully mapped at @0x%x\n",mapped_address);
+  PRINT(DEV_BOARD " FW:0x%x\n",p->version);
+  PRINT(DEV_BOARD " BoardID:0x%x\n",boardid);
+  PRINT(DEV_BOARD " ManufactureID:0x%x\n",manufactureid);
   if(boardid!=BOARD_ID || manufactureid!=MANUFACTURE_ID){
     ERR("device not identified expected BoardId=0x%x ManufactureId=0x%x\n",BOARD_ID,MANUFACTURE_ID);
     caen_qdc_close((void*)p);
@@ -71,7 +73,7 @@ static void* caen_qdc_open(uint32_t address ){
 
 static int32_t caen_qdc_init(void* h,int32_t crate_num,int hwreset){
   _caen_qdc_handle_t* handle = h;
-  DPRINT(CAEN_BOARD " intialiazing @0x%x\n",(uint32_t)h); 
+  DPRINT(DEV_BOARD " intialiazing @0x%x\n",(uint32_t)h); 
   int cnt;
   if(hwreset){
     SSRESET_REG(handle->mapped_address) = 1;
@@ -95,7 +97,7 @@ static int32_t caen_qdc_init(void* h,int32_t crate_num,int hwreset){
 
 int32_t caen_qdc_setIped(void* h,int32_t ipedval){
   _caen_qdc_handle_t* handle = h;
-  DPRINT(CAEN_BOARD " setting ipedval=x%x\n",ipedval);
+  DPRINT(DEV_BOARD " setting ipedval=x%x\n",ipedval);
   IPED_REG(handle->mapped_address)=ipedval;
   return 0;
 }
@@ -104,7 +106,7 @@ int32_t caen_qdc_setIped(void* h,int32_t ipedval){
 static int32_t caen_qdc_setThreashold(void* h,int16_t lowres,int16_t hires,int channel){
   _caen_qdc_handle_t* handle = h;
   if((channel<NCHANNELS) && (channel>=0)){
-    DPRINT(CAEN_BOARD " setting threshold channel %d hires=x%x lores=x%x \n",channel,lowres,hires);
+    DPRINT(DEV_BOARD " setting threshold channel %d hires=x%x lores=x%x \n",channel,lowres,hires);
     BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT|OVERRANGE_EN_BIT|LOWTHR_EN_BIT;
 #ifdef CAEN792
       THRS_CHANNEL_REG(handle->mapped_address,channel,0)= lowres&0xff;
@@ -138,7 +140,7 @@ static uint16_t caen_qdc_getStatus(void* h){
   uint16_t ret;
   _caen_qdc_handle_t* handle = h;
   ret = STATUS_REG(handle->mapped_address);
-  DPRINT(CAEN_BOARD " Get Status 0x%x\n",ret);
+  DPRINT(DEV_BOARD " Get Status 0x%x\n",ret);
   return ret;
 }
 
@@ -166,7 +168,7 @@ static uint32_t search_header(_caen_qdc_handle_t* handle){
   a.data  = REG32(handle->mapped_address,0);
   if(a.h.signature==2){
     ret = a.h.cnt;
-    DPRINT(CAEN_BOARD " New Header %u channels acquired\n",ret);
+    DPRINT(DEV_BOARD " New Header %u channels acquired\n",ret);
   }
   return ret;
 }
@@ -175,7 +177,7 @@ static uint32_t search_eoe(_caen_qdc_handle_t* handle){
   uint32_t ret=0;
   a.data  = REG32(handle->mapped_address,0);
   if(a.e.signature==4){
-    DPRINT(CAEN_BOARD " EOE found event counter = %u\n",a.e.ev_counter);
+    DPRINT(DEV_BOARD " EOE found event counter = %u\n",a.e.ev_counter);
     ret= a.e.ev_counter;
   }
   return ret;
@@ -214,15 +216,15 @@ static int acquire_event_channels(void* h,uint32_t *lowres,uint32_t*hires,int st
 	}
 #endif
 	nchannels_acquired++;
-	DPRINT(CAEN_BOARD " [%.2d] acquiring %3s channel %.2d=0x%.3x, acquired %.2d :Underflow:%d Overflow:%d\n", cnt,a.d.rg?"LOW":"HI",a.d.channel,data,nchannels_acquired,a.d.un,a.d.ov);
+	DPRINT(DEV_BOARD " [%.2d] acquiring %3s channel %.2d=0x%.3x, acquired %.2d :Underflow:%d Overflow:%d\n", cnt,a.d.rg?"LOW":"HI",a.d.channel,data,nchannels_acquired,a.d.un,a.d.ov);
 	
       }
     } else if(a.d.signature==4){
     
-      DPRINT(CAEN_BOARD " [%d] EOE found event counter = %d\n",cnt,a.e.ev_counter);
+      DPRINT(DEV_BOARD " [%d] EOE found event counter = %d\n",cnt,a.e.ev_counter);
       break;
     } else if(a.d.signature==6){
-      DPRINT(CAEN_BOARD " [%d] Not valid Data found event counter\n",cnt);
+      DPRINT(DEV_BOARD " [%d] Not valid Data found event counter\n",cnt);
     }
     cnt++;
   }
@@ -270,7 +272,7 @@ static int32_t caen_qdc_acquire_channels_poll(void* h,uint32_t *lowres,uint32_t*
 
   handle->cycle+= events;
   handle->event_counter =counter;
-  // DPRINT(CAEN_BOARD " counter events %u, events %d, totcycle %Ld\n",counter,events,handle->cycle);
+  // DPRINT(DEV_BOARD " counter events %u, events %d, totcycle %Ld\n",counter,events,handle->cycle);
   if(status&CAEN_QDC_STATUS_DREADY){
     ret = acquire_event_channels(handle,lowres,hires,start_channel,nchannels);
   }
@@ -312,14 +314,14 @@ static void* caen_qdc_LV_open(uint32_t mapped_address,errorStruct *error ){
   p->handle = 0;
   p->mapped_address = mapped_address;
   p->cycle = 0;
-  DPRINT(CAEN_BOARD " setting caen_qdc Linux address to @0x%x\n",mapped_address);
+  DPRINT(DEV_BOARD " setting caen_qdc Linux address to @0x%x\n",mapped_address);
 
   boardid=BOARD_ID_REG(mapped_address)&0xFF;
   manufactureid=OUI_REG(mapped_address)&0xFF;
-  DPRINT(CAEN_BOARD " caen_qdc successfully mapped at @0x%x\n",mapped_address);
-  PRINT(CAEN_BOARD " FW:0x%x\n",FW_REVISION_REG(mapped_address));
-  PRINT(CAEN_BOARD " BoardID:0x%x\n",boardid);
-  PRINT(CAEN_BOARD " ManufactureID:0x%x\n",manufactureid);
+  DPRINT(DEV_BOARD " caen_qdc successfully mapped at @0x%x\n",mapped_address);
+  PRINT(DEV_BOARD " FW:0x%x\n",FW_REVISION_REG(mapped_address));
+  PRINT(DEV_BOARD " BoardID:0x%x\n",boardid);
+  PRINT(DEV_BOARD " ManufactureID:0x%x\n",manufactureid);
   if(boardid!=BOARD_ID || manufactureid!=MANUFACTURE_ID){
     ERR("device not identified expected BoardId=0x%x ManufactureId=0x%x\n",BOARD_ID,MANUFACTURE_ID);
     error->status = 2;
@@ -331,7 +333,7 @@ static void* caen_qdc_LV_open(uint32_t mapped_address,errorStruct *error ){
 
 
 static int32_t caen_qdc_LV_close(void* h,errorStruct *error){
- DPRINT(CAEN_BOARD " LV close 0x@%x\n",(uint32_t)h);
+ DPRINT(DEV_BOARD " LV close 0x@%x\n",(uint32_t)h);
   if(h){
     free(h);
   } 
@@ -349,20 +351,20 @@ static int32_t caen_qdc_LV_acquire_channels_poll(void* h,void *lowres,void*hires
   	return 0;
   }
     #ifndef CAEN792
- // DPRINT(CAEN_BOARD " lowres (%d,0x%x), hires (%d,0x%x)\n",(*lv_lowres)->dim,(*lv_lowres)->arg,(*lv_hires)->dim,(*lv_hires)->arg);
+ // DPRINT(DEV_BOARD " lowres (%d,0x%x), hires (%d,0x%x)\n",(*lv_lowres)->dim,(*lv_lowres)->arg,(*lv_hires)->dim,(*lv_hires)->arg);
   if(((*lv_lowres)->dim<NCHANNELS)||((*lv_lowres)->arg==NULL)){
   #if 0
     void * newp = realloc((*lv_lowres)->arg,NCHANNELS*sizeof(uint32_t));
     if(newp){
       uint32_t* tmp=(uint32_t*)&(*lv_lowres)->arg;
-      DPRINT(CAEN_BOARD " reallocating LV low buffer from %d elements to %d @0x%x\n",(*lv_lowres)->dim,NCHANNELS,(uint32_t)newp);
+      DPRINT(DEV_BOARD " reallocating LV low buffer from %d elements to %d @0x%x\n",(*lv_lowres)->dim,NCHANNELS,(uint32_t)newp);
       *tmp = (uint32_t)newp;
       //(*lv_lowres)->arg = (uint32_t* )newp;
       (*lv_lowres)->dim = NCHANNELS;
     }
   #else
   numOfComp=NCHANNELS;
-  DPRINT(CAEN_BOARD " reallocating LV low buffer (@0x%x) from %d elements to %d\n",(uint32_t)(*lv_lowres)->arg,(*lv_lowres)->dim,NCHANNELS);
+  DPRINT(DEV_BOARD " reallocating LV low buffer (@0x%x) from %d elements to %d\n",(uint32_t)(*lv_lowres)->arg,(*lv_lowres)->dim,NCHANNELS);
   checkI32Array(lv_lowres,&numOfComp,error);
   if(error->status){
   	ERR("Resizing array @0x%x\n",(uint32_t)lv_lowres);
@@ -379,14 +381,14 @@ static int32_t caen_qdc_LV_acquire_channels_poll(void* h,void *lowres,void*hires
     void * newp = realloc((*lv_hires)->arg,NCHANNELS*sizeof(uint32_t));
     if(newp){
       uint32_t* tmp=(uint32_t*)&(*lv_hires)->arg;
-      DPRINT(CAEN_BOARD " reallocating LV hi buffer from %d elements to %d\n",(*lv_hires)->dim,NCHANNELS,(uint32_t)newp);
+      DPRINT(DEV_BOARD " reallocating LV hi buffer from %d elements to %d\n",(*lv_hires)->dim,NCHANNELS,(uint32_t)newp);
     //  (*lv_hires)->arg = (uint32_t*)newp;
       *tmp= (uint32_t)newp;
       (*lv_hires)->dim = NCHANNELS;
     }
     #else
     numOfComp=NCHANNELS;
-    DPRINT(CAEN_BOARD " reallocating LV hi buffer (@0x%x) from %d elements to %d\n",(uint32_t)(*lv_hires)->arg,(*lv_hires)->dim,NCHANNELS);
+    DPRINT(DEV_BOARD " reallocating LV hi buffer (@0x%x) from %d elements to %d\n",(uint32_t)(*lv_hires)->arg,(*lv_hires)->dim,NCHANNELS);
   	checkI32Array(lv_hires,&numOfComp,error);
   	if(error->status){
   		ERR("Resizing array @0x%x\n",(uint32_t)lv_hires);
@@ -402,7 +404,7 @@ static int32_t caen_qdc_LV_acquire_channels_poll(void* h,void *lowres,void*hires
 
     ret =caen_qdc_acquire_channels_poll(h,(uint32_t *)(*lv_lowres)->arg,(uint32_t*)(*lv_hires)->arg,0,NCHANNELS,&counter,timeo_ms); 
     *event_under_run = (handle->cycle - old_counter) -1;
-    DPRINT(CAEN_BOARD " [x%x]acquired %d channels, event underrun %d\n",handle->mapped_address,ret,*event_under_run);
+    DPRINT(DEV_BOARD " [x%x]acquired %d channels, event underrun %d\n",handle->mapped_address,ret,*event_under_run);
 
   } else {
     ERR("INVALID INPUT POINTERS lowres:@x%x,hires:@x%x\n",(unsigned)(*lv_lowres)->arg,(unsigned)(*lv_hires)->arg);

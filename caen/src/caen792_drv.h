@@ -7,7 +7,7 @@
 typedef void* caen792_handle_t;
 
 /**
-	open the caen265 device and return an handle to it
+	open the caen792 device and return an handle to it
 	@param address the vme address of the board
 	@return an handle or zero if error
 */
@@ -15,7 +15,7 @@ caen792_handle_t caen792_open(uint32_t address);
 
 
 /**
-	close the caen265 device
+	close the caen792 device
 	@param handle to the board
 	@return zero if success
 */

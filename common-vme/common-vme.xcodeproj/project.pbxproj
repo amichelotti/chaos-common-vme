@@ -15,18 +15,19 @@
 		53CC48BB1A9C890D00DA2B24 /* caen513_drv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = caen513_drv.c; path = ../caen/src/caen513_drv.c; sourceTree = "<group>"; };
 		53CC48BC1A9C890D00DA2B24 /* caen792_drv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = caen792_drv.c; path = ../caen/src/caen792_drv.c; sourceTree = "<group>"; };
 		53CC48BD1A9C890D00DA2B24 /* caen965_drv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = caen965_drv.c; path = ../caen/src/caen965_drv.c; sourceTree = "<group>"; };
-		53CC48BF1A9C92AE00DA2B24 /* test_qdc_caen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test_qdc_caen.c; path = ../caen/src/test_qdc_caen.c; sourceTree = "<group>"; };
 		53CC48C01A9C92E900DA2B24 /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CMakeLists.txt; path = ../CMakeLists.txt; sourceTree = "<group>"; };
 		53CC48C21A9C96C400DA2B24 /* vmewrap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vmewrap.h; path = ../vmewrap/vmewrap.h; sourceTree = "<group>"; };
 		53CC48C31A9C96C400DA2B24 /* vmewrap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vmewrap.c; path = ../vmewrap/vmewrap.c; sourceTree = "<group>"; };
+		53CC48C41A9CB58A00DA2B24 /* sis3800_drv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sis3800_drv.h; path = ../sis/sis3800_drv.h; sourceTree = "<group>"; };
+		53CC48C51A9CB58A00DA2B24 /* sis3800_drv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sis3800_drv.c; path = ../sis/sis3800_drv.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		53CC48AB1A9C88D600DA2B24 = {
 			isa = PBXGroup;
 			children = (
-				53CC48C21A9C96C400DA2B24 /* vmewrap.h */,
-				53CC48C31A9C96C400DA2B24 /* vmewrap.c */,
+				53CC48C61A9CB59200DA2B24 /* sis */,
+				53CC48C71A9CB5A100DA2B24 /* core */,
 				53CC48C01A9C92E900DA2B24 /* CMakeLists.txt */,
 				53CC48C11A9C96AE00DA2B24 /* caen */,
 			);
@@ -35,7 +36,6 @@
 		53CC48C11A9C96AE00DA2B24 /* caen */ = {
 			isa = PBXGroup;
 			children = (
-				53CC48BF1A9C92AE00DA2B24 /* test_qdc_caen.c */,
 				53CC48B61A9C890D00DA2B24 /* caen_qdc.h */,
 				53CC48B71A9C890D00DA2B24 /* caen513_drv.h */,
 				53CC48B81A9C890D00DA2B24 /* caen792_drv.h */,
@@ -46,6 +46,24 @@
 				53CC48BD1A9C890D00DA2B24 /* caen965_drv.c */,
 			);
 			name = caen;
+			sourceTree = "<group>";
+		};
+		53CC48C61A9CB59200DA2B24 /* sis */ = {
+			isa = PBXGroup;
+			children = (
+				53CC48C41A9CB58A00DA2B24 /* sis3800_drv.h */,
+				53CC48C51A9CB58A00DA2B24 /* sis3800_drv.c */,
+			);
+			name = sis;
+			sourceTree = "<group>";
+		};
+		53CC48C71A9CB5A100DA2B24 /* core */ = {
+			isa = PBXGroup;
+			children = (
+				53CC48C21A9C96C400DA2B24 /* vmewrap.h */,
+				53CC48C31A9C96C400DA2B24 /* vmewrap.c */,
+			);
+			name = core;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

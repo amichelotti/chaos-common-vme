@@ -91,7 +91,7 @@ typedef struct _data {
   uint32_t geo:5;
 } data_t;
 #define NCHANNELS 32
-#define CAEN_BOOARD "CAEN792"
+#define DEV_BOARD "CAEN792"
 #define BOARD_ID 0x3
 #define MANUFACTURE_ID 0x40
 #define VERSION_ID 0x11
@@ -109,14 +109,14 @@ typedef struct _data {
   uint32_t signature:3;
   uint32_t geo:5;
 } data_t;
-#define CAEN_BOOARD "CAEN965"
+#define DEV_BOARD "CAEN965"
 #define NCHANNELS 16
 #define BOARD_ID 0x3
 #define MANUFACTURE_ID 0x40
 #define VERSION_ID 0
 
 #else
-#errro "UKNWON CAEN BOARD"
+#error "UKNWON CAEN BOARD"
 #endif
 #endif
 
@@ -147,6 +147,9 @@ typedef struct __vme_handle__ {
   uint32_t mapped_address;
   uint32_t event_counter;
   uint64_t cycle;
+  int boardid;
+  int version;
+  int manufactureid;
 } _caen_qdc_handle_t ;
 
 
