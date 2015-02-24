@@ -4,28 +4,6 @@
 
 #include <stdint.h>
 
-#define BOARD_ID 0x3
-#define MANUFACTURE_ID 0x40
-#define NCHANNELS 32
-/* 
-   status bits
-*/
-#define CAEN792_STATUS_DREADY 0x1 /* data ready */
-#define CAEN792_STATUS_GDREADY 0x2 /* global data ready, at least one board has data ready */
-
-#define CAEN792_STATUS_BUSY 0x4 /* board busy */
-#define CAEN792_STATUS_GBUSY 0x8 /* global busy */
-
-#define CAEN792_STATUS_PURGE 0x20 /* board purged */
-#define CAEN792_STATUS_EVRDY 0x100 /* event ready */
-
-/* 
-   buffer status bits
-*/
-#define CAEN792_STATUS_BUFFER_EMPTY 0x2
-#define CAEN792_STATUS_BUFFER_FULL 0x4
-
-
 typedef void* caen792_handle_t;
 
 /**
@@ -65,22 +43,20 @@ int32_t caen792_setIped(caen792_handle_t h,int32_t ipedval);
 /**
 	set the threashold (hires,lowres) value for a given channel
 	@param h handle to the board
-	@param lowres 8 bit value
-	@param hires 8 bit value
+	@param res 8 bit value
 	@param channel channel id
 	@return zero if success, 
 */
-int32_t caen792_setThreashold(caen792_handle_t h,int16_t lowres,int16_t hires,int channel);
+int32_t caen792_setThreashold(caen792_handle_t h,int16_t res,int channel);
 
 /**
 	get the threashold (hires,lowres) value for a given channel
 	@param h handle to the board
-	@param lowres 8 bit value
-	@param hires 8 bit value
+	@param res 8 bit value
 	@param channel channel id
 	@return zero if success, 
 */
-int32_t caen792_getThreashold(caen792_handle_t h,int16_t* lowres,int16_t* hires,int channel);
+int32_t caen792_getThreashold(caen792_handle_t h,int16_t* res,int channel);
 
 
 /**
@@ -107,15 +83,14 @@ uint16_t caen792_getBufferStatus(caen792_handle_t h);
 /**
 	acquire the number of channels given
 	@param handle to the board
-	@param lowres buffer (0:900pC)
-	@param hires buffer (0:100pC)
+	@param res buffer
 	@param start_channel start channel to acquire
 	@param nchannels number of channels to acquire
 	@param timeo_ms timeout in ms
 	@return the number of events acquired (0 no events)
 */
 
-int32_t caen792_acquire_channels_poll(caen792_handle_t handle,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms);
+int32_t caen792_acquire_channels_poll(caen792_handle_t handle,uint32_t *res,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms);
 
 #ifdef LABVIEW
 #include "extcode.h"
@@ -152,14 +127,13 @@ caen792_handle_t caen792_LV_open(uint32_t mapped_address,errorStruct* error);
 /**
 	acquire all the channels, to be used from LV
 	@param handle to the board
-	@param lowres buffer (0:900pC)
-	@param hires buffer (0:100pC)
+	@param res buffer (0:900pC)
 	@param event_under_run returns the difference from last and current acquire cycle -1 (0= no event under run, >0 = underrun, <0 no acquisition)
 	@param timeo_ms timeout in ms
 	@param error LV error struct
 	@return the number of events acquired (0 no events, negative error)
 */
-int32_t caen792_LV_acquire_channels_poll(caen792_handle_t handle,void *lowres,void*hires,int32_t* event_under_run,int timeo_ms,errorStruct* error);
+int32_t caen792_LV_acquire_channels_poll(caen792_handle_t handle,void *res,int32_t* event_under_run,int timeo_ms,errorStruct* error);
 
 #endif
 

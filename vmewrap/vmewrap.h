@@ -1,6 +1,8 @@
+#ifndef _VMEWRAP_H_
+#define _VMEWRAP_H_
+
 #include <stdio.h>
 #include <stdint.h>
-
 #ifdef DEBUG
 #define DPRINT(str,ARGS...) printf("[%llu] %s:" str,getUsTime(), __FUNCTION__, ##ARGS)
 #else
@@ -64,6 +66,6 @@ uint32_t vmewrap_get_vme_master_linux_add(vmewrap_vme_handle_t  handle);
 	@return the slave mapped address
 */
 uint32_t vmewrap_get_vme_slave_linux_add(vmewrap_vme_handle_t  handle);
-
+#endif
 
 

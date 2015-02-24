@@ -50,20 +50,20 @@
 /* 
    status bits
 */
-#define CAEN965_STATUS_DREADY 0x1 /* data ready */
-#define CAEN965_STATUS_GDREADY 0x2 /* global data ready, at least one board has data ready */
+#define CAEN_QDC_STATUS_DREADY 0x1 /* data ready */
+#define CAEN_QDC_STATUS_GDREADY 0x2 /* global data ready, at least one board has data ready */
 
-#define CAEN965_STATUS_BUSY 0x4 /* board busy */
-#define CAEN965_STATUS_GBUSY 0x8 /* global busy */
+#define CAEN_QDC_STATUS_BUSY 0x4 /* board busy */
+#define CAEN_QDC_STATUS_GBUSY 0x8 /* global busy */
 
-#define CAEN965_STATUS_PURGE 0x20 /* board purged */
-#define CAEN965_STATUS_EVRDY 0x100 /* event ready */
+#define CAEN_QDC_STATUS_PURGE 0x20 /* board purged */
+#define CAEN_QDC_STATUS_EVRDY 0x100 /* event ready */
 
 /* 
    buffer status bits
 */
-#define CAEN965_STATUS_BUFFER_EMPTY 0x2
-#define CAEN965_STATUS_BUFFER_FULL 0x4
+#define CAEN_QDC_STATUS_BUFFER_EMPTY 0x2
+#define CAEN_QDC_STATUS_BUFFER_FULL 0x4
 
 
 
@@ -79,6 +79,7 @@ typedef struct _header {
 
 
 #ifdef CAEN792
+
 typedef struct _data {
   uint32_t adc:12;
   uint32_t ov:1;
@@ -89,8 +90,14 @@ typedef struct _data {
   uint32_t signature:3;
   uint32_t geo:5;
 } data_t;
-
+#define NCHANNELS 32
+#define CAEN_BOOARD "CAEN792"
+#define BOARD_ID 0x3
+#define MANUFACTURE_ID 0x40
+#define VERSION_ID 0x11
 #else
+
+#ifdef CAEN965
 typedef struct _data {
   uint32_t adc:12;
   uint32_t ov:1;
@@ -102,6 +109,15 @@ typedef struct _data {
   uint32_t signature:3;
   uint32_t geo:5;
 } data_t;
+#define CAEN_BOOARD "CAEN965"
+#define NCHANNELS 16
+#define BOARD_ID 0x3
+#define MANUFACTURE_ID 0x40
+#define VERSION_ID 0
+
+#else
+#errro "UKNWON CAEN BOARD"
+#endif
 #endif
 
 typedef struct _eob {

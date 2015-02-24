@@ -2,9 +2,6 @@
 #define __CAEN965_H__
 #include <stdint.h>
 
-#define BOARD_ID 0x3
-#define MANUFACTURE_ID 0x40
-#define NCHANNELS 16
 typedef void* caen965_handle_t;
 
 /**

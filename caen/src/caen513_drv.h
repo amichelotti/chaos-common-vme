@@ -15,12 +15,11 @@
 #define V513_STROBE_ENABLE_INT   2
 #define V513_STROBE_DISABLE_INT  0
 
-#define BOARD_ID 0x3
-#define MANUFACTURE_ID 0x40
+#define MANUFACTURE_ID 0x832
 #define NCHANNELS 16
 
 
-#define 
+ 
 typedef void* caen513_handle_t;
 
 /**

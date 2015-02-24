@@ -10,13 +10,13 @@ LINK_DIRECTORIES(./lib)
     set (CMAKE_LINK_FLAGS "-m32")
 
 SET(vmewrap_src vmewrap/vmewrap.c)
-SET(caen_src caen/src/caen960_drv.c caen/src/caen513_drv.c )
-SET(caen960_test_src caen/src/test_caen960.c )
+SET(caen_src caen/src/caen965_drv.c caen/src/caen513_drv.c caen/src/caen792_drv.c )
+SET(caen960_test_src caen/src/test_qdc_caen.c )
 
 
 ADD_LIBRARY(common_vme SHARED ${caen_src} ${vmewrap_src})
-ADD_EXECUTABLE(caen960_test ${caen960_test_src})
-TARGET_LINK_LIBRARIES(caen960_test common_vme_caen vme)
+ADD_EXECUTABLE(caen_qdc_test ${caen960_test_src})
+TARGET_LINK_LIBRARIES(caen_qdc_test common_vme vme)
 
 INSTALL_TARGETS(/lib  common_vme)
-INSTALL_TARGETS(/bin caen960_test)
+INSTALL_TARGETS(/bin caen_qdc_test)

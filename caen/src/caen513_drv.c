@@ -13,11 +13,9 @@
 
 // Register map
 
-#define FW_REVISION_REG(base) REG16(base,0x1000)
-#define BOARD_ID_REG(base) REG16(base,0x803A)
-#define BOARD_ID_LSB_REG(base) REG16(base,0x803E)
-#define BOARD_ID_MSB_REG(base) REG16(base,0x8036)
-
+#define VERSION_REG(base) REG16(base,0xFE)
+#define BOARD_ID_REG(base) REG16(base,0xFA)
+#define MANUFACTURE_ID_REG(base) REG16(base,0xFC)
 typedef struct __vme_handle__ {
  vmewrap_vme_handle_t vme;
   uint32_t mapped_address;
@@ -51,15 +49,14 @@ caen513_handle_t caen513_open(uint32_t address ){
   }
   p->vme = vme;
   p->mapped_address = mapped_address;
-  p->cycle = 0;
   boardid=BOARD_ID_REG(mapped_address)&0xFF;
-  manufactureid=OUI_REG(mapped_address)&0xFF;
-  DPRINT("caen513 successfully mapped at @0x%x\n",mapped_address);
-  PRINT("CV 965 FW:0x%x\n",FW_REVISION_REG(mapped_address));
-  PRINT("CV 965 BoardID:0x%x\n",boardid);
-  PRINT("CV 965 Manufacture:0x%x\n",manufactureid);
-  if(boardid!=BOARD_ID || manufactureid!=MANUFACTURE_ID){
-    ERR("device not identified expected BoardId=0x%x ManufactureId=0x%x\n",BOARD_ID,MANUFACTURE_ID);
+  manufactureid=MANUFACTURE_ID_REG(mapped_address)&0xFF;
+  DPRINT("CAEN513 successfully mapped at @0x%x\n",mapped_address);
+  PRINT("CAEN513 Version:0x%x\n",VERSION_REG(mapped_address));
+  PRINT("CAEN513 BoardID:0x%x\n",boardid);
+  PRINT("CAEN513 Manufacture:0x%x\n",manufactureid);
+  if(manufactureid!=MANUFACTURE_ID){
+    ERR("device not identified expected ManufactureId=0x%x\n",MANUFACTURE_ID);
     caen513_close((caen513_handle_t)p);
     return 0;
   }
