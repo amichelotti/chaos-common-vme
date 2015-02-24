@@ -95,7 +95,7 @@ static int32_t caen_qdc_init(void* h,int32_t crate_num,int hwreset){
   return 0;
 }
 
-int32_t caen_qdc_setIped(void* h,int32_t ipedval){
+static int32_t caen_qdc_setIped(void* h,int32_t ipedval){
   _caen_qdc_handle_t* handle = h;
   DPRINT(DEV_BOARD " setting ipedval=x%x\n",ipedval);
   IPED_REG(handle->mapped_address)=ipedval;

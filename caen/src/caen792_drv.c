@@ -19,6 +19,9 @@
 caen792_handle_t caen792_open(uint32_t address ){
     return caen_qdc_open(address);
 }
+int32_t caen792_close(caen792_handle_t h){
+    return caen_qdc_close(h);
+}
 
 
 int32_t caen792_init(caen792_handle_t h,int32_t crate_num,int hwreset){

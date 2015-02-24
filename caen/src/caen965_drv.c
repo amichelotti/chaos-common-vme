@@ -25,6 +25,10 @@ int32_t caen965_init(caen965_handle_t h,int32_t crate_num,int hwreset){
     return caen_qdc_init(h,crate_num,hwreset);
 }
 
+int32_t caen965_close(caen965_handle_t h){
+    return caen_qdc_close(h);
+}
+
 int32_t caen965_setIped(caen965_handle_t h,int32_t ipedval){
    return caen_qdc_setIped(h,ipedval);
 }

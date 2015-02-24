@@ -1,10 +1,20 @@
 #include "caen965_drv.h"
 #include "caen792_drv.h"
+#include "caen513_drv.h"
+#include "sis3800_drv.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define USAGE printf("%s <965|792> <caen960 vme address> [#acquire cycles] [## timeout acquiring ms ]\n",argv[0]);
+#define USAGE printf("%s <conffile> [#acquire cycles] [## timeout acquiring ms ]\n",argv[0]);
 
+#define OPENDEV(_x)						\
+  if(_x ## _addr && (handle_## _x= _x ## _open(_x ## _addr))){ \
+    printf("* " # _x " successfully mapped\n");\
+  } else {\
+      printf("## cannot map " # _x " address 0x%x\n",_x ## _addr);\
+    return -2;\
+  }
 
 void dump_channels(FILE*o,uint32_t *chan,uint64_t cycle,int channels){
     int cnt;
@@ -16,93 +26,63 @@ void dump_channels(FILE*o,uint32_t *chan,uint64_t cycle,int channels){
 int main(int argc,char**argv){
   unsigned long address=0;
   void* caen;
+  char*conf_file;
+  FILE* fconf_file;
   uint32_t acquire_cycles=0;
   uint32_t acquire_timeo=0;
-  uint32_t low[16],hi[16],ch[32];
-    
+  uint32_t low[16],hi[16],ch[32],counters[32];
+  uint32_t caen513_addr=0,caen965_addr=0,caen792_addr=0,sis3800_addr=0;
   uint64_t cycle=0;
+  caen965_handle_t handle_caen965=NULL;
+  caen792_handle_t handle_caen792=NULL;
+  caen513_handle_t handle_caen513=NULL;
+  sis3800_handle_t handle_sis3800=NULL;
+
   int is965=1;
   int cnt;
     FILE*out;
-  if(argc<3){
+  if(argc<2){
     USAGE;
     return 1;
   }
-    if(strstr(argv[1],"792")){
-        is965=0;
-    } else if(!strstr(argv[1],"965")){
-        printf("## incalid QDC device %s\n",argv[1]);
-        return -2;
-    }
-  address = strtoul(argv[2],0,0);
-  if(argc>3){
-    acquire_cycles = strtoul(argv[2],0,0);
-    printf("* number of acquisitions %d\n",acquire_cycles);
-  }
-
-  if(argc>4){
-    acquire_timeo = strtoul(argv[3],0,0);
-    printf("* timeout set to %d ms\n",acquire_timeo);
-  }
-  printf("* opening caen at address @0x%lx\n",address);
-    if(is965){
-        caen = caen965_open(address);
-    } else {
-        caen = caen792_open(address);
-    }
-    
-    out=fopen("caen_data.out","w");
-    if(out){
-        printf("* opened caen_data.out\n");
-        
-    } else {
-        printf("## cannot open caen_data.out for write\n");
-        return -1;
-    }
-    
-  if(caen){
-      int stat,bufstat;
-      if(is965){
-          caen965_init(caen,1,1);
-          stat=caen965_getStatus(caen);
-          bufstat=caen965_getBufferStatus(caen);
-          fprintf(out,"===CAEN 965 stat :0x%x buf stat:0x%x",stat,bufstat);
-      } else {
-          caen792_init(caen,1,1);
-          stat=caen792_getStatus(caen);
-          bufstat=caen792_getBufferStatus(caen);
-          fprintf(out,"===CAEN 792 stat :0x%x buf stat:0x%x",stat,bufstat);
-
-
-      }
-    cnt = acquire_cycles;
-
-    printf("* Status 0x%x, Buffer status 0x%x, acquiring ... \n",stat ,bufstat);
-    while((acquire_cycles==0) || (cnt>=0)){
-      int ret;
-       if(is965){
-           ret = caen965_acquire_channels_poll(caen,low,hi,0,16,&cycle,acquire_timeo);
-           dump_channels(out,low,cycle,ret);
-           dump_channels(out,hi,cycle,ret);
-       } else {
-           ret = caen792_acquire_channels_poll(caen,ch,0,32,&cycle,acquire_timeo);
-           dump_channels(out,ch,cycle,ret);
-
-       }
-      printf("* acquired %d channels, events:%lld\n",ret,cycle);
-      cnt--;
-    }
-    if(is965){
-        caen965_close(caen);
-    } else {
-        caen792_close(caen);
-
-    }
-  } else {
-    printf("## cannot open caen960 device\n");
+  conf_file=argv[1];
+  fconf_file=fopen(conf_file,"r");
+  if(fconf_file==NULL){
+    printf("## cannot open configuration file \"%s\"\n",conf_file);
     return -1;
   }
-
-    fclose(out);
-    return 0;
+  while(!feof(fconf_file)){
+    if(fscanf(fconf_file,"pio:%x",&caen513_addr)==1){
+      printf("* pio(caen 513) address 0x%x\n",caen513_addr);
+    }
+    if(fscanf(fconf_file,"scaler:%x",&sis3800_addr)==1){
+      printf("* scaler (sis3800) address 0x%x\n",sis3800_addr);
+    }
+    if(fscanf(fconf_file,"qdc965:%x",&caen965_addr)==1){
+      printf("* qdc965 (caen965) address 0x%x\n",caen965_addr);
+    }
+    if(fscanf(fconf_file,"qdc792:%x",&caen792_addr)==1){
+      printf("* qdc792 (caen792) address 0x%x\n",caen792_addr);
+    }
+  }
+  fclose(fconf_file);
+  OPENDEV(caen513);
+  OPENDEV(caen965);
+  OPENDEV(caen792);
+  OPENDEV(sis3800);
+  /*
+    if(caen513_addr && (handle_pio=caen513_open(caen513_addr))){
+    printf("* pio successfully mapped\n");
+    } else {
+    printf("## cannot map pio address 0x%x\n",caen513_addr);
+    return -2;
+    }
+    if(caen965_addr && (handle_qdc9=caen965_open(caen965_addr))){
+    printf("* qdc965 successfully mapped\n");
+    } else {
+    printf("## cannot map pio address 0x%x\n",caen965_addr);
+    return -2;
+    }
+  */
+  return 0;
 }

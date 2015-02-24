@@ -3,7 +3,7 @@ IF( DEFINED ENV{CHAOS_BUNDLE} )
   include($ENV{CHAOS_BUNDLE}/tools/project_template/CMakeChaos.txt)
 ENDIF()
 
-INCLUDE_DIRECTORIES(vme vmewrap)
+INCLUDE_DIRECTORIES(vme vmewrap caen/src sis/)
 LINK_DIRECTORIES(./lib)
     set (CMAKE_C_FLAGS "-m32")
     set (CMAKE_CXX_FLAGS "-m32")
