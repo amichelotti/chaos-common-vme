@@ -8,8 +8,11 @@
 #include <string.h>
 #define USAGE printf("%s <conffile> [#acquire cycles] [## timeout acquiring ms ]\n",argv[0]);
 
+#define CLOSEDEV(_x) \
+  _x ## close(_x ## _handle);
+
 #define OPENDEV(_x)						\
-  if(_x ## _addr && (handle_## _x= _x ## _open(_x ## _addr))){ \
+  if(_x ## _addr && (_x ## _handle = _x ## _open(_x ## _addr))){ \
     printf("* " # _x " successfully mapped\n");\
   } else {\
       printf("## cannot map " # _x " address 0x%x\n",_x ## _addr);\
@@ -18,6 +21,7 @@
 
 void dump_channels(FILE*o,uint32_t *chan,uint64_t cycle,int channels){
     int cnt;
+    fprintf(o,"\n");
     for(cnt=0;cnt<channels;cnt++){
         fprintf(o,"- %lld [%d] = 0x%x\n",cycle,cnt,chan[cnt]);
     }
@@ -28,15 +32,16 @@ int main(int argc,char**argv){
   void* caen;
   char*conf_file;
   FILE* fconf_file;
+  int ret;
   uint32_t acquire_cycles=0;
   uint32_t acquire_timeo=0;
   uint32_t low[16],hi[16],ch[32],counters[32];
   uint32_t caen513_addr=0,caen965_addr=0,caen792_addr=0,sis3800_addr=0;
-  uint64_t cycle=0;
-  caen965_handle_t handle_caen965=NULL;
-  caen792_handle_t handle_caen792=NULL;
-  caen513_handle_t handle_caen513=NULL;
-  sis3800_handle_t handle_sis3800=NULL;
+  uint64_t cycle0=0,cycle1=0,loop_time_start=0;
+  caen965_handle_t caen965_handle=NULL;
+  caen792_handle_t caen792_handle=NULL;
+  caen513_handle_t caen513_handle=NULL;
+  sis3800_handle_t sis3800_handle=NULL;
 
   int is965=1;
   int cnt;
@@ -66,23 +71,42 @@ int main(int argc,char**argv){
     }
   }
   fclose(fconf_file);
+  out=fopen("btf_daq.txt","w");
   OPENDEV(caen513);
   OPENDEV(caen965);
   OPENDEV(caen792);
   OPENDEV(sis3800);
-  /*
-    if(caen513_addr && (handle_pio=caen513_open(caen513_addr))){
-    printf("* pio successfully mapped\n");
-    } else {
-    printf("## cannot map pio address 0x%x\n",caen513_addr);
-    return -2;
+  caen513_init(caen513_handle,V513_CHANMODE_OUTPUT); //default all output
+  caen965_init(caen965_handle,0,1);
+  caen792_init(caen792_handle,0,1);
+  sis3800_init(sis3800_handle);
+  caen513_setChannelMode(caen513_handle,15, V513_CHANMODE_INPUT); // trigger in
+  caen513_setChannelMode(caen513_handle,0, V513_CHANMODE_OUTPUT); // veto out
+
+  while(1){
+    loop_time_start=getUsTime();
+    while((caen513_get(caen513_handle)&0x8000)==0); // wait trigger 
+    caen513_set(caen513_handle,1); //assert veto
+    ret = caen965_acquire_channels_poll(caen965_handle,low,hi,0,16,&cycle0,0);
+    if(ret){
+      dump_channels(out,low,cycle0,ret);
+      dump_channels(out,hi,cycle0,ret);
     }
-    if(caen965_addr && (handle_qdc9=caen965_open(caen965_addr))){
-    printf("* qdc965 successfully mapped\n");
-    } else {
-    printf("## cannot map pio address 0x%x\n",caen965_addr);
-    return -2;
+    ret = caen792_acquire_channels_poll(caen792_handle,ch,0,32,&cycle1,0);
+    if(ret){
+      dump_channels(out,ch,cycle1,ret);
     }
-  */
+    counters[0] = sis3800_readCounter(sis3800_handle,30);
+    counters[1] = sis3800_readCounter(sis3800_handle,31);
+    dump_channels(out,counters,cycle1,2);
+    printf("%llu, %llu end acquire %llu us\n",cycle0,cycle1,getUsTime()-loop_time_start);
+    caen513_set(caen513_handle,0); //de-assert veto
+  }
+  
+  CLOSEDEV(caen513);
+  CLOSEDEV(caen965);
+  CLOSEDEV(caen792);
+  CLOSEDEV(sis3800);
+  
   return 0;
 }

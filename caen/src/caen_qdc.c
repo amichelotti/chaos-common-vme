@@ -249,7 +249,9 @@ static int32_t caen_qdc_acquire_channels_poll(void* h,uint32_t *lowres,uint32_t*
   // AMI 7/11/2013
   for(cnt=0;cnt<nchannels;cnt++){
    lowres[cnt]=0;
+#ifdef CAEN965
    hires[cnt]=0;
+#endif
   }
   //
   do{
