@@ -49,8 +49,8 @@ caen513_handle_t caen513_open(uint32_t address ){
   }
   p->vme = vme;
   p->mapped_address = mapped_address;
-  boardid=BOARD_ID_REG(mapped_address)&0xFF;
-  manufactureid=MANUFACTURE_ID_REG(mapped_address)&0xFF;
+  boardid=BOARD_ID_REG(mapped_address)&0xFFFF;
+  manufactureid=MANUFACTURE_ID_REG(mapped_address)&0xFFFF;
   DPRINT("CAEN513 successfully mapped at @0x%x\n",mapped_address);
   PRINT("CAEN513 Version:0x%x\n",VERSION_REG(mapped_address));
   PRINT("CAEN513 BoardID:0x%x\n",boardid);
@@ -130,8 +130,11 @@ void caen513_clearStrobe(caen513_handle_t h){
 
 int32_t caen513_init(caen513_handle_t h,int mode){
   _caen513_handle_t* handle = (_caen513_handle_t*)h;
-  REG16(handle->mapped_address,0x46)=mode;
+  if(mode>=0)
+    REG16(handle->mapped_address,0x46)=mode;
+
   caen513_reset(h);
+  caen513_clear(h);
   return 0;
 }
 

@@ -274,7 +274,7 @@ static int32_t caen_qdc_acquire_channels_poll(void* h,uint32_t *lowres,uint32_t*
 
   handle->cycle+= events;
   handle->event_counter =counter;
-  // DPRINT(DEV_BOARD " counter events %u, events %d, totcycle %Ld\n",counter,events,handle->cycle);
+  DPRINT(DEV_BOARD " counter events %u, events %d, totcycle %Ld\n",counter,events,handle->cycle);
   if(status&CAEN_QDC_STATUS_DREADY){
     ret = acquire_event_channels(handle,lowres,hires,start_channel,nchannels);
   }

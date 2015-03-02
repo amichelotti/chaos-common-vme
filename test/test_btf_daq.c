@@ -21,10 +21,41 @@
 
 void dump_channels(FILE*o,uint32_t *chan,uint64_t cycle,int channels){
     int cnt;
-    fprintf(o,"\n");
+    return;
+    fprintf(o,"-\n");
     for(cnt=0;cnt<channels;cnt++){
         fprintf(o,"- %lld [%d] = 0x%x\n",cycle,cnt,chan[cnt]);
     }
+}
+
+// the PIO doesn't set the line reliably
+// an output is feedbacked into the input to be sure is reset
+static void resetTM(caen513_handle_t caen513_handle){
+  unsigned pio;
+  int timeo_counter=0;
+    
+  caen513_clear(caen513_handle);
+  caen513_set(caen513_handle,0x7); // reset veto flip flop 
+  while(((pio=caen513_get(caen513_handle))&0x4000)==0){
+    //caen513_clear(caen513_handle);
+
+    if(timeo_counter%1000 == 0){
+      printf("waiting ACK 1 :0x%x\n",pio);
+    }
+    timeo_counter++;
+    caen513_set(caen513_handle,0x7); // reset veto flip flop 
+  }
+  caen513_clear(caen513_handle);
+  caen513_set(caen513_handle,0x0); // reset veto flip flop 
+  timeo_counter=0;
+  while(((pio=caen513_get(caen513_handle))&0x4000)!=0){
+
+    if(timeo_counter%1000 == 0){
+      printf("waiting ACK 0 :0x%x\n",pio);
+    }
+    timeo_counter++;
+    caen513_set(caen513_handle,0x0); // reset veto flip flop 
+  }
 }
 
 int main(int argc,char**argv){
@@ -35,14 +66,15 @@ int main(int argc,char**argv){
   int ret;
   uint32_t acquire_cycles=0;
   uint32_t acquire_timeo=0;
+  int timeo_counter=0;
   uint32_t low[16],hi[16],ch[32],counters[32];
   uint32_t caen513_addr=0,caen965_addr=0,caen792_addr=0,sis3800_addr=0;
-  uint64_t cycle0=0,cycle1=0,loop_time_start=0;
+  uint64_t loop=0,cycle0=0,cycle1=0,loop_time_start=0;
   caen965_handle_t caen965_handle=NULL;
   caen792_handle_t caen792_handle=NULL;
   caen513_handle_t caen513_handle=NULL;
   sis3800_handle_t sis3800_handle=NULL;
-
+  int32_t pio;
   int is965=1;
   int cnt;
     FILE*out;
@@ -57,16 +89,18 @@ int main(int argc,char**argv){
     return -1;
   }
   while(!feof(fconf_file)){
-    if(fscanf(fconf_file,"pio:%x",&caen513_addr)==1){
+    char stringa[256];
+    fgets(stringa,sizeof(stringa),fconf_file);
+    if(sscanf(stringa,"pio:%x",&caen513_addr)==1){
       printf("* pio(caen 513) address 0x%x\n",caen513_addr);
     }
-    if(fscanf(fconf_file,"scaler:%x",&sis3800_addr)==1){
+    if(sscanf(stringa,"scaler:%x",&sis3800_addr)==1){
       printf("* scaler (sis3800) address 0x%x\n",sis3800_addr);
     }
-    if(fscanf(fconf_file,"qdc965:%x",&caen965_addr)==1){
+    if(sscanf(stringa,"qdc965:%x",&caen965_addr)==1){
       printf("* qdc965 (caen965) address 0x%x\n",caen965_addr);
     }
-    if(fscanf(fconf_file,"qdc792:%x",&caen792_addr)==1){
+    if(sscanf(stringa,"qdc792:%x",&caen792_addr)==1){
       printf("* qdc792 (caen792) address 0x%x\n",caen792_addr);
     }
   }
@@ -76,31 +110,90 @@ int main(int argc,char**argv){
   OPENDEV(caen965);
   OPENDEV(caen792);
   OPENDEV(sis3800);
-  caen513_init(caen513_handle,V513_CHANMODE_OUTPUT); //default all output
+  //  caen513_init(caen513_handle,V513_CHANMODE_INPUT|V513_CHANMODE_POS|V513_CHANMODE_TRANSP); //default all output
+  caen513_init(caen513_handle,-1); //use board defaults
   caen965_init(caen965_handle,0,1);
   caen792_init(caen792_handle,0,1);
   sis3800_init(sis3800_handle);
-  caen513_setChannelMode(caen513_handle,15, V513_CHANMODE_INPUT); // trigger in
-  caen513_setChannelMode(caen513_handle,0, V513_CHANMODE_OUTPUT); // veto out
+  
+  for(cnt=8;cnt<16;cnt++)
+    caen513_setChannelMode(caen513_handle,cnt, V513_CHANMODE_NEG|V513_CHANMODE_IGLITCHED|V513_CHANMODE_INPUT); // 15 trigger in
+  
+  for(cnt=0;cnt<8;cnt++)
+    caen513_setChannelMode(caen513_handle,cnt, V513_CHANMODE_POS|V513_CHANMODE_OUTPUT); 
 
+#ifdef CHECK_PIO
+  caen513_setChannelMode(caen513_handle,14, V513_CHANMODE_NEG|V513_CHANMODE_INORMAL|V513_CHANMODE_INPUT); // 14 feedback reset
+#endif
+
+// 0 veto out
+  //  caen513_setChannelMode(caen513_handle,1, V513_CHANMODE_OUTPUT|V513_CHANMODE_POS|V513_CHANMODE_TRANSP); // veto out
+  //caen513_setChannelMode(caen513_handle,2, V513_CHANMODE_OUTPUT|V513_CHANMODE_POS|V513_CHANMODE_TRANSP); // veto out
+  //caen513_set(caen513_handle,0x0); //de -assert veto
+  //  caen513_set(caen513_handle,0x7); //de -assert veto LV
+#ifdef HW_VETO
+  caen513_set(caen513_handle,0x0); // reset veto flip flop 
+  caen513_set(caen513_handle,0x7); //
+  caen513_set(caen513_handle,0x0); // reset veto flip flop 
+#warning "HW TRIGGER 2 TM"
+#else
+  caen513_set(caen513_handle,0x0); // SW veto OFF
+#endif
+
+  caen513_clear(caen513_handle);
+  //resetTM(caen513_handle);
   while(1){
     loop_time_start=getUsTime();
-    while((caen513_get(caen513_handle)&0x8000)==0); // wait trigger 
-    caen513_set(caen513_handle,1); //assert veto
+    while(((pio=caen513_get(caen513_handle))&0x8000)==0){
+
+      if((timeo_counter%100000) == 0){
+	printf("waiting trigger pio:0x%x\n",pio);
+#ifdef CHECK_PIO
+	caen513_set(caen513_handle,0x0); // reset veto flip flop 
+#endif
+	
+      }
+      timeo_counter++;
+    } // wait trigger 
+
+#ifndef HW_VETO
+    caen513_set(caen513_handle,0x7); //assert veto
+    caen513_set(caen513_handle,0x7); //assert veto
+#endif
+    caen513_clear(caen513_handle);
+    //caen513_set(caen513_handle,0xF8); //assert veto LV
+    //pio=caen513_get(caen513_handle);
+    printf("start acquire 0x%x 965\n",pio);
     ret = caen965_acquire_channels_poll(caen965_handle,low,hi,0,16,&cycle0,0);
-    if(ret){
-      dump_channels(out,low,cycle0,ret);
-      dump_channels(out,hi,cycle0,ret);
-    }
-    ret = caen792_acquire_channels_poll(caen792_handle,ch,0,32,&cycle1,0);
-    if(ret){
-      dump_channels(out,ch,cycle1,ret);
-    }
+    
+    dump_channels(out,low,cycle0,ret);
+    dump_channels(out,hi,cycle0,ret);
+    //pio=caen513_get(caen513_handle);
+    printf("start acquire 0x%x 792\n",pio);
+    ret = caen792_acquire_channels_poll(caen792_handle,ch,0,16,&cycle1,0);
+    
+    dump_channels(out,ch,cycle1,ret);
+    
+    printf("start acquire 0x%x sis\n",pio);
     counters[0] = sis3800_readCounter(sis3800_handle,30);
     counters[1] = sis3800_readCounter(sis3800_handle,31);
     dump_channels(out,counters,cycle1,2);
-    printf("%llu, %llu end acquire %llu us\n",cycle0,cycle1,getUsTime()-loop_time_start);
-    caen513_set(caen513_handle,0); //de-assert veto
+    printf("%llu, %llu, %llu (%d,%d) end acquire %f ms\n",loop,cycle0,cycle1,counters[0],counters[1],1.0*(getUsTime()-loop_time_start)/1000.0);
+
+#ifdef HW_VETO
+
+    caen513_set(caen513_handle,0x7); // reset veto flip flop 
+    caen513_set(caen513_handle,0x7); // reset veto flip flop 
+
+    caen513_set(caen513_handle,0x0); //
+    caen513_set(caen513_handle,0x0); //
+#else
+    caen513_set(caen513_handle,0x0); // SW veto OFF
+    caen513_set(caen513_handle,0x0); // SW veto OFF
+#endif
+
+    //resetTM(caen513_handle);
+    loop++;
   }
   
   CLOSEDEV(caen513);
