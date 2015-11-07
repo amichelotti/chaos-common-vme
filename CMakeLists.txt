@@ -18,7 +18,7 @@ IF(DEFINED UNIVERSE2)
 ADD_DEFINITIONS(-DUNIVERSE2)
 ADD_SUBDIRECTORY(vmedrv/universe2)
 ENDIF()
-
+# try
 INCLUDE_DIRECTORIES(. ../.. ../ vmedrv vmewrap caen/src sis/)
 LINK_DIRECTORIES(lib)
   
