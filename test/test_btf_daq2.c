@@ -49,8 +49,8 @@ int main(int argc,char**argv){
   int32_t pio;
   int is965=1;
   int cnt;
-  uint32_t counter_before,counter_after;
-  uint64_t lost=0;
+  uint32_t counter_before=0,counter_after,old_counter,discard;
+  uint64_t lost=0,tot_lost=0;
     FILE*out;
   if(argc<2){
     USAGE;
@@ -116,7 +116,12 @@ int main(int argc,char**argv){
     loop_time_start=getUsTime();
 	
     printf("acquiring 965\n");
+    old_counter=counter_before;
     counter_before=sis3800_readCounter(sis3800_handle,30);
+    
+    if(counter_before>old_counter){
+      tot_lost+=(counter_before-old_counter)-1;
+    }
     ret = caen965_acquire_channels_poll(caen965_handle,low,hi,0,16,&cycle0,0);
     //caen513_set(caen513_handle,ENABLE_VETO); // SW veto ON
 
@@ -130,9 +135,15 @@ int main(int argc,char**argv){
     counters[0] = counter_after;
     counters[1] = sis3800_readCounter(sis3800_handle,31);
     //    dump_channels(out,counters,cycle1,2);
-    if(counter_after>counter_before)
-      lost+=(counter_after-counter_before-1);
-    printf("%llu, %llu, %llu (before:%d,after:%d, lost:%lld) end acquire %f ms\n",loop,cycle0,cycle1,counter_before,counter_after,lost,1.0*(getUsTime()-loop_time_start)/1000.0);
+    if(counter_after>counter_before){
+      discard=(counter_after-counter_before-1);
+      lost+=discard;
+    }
+    if(discard){
+      printf("DISCARDED %llu, %llu, %llu (before:%d,after:%d, lost inside:%lld, tot lost:%lld) end acquire %f ms\n",loop,cycle0,cycle1,counter_before,counter_after,lost,tot_lost,1.0*(getUsTime()-loop_time_start)/1000.0);
+    } else {
+      printf("%llu, %llu, %llu (before:%d,after:%d, lost inside:%lld, tot lost:%lld) end acquire %f ms\n",loop,cycle0,cycle1,counter_before,counter_after,lost,tot_lost,1.0*(getUsTime()-loop_time_start)/1000.0);
+    }
 
     //    caen513_reset(caen513_handle);
     //    caen513_set(caen513_handle,DISABLE_VETO); // SW veto OFF
