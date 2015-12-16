@@ -144,7 +144,7 @@ typedef struct __evt_buffer {
 */
 typedef struct __vme_handle__ {
  vmewrap_vme_handle_t vme;
-  uint32_t mapped_address;
+  void* mapped_address;
   uint32_t event_counter;
   uint64_t cycle;
   int boardid;

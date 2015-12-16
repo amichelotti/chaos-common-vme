@@ -1,19 +1,20 @@
 #include "sis3800_drv.h"
 #include "vmewrap.h"
 #include <stdlib.h>
+#include <common/debug/core/debug.h>
 #define DEV_BOARD "SIS3800"
 #define BOARD_IDENTIFICATION_REG(base) REG32(base,0x4)
 
 typedef struct __vme_handle__ {
     vmewrap_vme_handle_t vme;
-    uint32_t mapped_address;
+    void* mapped_address;
     uint64_t cycle;
     int boardid;
     int version;
 } _sis_handle_t ;
 
 sis3800_handle_t sis3800_open(uint32_t address){
-    uint32_t mapped_address;
+    void* mapped_address;
     int size = 0x10000;
     int boardid,manufactureid;
     vmewrap_vme_handle_t vme;

@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include "vmewrap.h"
 #include <sys/time.h>
+#include <common/debug/core/debug.h>
 
 // Register map
 
@@ -18,7 +19,7 @@
 #define MANUFACTURE_ID_REG(base) REG16(base,0xFC)
 typedef struct __vme_handle__ {
  vmewrap_vme_handle_t vme;
-  uint32_t mapped_address;
+  void* mapped_address;
  } _caen513_handle_t ;
 
 
@@ -26,7 +27,7 @@ typedef struct __vme_handle__ {
 
 caen513_handle_t caen513_open(uint32_t address ){
   int am,flags;
-  uint32_t mapped_address;
+  void* mapped_address;
   int size = 0x10000;
   int boardid,manufactureid;
   vmewrap_vme_handle_t vme;
