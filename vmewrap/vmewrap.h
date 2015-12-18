@@ -1,6 +1,6 @@
 #ifndef _VMEWRAP_H_
 #define _VMEWRAP_H_
-
+#include <stdint.h>
 
 #define REG32(base,x) *((volatile uint32_t*)(((char*)base)+x))
 #define REG16(base,x) *((volatile uint16_t*)(((char*)base)+x))
