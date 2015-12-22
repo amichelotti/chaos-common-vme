@@ -12,6 +12,7 @@ int main(int argc,char**argv){
   int size=4;
   vmewrap_vme_handle_t handle;
   void*ptr;
+  int cnt;
   FILE*out;
   if(argc<5){
     USAGE;
@@ -31,7 +32,7 @@ int main(int argc,char**argv){
       printf("## cannot remap address 0x%x\n",address);
     return -1;
   }
-  for(int cnt=0;cnt<size;cnt++){
+  for( cnt=0;cnt<size;cnt++){
     int add;
     if(addressing==16){
       add=off+(cnt<<1);

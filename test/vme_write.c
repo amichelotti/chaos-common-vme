@@ -38,7 +38,7 @@ int main(int argc,char**argv){
       printf("## cannot remap address 0x%x\n",address);
     return -1;
   }
-  for(int cnt=0;cnt<ndati;cnt++){
+  for( cnt=0;cnt<ndati;cnt++){
     int add;
     if(addressing==16){
       add=off+(cnt<<1);

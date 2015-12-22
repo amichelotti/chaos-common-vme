@@ -15,6 +15,8 @@
       <df name="test">
         <in>test_btf_daq.c</in>
         <in>test_qdc_caen.c</in>
+        <in>vme_read.c</in>
+        <in>vme_write.c</in>
       </df>
       <df name="vmedrv">
         <df name="universe2">
@@ -47,7 +49,8 @@
       </toolsSet>
       <flagsDictionary>
         <element flagsID="0" commonFlags="-fPIC -O2"/>
-        <element flagsID="1" commonFlags="-fPIC -g -O2"/>
+        <element flagsID="1" commonFlags="-fPIC -fPIC -fPIC -O3 -g -O2"/>
+        <element flagsID="2" commonFlags="-fPIC -g -O2"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -88,15 +91,15 @@
         </makeTool>
       </makefileType>
       <item path="caen/src/caen513_drv.c" ex="false" tool="0" flavor2="2">
-        <cTool flags="1">
+        <cTool flags="2">
         </cTool>
       </item>
       <item path="caen/src/caen792_drv.c" ex="false" tool="0" flavor2="2">
-        <cTool flags="1">
+        <cTool flags="2">
         </cTool>
       </item>
       <item path="caen/src/caen965_drv.c" ex="false" tool="0" flavor2="2">
-        <cTool flags="1">
+        <cTool flags="2">
         </cTool>
       </item>
       <folder path="0/vmewrap">
@@ -110,15 +113,29 @@
         </ccTool>
       </folder>
       <item path="sis/sis3800_drv.c" ex="false" tool="0" flavor2="2">
-        <cTool flags="1">
+        <cTool flags="2">
         </cTool>
       </item>
       <item path="test/test_btf_daq.c" ex="false" tool="0" flavor2="2">
-        <cTool flags="1">
+        <cTool flags="2">
         </cTool>
       </item>
       <item path="test/test_qdc_caen.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="2">
+        </cTool>
+      </item>
+      <item path="test/vme_read.c" ex="false" tool="0" flavor2="0">
         <cTool flags="1">
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="test/vme_write.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="1">
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
         </cTool>
       </item>
       <item path="vmedrv/universe2/vmelib.cpp" ex="false" tool="1" flavor2="4">
