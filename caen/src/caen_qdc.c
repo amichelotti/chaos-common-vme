@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include "caen_qdc.h"
 #include <sys/time.h>
-
+#include <common/debug/core/debug.h>
 static int32_t caen_qdc_close(void* h){
     _caen_qdc_handle_t* handle = h;
     DPRINT(DEV_BOARD " closing handle @0x%x\n",(unsigned)h);
@@ -27,7 +27,7 @@ static int32_t caen_qdc_close(void* h){
 }
 
 static void* caen_qdc_open(uint32_t address ){
-  uint32_t mapped_address;
+  void* mapped_address;
   int size = 0x10000;
   int boardid,manufactureid;
   vmewrap_vme_handle_t vme;
@@ -216,7 +216,8 @@ static int acquire_event_channels(void* h,uint32_t *lowres,uint32_t*hires,int st
 	}
 #endif
 	nchannels_acquired++;
-	DPRINT(DEV_BOARD " [%.2d] acquiring %3s channel %.2d=0x%.3x, acquired %.2d :Underflow:%d Overflow:%d\n", cnt,a.d.rg?"LOW":"HI",a.d.channel,data,nchannels_acquired,a.d.un,a.d.ov);
+        
+	DPRINT(DEV_BOARD " [%.2d] acquiring channel %.2d=0x%.3x, acquired %.2d :Underflow:%d Overflow:%d\n", cnt,a.d.channel,data,nchannels_acquired,a.d.un,a.d.ov);
 	
       }
     } else if(a.d.signature==4){

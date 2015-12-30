@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="95">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="." name="0">
+      <df name="caen">
+        <df name="src">
+          <in>caen513_drv.c</in>
+          <in>caen792_drv.c</in>
+          <in>caen965_drv.c</in>
+        </df>
+      </df>
+      <df name="sis">
+        <in>sis3800_drv.c</in>
+      </df>
+      <df name="test">
+        <in>test_btf_daq.c</in>
+        <in>test_qdc_caen.c</in>
+        <in>vme_read.c</in>
+        <in>vme_write.c</in>
+      </df>
+      <df name="vmedrv">
+        <df name="universe2">
+          <in>vmelib.cpp</in>
+        </df>
+      </df>
+      <df name="vmewrap">
+        <in>vmewrap.cpp</in>
+      </df>
+    </df>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>CMakeLists.txt</itemPath>
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
+  <sourceRootList>
+    <Elem>.</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>false</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <flagsDictionary>
+        <element flagsID="0" commonFlags="-fPIC -O2"/>
+        <element flagsID="1" commonFlags="-fPIC -fPIC -fPIC -O3 -g -O2"/>
+        <element flagsID="2" commonFlags="-fPIC -g -O2"/>
+      </flagsDictionary>
+      <codeAssistance>
+      </codeAssistance>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>.</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath></executablePath>
+          <cTool>
+            <incDir>
+              <pElem>.</pElem>
+              <pElem>../..</pElem>
+              <pElem>..</pElem>
+              <pElem>../../chaos-x86_64-dynamic-release/include</pElem>
+              <pElem>vmedrv</pElem>
+              <pElem>vmewrap</pElem>
+              <pElem>caen/src</pElem>
+              <pElem>sis</pElem>
+            </incDir>
+            <preprocessorList>
+              <Elem>CHAOS</Elem>
+              <Elem>UNIVERSE2</Elem>
+            </preprocessorList>
+          </cTool>
+          <ccTool>
+            <incDir>
+              <pElem>.</pElem>
+              <pElem>../..</pElem>
+              <pElem>..</pElem>
+              <pElem>../../chaos-x86_64-dynamic-release/include</pElem>
+            </incDir>
+            <preprocessorList>
+              <Elem>CHAOS</Elem>
+              <Elem>UNIVERSE2</Elem>
+            </preprocessorList>
+          </ccTool>
+        </makeTool>
+      </makefileType>
+      <item path="caen/src/caen513_drv.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="2">
+        </cTool>
+      </item>
+      <item path="caen/src/caen792_drv.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="2">
+        </cTool>
+      </item>
+      <item path="caen/src/caen965_drv.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="2">
+        </cTool>
+      </item>
+      <folder path="0/vmewrap">
+        <ccTool>
+          <incDir>
+            <pElem>vmedrv</pElem>
+            <pElem>vmewrap</pElem>
+            <pElem>caen/src</pElem>
+            <pElem>sis</pElem>
+          </incDir>
+        </ccTool>
+      </folder>
+      <item path="sis/sis3800_drv.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="2">
+        </cTool>
+      </item>
+      <item path="test/test_btf_daq.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="2">
+        </cTool>
+      </item>
+      <item path="test/test_qdc_caen.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="2">
+        </cTool>
+      </item>
+      <item path="test/vme_read.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="1">
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="test/vme_write.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="1">
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="vmedrv/universe2/vmelib.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="vmewrap/vmewrap.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
