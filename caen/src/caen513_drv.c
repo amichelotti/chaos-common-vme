@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include "vmewrap.h"
 #include <sys/time.h>
+
 #include <common/debug/core/debug.h>
 
 // Register map
@@ -32,10 +33,10 @@ caen513_handle_t caen513_open(uint32_t address ){
   int boardid,manufactureid;
   vmewrap_vme_handle_t vme;
   DPRINT("opening vme device at @0x%x\n",address);
-  vme = vmewrap_vme_open(address,size,32,0,0,0);
+  vme = vmewrap_vme_open_master(address,size,32,0);
   if(vme==NULL) return NULL;
 
-  mapped_address =  vmewrap_get_vme_master_linux_add(vme);
+  mapped_address =  vmewrap_get_linux_add(vme);
   if (0 == mapped_address) {
     ERR("cannot map VME window\n");
     perror("vme_master_window_map");
@@ -81,7 +82,9 @@ int32_t caen513_close(caen513_handle_t h){
 
 void caen513_setChannelMode(caen513_handle_t h,int channel,int mode){
   _caen513_handle_t* handle = (_caen513_handle_t*)h;
-  REG16(handle->mapped_address,0x10 +2 *channel)=mode;
+  unsigned off=0x10 +2 *channel;
+  VME_WRITE16(handle->vme,off,mode);
+
   return ;
 }
 
@@ -92,7 +95,8 @@ int32_t caen513_getChannelMode(caen513_handle_t h,int channel){
 }
 void caen513_interruptMask(caen513_handle_t h,int mask){
   _caen513_handle_t* handle = (_caen513_handle_t*)h;
-  REG16(handle->mapped_address,0x8)=mask;
+  VME_WRITE16(handle->vme,0x8,mask);
+
 }
 
 void caen513_setStrobe(caen513_handle_t h,int mode){
@@ -110,32 +114,43 @@ int32_t caen513_get(caen513_handle_t h){
 }
 void caen513_set(caen513_handle_t h,int mask){
   _caen513_handle_t* handle = (_caen513_handle_t*)h;
-  REG16(handle->mapped_address,0x4)=mask;
+  //  REG16(handle->mapped_address,0x4)=mask;
+  //  msync(handle->mapped_address,0x100);
+  VME_WRITE16(handle->vme,0x4,mask);
 }
 
 void caen513_reset(caen513_handle_t h){
   _caen513_handle_t* handle = (_caen513_handle_t*)h;
-  REG16(handle->mapped_address,0x42)=1;
+  //  REG16(handle->mapped_address,0x42)=1;
+  //  msync(handle->mapped_address,0x100);
+  VME_WRITE16(handle->vme,0x42,1);
 }
 
 void caen513_clear(caen513_handle_t h){
   _caen513_handle_t* handle = (_caen513_handle_t*)h;
-  REG16(handle->mapped_address,0x48)=1;
+  //  REG16(handle->mapped_address,0x48)=1;
+  //  msync(handle->mapped_address,0x100);
+  VME_WRITE16(handle->vme,0x48,1);
 }
 
 void caen513_clearStrobe(caen513_handle_t h){
   _caen513_handle_t* handle = (_caen513_handle_t*)h;
-  REG16(handle->mapped_address,0x44)=1;
+  //  REG16(handle->mapped_address,0x44)=1;
+  //  msync(handle->mapped_address,0x100);
+    VME_WRITE16(handle->vme,0x44,1);
 }
 
 
 int32_t caen513_init(caen513_handle_t h,int mode){
   _caen513_handle_t* handle = (_caen513_handle_t*)h;
-  if(mode>=0)
-    REG16(handle->mapped_address,0x46)=mode;
+  if(mode>=0){
+    //    REG16(handle->mapped_address,0x46)=mode;
+    //    msync(handle->mapped_address,0x100);
+    VME_WRITE16(handle->vme,0x46,mode);
+  }
 
-  caen513_reset(h);
-  caen513_clear(h);
+  //  caen513_reset(h);
+  //  caen513_clear(h);
   return 0;
 }
 

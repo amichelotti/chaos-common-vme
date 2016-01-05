@@ -967,12 +967,14 @@ int VMEBridge::getImage(unsigned int base, unsigned int size,
         bridge_error = -5;
         return -2;
     }
-
+    /***** 
+	   COMMENTED MAN
     if (base & 0x0000FFFF) {
         base &= 0xFFFF0000;
         *Std << "Warning: Base address must be 64k aligned! "
              << "Base address will be set to " << hex << base << dec << "!\n";
     }
+    */
 // setup registers CTL, TO, BD, BS of image
 
     if (ms) {   // Slave image

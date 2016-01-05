@@ -8,11 +8,11 @@
 #include <string.h>
 #define USAGE printf("%s <conffile> [#acquire cycles] [## timeout acquiring ms ]\n",argv[0]);
 
-#define ENABLE_VETO 0x7
-#define DISABLE_VETO 0x0
+#define ENABLE_VETO 0x0
+#define DISABLE_VETO 0xffff
 
 #define CLOSEDEV(_x) \
-  _x ## close(_x ## _handle);
+  _x ## _close(_x ## _handle);
 
 #define OPENDEV(_x)						\
   if(_x ## _addr && (_x ## _handle = _x ## _open(_x ## _addr))){ \
@@ -28,36 +28,6 @@ void dump_channels(FILE*o,uint32_t *chan,uint64_t cycle,int channels){
     for(cnt=0;cnt<channels;cnt++){
         fprintf(o,"- %lld [%d] = 0x%x\n",cycle,cnt,chan[cnt]);
     }
-}
-
-// the PIO doesn't set the line reliably
-// an output is feedbacked into the input to be sure is reset
-static void resetTM(caen513_handle_t caen513_handle){
-  unsigned pio;
-  int timeo_counter=0;
-    
-  caen513_clear(caen513_handle);
-  caen513_set(caen513_handle,0x7); // reset veto flip flop 
-  while(((pio=caen513_get(caen513_handle))&0x4000)==0){
-    //caen513_clear(caen513_handle);
-
-    if(timeo_counter%1000 == 0){
-      printf("waiting ACK 1 :0x%x\n",pio);
-    }
-    timeo_counter++;
-    caen513_set(caen513_handle,0x7); // reset veto flip flop 
-  }
-  caen513_clear(caen513_handle);
-  caen513_set(caen513_handle,DISABLE_VETO); // reset veto flip flop 
-  timeo_counter=0;
-  while(((pio=caen513_get(caen513_handle))&0x4000)!=0){
-
-    if(timeo_counter%1000 == 0){
-      printf("waiting ACK 0 :0x%x\n",pio);
-    }
-    timeo_counter++;
-    caen513_set(caen513_handle,0x0); // reset veto flip flop 
-  }
 }
 
 int main(int argc,char**argv){
@@ -79,6 +49,8 @@ int main(int argc,char**argv){
   int32_t pio;
   int is965=1;
   int cnt;
+  uint32_t counter_before,counter_after;
+  uint64_t lost=0;
     FILE*out;
   if(argc<2){
     USAGE;
@@ -110,87 +82,64 @@ int main(int argc,char**argv){
   out=fopen("btf_daq.txt","w");
 
   OPENDEV(caen965);
+  sleep(1);
   OPENDEV(caen792);
+  sleep(1);
   OPENDEV(sis3800);
+  sleep(1);
   OPENDEV(caen513);
-  caen513_init(caen513_handle,V513_CHANMODE_NEG|V513_CHANMODE_IGLITCHED|V513_CHANMODE_INPUT); 
+  sleep(1);
+  //  caen513_init(caen513_handle,V513_CHANMODE_NEG|V513_CHANMODE_IGLITCHED|V513_CHANMODE_INPUT); 
+  caen513_reset(caen513_handle);
+  //  caen513_init(caen513_handle,V513_CHANMODE_NEG|V513_CHANMODE_OUTPUT); 
+  //  
   //caen513_init(caen513_handle,1); //use board defaults
-  
+  /*
   for(cnt=8;cnt<16;cnt++)
     caen513_setChannelMode(caen513_handle,cnt, V513_CHANMODE_NEG|V513_CHANMODE_IGLITCHED|V513_CHANMODE_INPUT); // 15 trigger in
-  
-  for(cnt=0;cnt<8;cnt++)
+  */
+  for(cnt=0;cnt<16;cnt++)
     caen513_setChannelMode(caen513_handle,cnt, V513_CHANMODE_NEG|V513_CHANMODE_OUTPUT); 
-
-#ifdef CHECK_PIO
-  caen513_setChannelMode(caen513_handle,14, V513_CHANMODE_NEG|V513_CHANMODE_INORMAL|V513_CHANMODE_INPUT); // 14 feedback reset
-#endif
+  
 
 
-#ifdef HW_VETO
 
-  caen513_set(caen513_handle,DISABLE_VETO); // reset veto flip flop 
-#warning "HW TRIGGER 2 TM"
-#else
-  caen513_set(caen513_handle,DISABLE_VETO); // SW veto OFF
-#endif
+
   caen965_init(caen965_handle,0,1);
   caen792_init(caen792_handle,0,1);
   sis3800_init(sis3800_handle);
 
-  caen513_clear(caen513_handle);
   //resetTM(caen513_handle);
+  caen513_set(caen513_handle,DISABLE_VETO); // SW veto OFF  
   
   while(1){
     loop_time_start=getUsTime();
-    while(((pio=caen513_get(caen513_handle))&0x8000)==0){
-
-      if((timeo_counter%100000) == 0){
-	printf("waiting trigger pio:0x%x\n",pio);
-#ifdef CHECK_PIO
-	caen513_set(caen513_handle,0x0); // reset veto flip flop 
-#endif
 	
-      }
-      timeo_counter++;
-    } // wait trigger 
-
-#ifndef HW_VETO
-    caen513_set(caen513_handle,ENABLE_VETO); //assert veto
-
-#endif
-    //    caen513_clear(caen513_handle);
-    
-    pio=caen513_get(caen513_handle);
-    printf("start acquire 0x%x 965\n",pio);
+    printf("acquiring 965\n");
+    counter_before=sis3800_readCounter(sis3800_handle,30);
     ret = caen965_acquire_channels_poll(caen965_handle,low,hi,0,16,&cycle0,0);
-    
-    dump_channels(out,low,cycle0,ret);
-    dump_channels(out,hi,cycle0,ret);
-    pio=caen513_get(caen513_handle);
-    printf("start acquire 0x%x 792\n",pio);
+    //caen513_set(caen513_handle,ENABLE_VETO); // SW veto ON
+
+    //    dump_channels(out,low,cycle0,ret);
+    // dump_channels(out,hi,cycle0,ret);
+    printf("acquire 792\n",pio);
     ret = caen792_acquire_channels_poll(caen792_handle,ch,0,16,&cycle1,0);
     
-    dump_channels(out,ch,cycle1,ret);
-    
-    printf("start acquire 0x%x sis\n",pio);
-    counters[0] = sis3800_readCounter(sis3800_handle,30);
+    //    dump_channels(out,ch,cycle1,ret);
+    counter_after=sis3800_readCounter(sis3800_handle,30);
+    counters[0] = counter_after;
     counters[1] = sis3800_readCounter(sis3800_handle,31);
-    dump_channels(out,counters,cycle1,2);
-    printf("%llu, %llu, %llu (%d,%d) end acquire %f ms\n",loop,cycle0,cycle1,counters[0],counters[1],1.0*(getUsTime()-loop_time_start)/1000.0);
+    //    dump_channels(out,counters,cycle1,2);
+    if(counter_after>counter_before)
+      lost+=(counter_after-counter_before-1);
+    printf("%llu, %llu, %llu (before:%d,after:%d, lost:%lld) end acquire %f ms\n",loop,cycle0,cycle1,counter_before,counter_after,lost,1.0*(getUsTime()-loop_time_start)/1000.0);
 
-#ifdef HW_VETO
+    //    caen513_reset(caen513_handle);
+    //    caen513_set(caen513_handle,DISABLE_VETO); // SW veto OFF
+    //caen513_set(caen513_handle,DISABLE_VETO); // SW veto OFF
 
-    caen513_set(caen513_handle,0x7); // reset veto flip flop 
-    caen513_set(caen513_handle,0x7); // reset veto flip flop 
 
-    caen513_set(caen513_handle,0x0); //
-    caen513_set(caen513_handle,0x0); //
-#else
-    caen513_set(caen513_handle,DISABLE_VETO); // SW veto OFF
-#endif
-
-    //resetTM(caen513_handle);
+    
     loop++;
   }
   

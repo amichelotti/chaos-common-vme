@@ -5,10 +5,13 @@
 typedef struct __vme_handle__ {
 
   void* bus;
-  void* master_handle;
-  void* slave_handle;
-  void* master_mapped_address;
-  void* slave_mapped_address;
+  void* handle;
+  void* mapped_address;
+  void* phys_add;
+  uint32_t size;
+  int fd;
+  int master;
+
 } * vmewrap_int_vme_handle_t;
 
 
@@ -22,41 +25,71 @@ typedef struct __vme_handle__ {
 
 extern "C" {
     
-vmewrap_vme_handle_t vmewrap_vme_open(uint32_t master_add,uint32_t master_size,uint32_t master_addressing,uint32_t slave_add,uint32_t slave_size,uint32_t slave_addressing){
+vmewrap_vme_handle_t vmewrap_vme_open_master(uint32_t master_add,uint32_t master_size,uint32_t master_addressing,uint32_t vme_opt){
 
  
   vmewrap_int_vme_handle_t p;
-  if(master_size==0 && slave_size==0){
+  if(master_size==0){
     return 0;
   }
-  p = (vmewrap_int_vme_handle_t)malloc(sizeof(vmewrap_int_vme_handle_t));
+
+  p = (vmewrap_int_vme_handle_t)calloc(1,sizeof(struct __vme_handle__ ));
   if(p==NULL){
     ERR("cannot allocate resources\n");
     return 0;
   }
   
-  if (VME_INIT(p)) {
+  if (VME_INT_INIT(p)) {
     ERR("cannot initialize vme\n");
     perror("vme_init");
 
     return 0;
   }
  
-  DPRINT("vme init handle 0x%x\n",bus_handle);
+  DPRINT("vme init vme handle 0x%x, vme wrap handle 0x%x\n",p->bus,p);
 
-  if(master_size){
-    if(VME_MAP_MASTER(p,master_add,master_size,master_addressing)== 0){
-      free(p);
-     
-      return 0;
-    }
+  p->master=1;
+  p->phys_add=(void*)master_add;
+  p->size = master_size;
+  if(VME_INT_MAP_MASTER(p,master_add,master_size,master_addressing,vme_opt)== 0){
+    free(p);
+    
+    return 0;
   }
-  if(slave_size){
-    if(VME_MAP_SLAVE(p,slave_add,slave_size,slave_addressing)== 0){
+  
+
+  return (vmewrap_vme_handle_t) p; 
+}
+
+  vmewrap_vme_handle_t vmewrap_vme_open_slave(uint32_t slave_add,uint32_t slave_size,uint32_t slave_addressing, uint32_t vme_opt){
+
+ 
+  vmewrap_int_vme_handle_t p;
+  if(slave_size==0){
+    return 0;
+  }
+  p = (vmewrap_int_vme_handle_t)calloc(1,sizeof(struct __vme_handle__ ));
+  if(p==NULL){
+    ERR("cannot allocate resources\n");
+    return 0;
+  }
+  
+  if (VME_INT_INIT(p)) {
+    ERR("cannot initialize vme\n");
+    perror("vme_init");
+
+    return 0;
+  }
+ 
+  DPRINT("vme init vme handle 0x%x, vme wrap handle 0x%x\n",p->bus,p);
+
+  p->phys_add=(void*)slave_add;
+  p->size = slave_size;
+  if(VME_INT_MAP_SLAVE(p,slave_add,slave_size,slave_addressing,vme_opt)== 0){
       free(p);
       return 0;
-    }
   }
+  
 
   return (vmewrap_vme_handle_t) p; 
 }
@@ -67,35 +100,43 @@ int32_t vmewrap_vme_close(vmewrap_vme_handle_t  h){
   vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
   DPRINT("closing handle @0x%x\n",(unsigned)h);
   if(handle){
-    VME_CLOSE(handle);
+    VME_INT_CLOSE(handle);
     free(handle);
-    handle->bus = 0;
     return 0;
   }
   return -4;
 }
 
 
-void* vmewrap_get_vme_master_linux_add(vmewrap_vme_handle_t  h){
+void* vmewrap_get_linux_add(vmewrap_vme_handle_t  h){
   vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
   if(handle){
-    return handle->master_mapped_address;
+    return handle->mapped_address;
   }
   return 0;
 }
 
-/**
-   
-	@param handle
-	@return the slave mapped address
-*/
-void* vmewrap_get_vme_slave_linux_add(vmewrap_vme_handle_t  h){
-  vmewrap_int_vme_handle_t handle =  (vmewrap_int_vme_handle_t)h;
-  if(handle){
-    return handle->slave_mapped_address;
+
+  int vmewrap_write32(vmewrap_vme_handle_t  handle,unsigned off,uint32_t data){
+
+    return VME_INT_WRITE32((vmewrap_int_vme_handle_t)handle,off,data);
+
   }
-  return 0;
-  
-}
+  int vmewrap_write16(vmewrap_vme_handle_t  handle,unsigned off,uint16_t data){
+    return VME_INT_WRITE16((vmewrap_int_vme_handle_t)handle,off,data);
+
+  }  int vmewrap_write8(vmewrap_vme_handle_t  handle,unsigned off,uint8_t data){
+    return VME_INT_WRITE8((vmewrap_int_vme_handle_t)handle,off,data);
+
+  }
+  int vmewrap_read32(vmewrap_vme_handle_t  handle,unsigned off,uint32_t* data){
+    return VME_INT_READ32((vmewrap_int_vme_handle_t)handle,off,data);
+  }
+  int vmewrap_read16(vmewrap_vme_handle_t  handle,unsigned off,uint16_t* data){
+    return VME_INT_READ16((vmewrap_int_vme_handle_t)handle,off,data);
+  }
+  int vmewrap_read8(vmewrap_vme_handle_t  handle,unsigned off,uint8_t* data){
+    return VME_INT_READ8((vmewrap_int_vme_handle_t)handle,off,data);
+  }
 
 }

@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include "caen_qdc.h"
 #include <sys/time.h>
+
 #include <common/debug/core/debug.h>
 static int32_t caen_qdc_close(void* h){
     _caen_qdc_handle_t* handle = h;
@@ -32,10 +33,10 @@ static void* caen_qdc_open(uint32_t address ){
   int boardid,manufactureid;
   vmewrap_vme_handle_t vme;
   DPRINT(DEV_BOARD " opening vme device at @0x%x\n",address);
-  vme = vmewrap_vme_open(address,size,32,0,0,0);
+  vme = vmewrap_vme_open_master(address,size,32,0);
   if(vme==NULL) return NULL;
 
-  mapped_address =  vmewrap_get_vme_master_linux_add(vme);
+  mapped_address =  vmewrap_get_linux_add(vme);
   if (0 == mapped_address) {
     ERR("cannot map VME window\n");
     perror("vme_master_window_map");
@@ -83,15 +84,24 @@ static int32_t caen_qdc_init(void* h,int32_t crate_num,int hwreset){
     
   }
   for(cnt=0;cnt<NCHANNELS;cnt++){
-    THRS_CHANNEL_REG(handle->mapped_address,cnt,1)= 0;
-    THRS_CHANNEL_REG(handle->mapped_address,cnt,0)= 0;
+    //    DPRINT(DEV_BOARD " clearing threashold %d\n",cnt);
+    unsigned off=cnt*4;
+    //    THRS_CHANNEL_REG(handle->mapped_address,cnt,0)= 0;
+    VME_WRITE16(handle->vme,THRS_CHANNEL_OFF+(4*cnt),0);
+    //    msync(handle->mapped_address+off,4);
+    //    THRS_CHANNEL_REG(handle->mapped_address,cnt,1)= 0;
+    VME_WRITE16(handle->vme,THRS_CHANNEL_OFF+(4*cnt)+2,0);
+    //    msync(handle->mapped_address+off+4,4);
   }
+  
+
   CRATE_SEL_REG(handle->mapped_address)=crate_num;
   BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT; // clear data reset
   BITCLR2_REG(handle->mapped_address)=TEST_MEM_BIT|OFFLINE_BIT|TESTAQ_BIT|CLEARDATA_BIT;
 
   //  BITSET2_REG(handle->mapped_address)=ALLTRG_EN_BIT/*|OVERRANGE_EN_BIT|LOWTHR_EN_BIT*/|EMPTY_EN_BIT|AUTOINCR_BIT;
   BITSET2_REG(handle->mapped_address)=ALLTRG_EN_BIT|EMPTY_EN_BIT|AUTOINCR_BIT|OVERRANGE_EN_BIT|LOWTHR_EN_BIT;
+  msync(handle->mapped_address,0x10000);
   return 0;
 }
 
@@ -99,6 +109,7 @@ static int32_t caen_qdc_setIped(void* h,int32_t ipedval){
   _caen_qdc_handle_t* handle = h;
   DPRINT(DEV_BOARD " setting ipedval=x%x\n",ipedval);
   IPED_REG(handle->mapped_address)=ipedval;
+  msync(handle->mapped_address,0x10000);
   return 0;
 }
 
@@ -114,6 +125,7 @@ static int32_t caen_qdc_setThreashold(void* h,int16_t lowres,int16_t hires,int c
     THRS_CHANNEL_REG(handle->mapped_address,channel,1)= lowres&0xff;
     THRS_CHANNEL_REG(handle->mapped_address,channel,0)= hires&0xff;
 #endif
+    msync(handle->mapped_address,0x10000);
     return 0;
   }
   return -1;
@@ -192,7 +204,8 @@ static int acquire_event_channels(void* h,uint32_t *lowres,uint32_t*hires,int st
   int nchan;
   nchan = search_header(handle);
   while(cnt<nchan){
-    a.data=  REG32(handle->mapped_address,0);
+    //    a.data=  REG32(handle->mapped_address,0);
+    VME_READ32(handle->vme,0,&a.data);
     if(a.d.signature==0){
       // data signature
       if((a.d.channel<max_chan)&&(a.d.channel>=start_chan)){
@@ -236,7 +249,7 @@ static int acquire_event_channels(void* h,uint32_t *lowres,uint32_t*hires,int st
 static int32_t caen_qdc_acquire_channels_poll(void* h,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms){
   int ret = 0;
   _caen_qdc_handle_t* handle = h;
-  uint32_t status;
+  uint16_t status=0;
   uint32_t counter;
   uint32_t events;
   int cnt;
@@ -257,7 +270,8 @@ static int32_t caen_qdc_acquire_channels_poll(void* h,uint32_t *lowres,uint32_t*
   //
   do{
     // get the status from the caen_qdc
-    status = STATUS_REG(handle->mapped_address);
+    VME_READ16(handle->vme,STATUS_OFF,&status);
+    //    status = STATUS_REG(handle->mapped_address);
     //usleep(100);
     if(timeo_ms>0){
       gettimeofday(&tv,NULL);
@@ -280,8 +294,12 @@ static int32_t caen_qdc_acquire_channels_poll(void* h,uint32_t *lowres,uint32_t*
     ret = acquire_event_channels(handle,lowres,hires,start_channel,nchannels);
   }
   *cycle = handle->cycle;
-  BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT;//clear data buffer AMI 28/10/13
-  BITCLR2_REG(handle->mapped_address)=CLEARDATA_BIT;//clear data buffer AMI 28/10/13
+  //BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT;//clear data buffer AMI 28/10/13
+  //BITCLR2_REG(handle->mapped_address)=CLEARDATA_BIT;//clear data buffer AMI 28/10/13
+  //  msync(handle->mapped_address+0x1000,0x100);
+  VME_WRITE16(handle->vme,BITSET2_OFF,CLEARDATA_BIT);
+  VME_WRITE16(handle->vme,BITCLR2_OFF,CLEARDATA_BIT);
+
  return ret;
 }
 #ifdef LABVIEW

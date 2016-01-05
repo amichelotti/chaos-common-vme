@@ -8,12 +8,13 @@
 #define BOARD_ID_LSB_REG(base) REG16(base,0x803E)
 #define BOARD_ID_MSB_REG(base) REG16(base,0x8036)
 #define OUI_REG(base) REG16(base,0x802A)
-
-#define THRS_CHANNEL_REG(base,chan,lo) REG16(base,0x1080 + 4*chan + 2*lo)
+#define THRS_CHANNEL_OFF 0x1080
+#define THRS_CHANNEL_REG(base,chan,lo) REG16(base,THRS_CHANNEL_OFF + (4*chan) + (2*lo))
 #define GEO_ADDRESS_REG(base) REG16(base,0x1002)
 #define BITSET_REG(base) REG16(base,0x1006)
 #define BITCLR_REG(base) REG16(base,0x1008)
-#define STATUS_REG(base) REG16(base,0x100E)
+#define STATUS_OFF 0x100E
+#define STATUS_REG(base) REG16(base,STATUS_OFF)
 #define CTRL_REG(base) REG16(base,0x1010)
 #define SSRESET_REG(base) REG16(base,0x1016)
 #define EVT_TRG_REG(base) REG16(base,0x1020)
@@ -26,9 +27,11 @@
 #define BAD_REG(base) REG16(base,0x1072)
 #define CRATE_SEL_REG(base) REG16(base,0x103C)
 #define SLIDE_CONST_REG(base) REG16(base,0x106A)
+#define BITSET2_OFF 0x1032
+#define BITCLR2_OFF 0x1034
 
-#define BITSET2_REG(base) REG16(base,0x1032)
-#define BITCLR2_REG(base) REG16(base,0x1034)
+#define BITSET2_REG(base) REG16(base,BITSET2_OFF)
+#define BITCLR2_REG(base) REG16(base,BITCLR2_OFF)
 
 /* BITSET1 */
 #define SOFTRESET_BIT (1<<7)
