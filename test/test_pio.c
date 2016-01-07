@@ -1,4 +1,4 @@
-#include "caen513_drv.h"
+#include <common/vme/caen/caen513_drv.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,8 +1,4 @@
-#include "caen965_drv.h"
-#include "caen792_drv.h"
-#include "caen513_drv.h"
-#include "sis3800_drv.h"
-
+#include <common/vme/sis/sis3800_drv.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
