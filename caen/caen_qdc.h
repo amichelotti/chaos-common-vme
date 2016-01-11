@@ -1,5 +1,10 @@
 #ifndef _CAEN_QDC_H_
 #define  _CAEN_QDC_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "vmewrap.h"
 // Register map
 
@@ -155,5 +160,9 @@ typedef struct __vme_handle__ {
   int manufactureid;
 } _caen_qdc_handle_t ;
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -2,6 +2,10 @@
 #define __SIS3800_H__
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void* sis3800_handle_t;
 
 /**
@@ -76,5 +80,10 @@ void sis3800_clear(sis3800_handle_t h);
  @param h handle to the board
  */
 void sis3800_reset(sis3800_handle_t h);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 

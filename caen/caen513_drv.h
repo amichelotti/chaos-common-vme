@@ -18,7 +18,9 @@
 #define MANUFACTURE_ID 0x832
 #define NCHANNELS 16
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
  
 typedef void* caen513_handle_t;
 
@@ -151,5 +153,9 @@ uint32_t caen513_getEventCounter(caen513_handle_t h,int reset);
 */
 uint16_t caen513_getBufferStatus(caen513_handle_t h);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
