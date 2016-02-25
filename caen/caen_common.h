@@ -1,5 +1,5 @@
-#ifndef _CAEN_QDC_H_
-#define  _CAEN_QDC_H_
+#ifndef _CAEN_COMMON_H_
+#define  _CAEN_COMMON_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,7 +124,47 @@ typedef struct _data {
 #define VERSION_ID 0
 
 #else
+#ifdef CAEN775N
+#define DEV_BOARD "CAEN775N"
+#define NCHANNELS 16
+#define MANUFACTURE_ID 0x40
+#define BOARD_ID 0x3
+#define VERSION_ID 0x13
+
+typedef struct _data {
+  uint32_t adc:12;
+  uint32_t ov:1;
+  uint32_t un:1;
+  uint32_t vd:1;
+  uint32_t pad:2;
+  uint32_t channel:4;
+  uint32_t pad2:3;
+  uint32_t signature:3;
+  uint32_t geo:5;
+} data_t;
+#else
+#ifdef CAEN775
+#define DEV_BOARD "CAEN775"
+#define NCHANNELS 32
+#define MANUFACTURE_ID 0x40
+#define BOARD_ID 0x3
+#define VERSION_ID 0x13
+
+typedef struct _data {
+  uint32_t adc:12;
+  uint32_t ov:1;
+  uint32_t un:1;
+  uint32_t vd:1;
+  uint32_t pad:1;
+  uint32_t channel:5;
+  uint32_t pad2:3;
+  uint32_t signature:3;
+  uint32_t geo:5;
+} data_t;
+#else
 #error "UKNWON CAEN BOARD"
+#endif
+#endif
 #endif
 #endif
 
@@ -158,7 +198,7 @@ typedef struct __vme_handle__ {
   int boardid;
   int version;
   int manufactureid;
-} _caen_qdc_handle_t ;
+} _caen_common_handle_t ;
 
 
 #ifdef __cplusplus

@@ -1,8 +1,8 @@
-#ifndef __CAEN965_H__
-#define __CAEN965_H__
+#ifndef __CAEN775_H__
+#define __CAEN775_H__
 #include <stdint.h>
 /**
- * QDC
+ * TDC
  * Andrea Michelotti
  * */
 
@@ -10,14 +10,14 @@
 extern "C" {
 #endif
 
-typedef void* caen965_handle_t;
+typedef void* caen775_handle_t;
 
 /**
 	open the caen265 device and return an handle to it
 	@param address the vme address of the board
 	@return an handle or zero if error
 */
-caen965_handle_t caen965_open(uint32_t address);
+caen775_handle_t caen775_open(uint32_t address);
 
 
 /**
@@ -25,7 +25,7 @@ caen965_handle_t caen965_open(uint32_t address);
 	@param handle to the board
 	@return zero if success
 */
-int32_t caen965_close(caen965_handle_t handle);
+int32_t caen775_close(caen775_handle_t handle);
 
 
 /**
@@ -35,7 +35,7 @@ int32_t caen965_close(caen965_handle_t handle);
 	@param swreset if nonzero produce a Software Reset
 	@return zero if success, 
 */
-int32_t caen965_init(caen965_handle_t h,int32_t crate_num,int swreset);
+int32_t caen775_init(caen775_handle_t h,int32_t crate_num,int swreset);
 
 /**
 	set the Iped value
@@ -43,7 +43,7 @@ int32_t caen965_init(caen965_handle_t h,int32_t crate_num,int swreset);
 	@param ipedval iped value
 	@return zero if success, 
 */
-int32_t caen965_setIped(caen965_handle_t h,int32_t ipedval);
+int32_t caen775_setIped(caen775_handle_t h,int32_t ipedval);
 
 
 /**
@@ -54,7 +54,7 @@ int32_t caen965_setIped(caen965_handle_t h,int32_t ipedval);
 	@param channel channel id
 	@return zero if success, 
 */
-int32_t caen965_setThreashold(caen965_handle_t h,int16_t lowres,int16_t hires,int channel);
+int32_t caen775_setThreashold(caen775_handle_t h,int16_t lowres,int16_t hires,int channel);
 
 /**
 	get the threashold (hires,lowres) value for a given channel
@@ -64,7 +64,7 @@ int32_t caen965_setThreashold(caen965_handle_t h,int16_t lowres,int16_t hires,in
 	@param channel channel id
 	@return zero if success, 
 */
-int32_t caen965_getThreashold(caen965_handle_t h,int16_t* lowres,int16_t* hires,int channel);
+int32_t caen775_getThreashold(caen775_handle_t h,int16_t* lowres,int16_t* hires,int channel);
 
 
 /**
@@ -72,7 +72,7 @@ int32_t caen965_getThreashold(caen965_handle_t h,int16_t* lowres,int16_t* hires,
 	@param h handle to the board
 	@return the status
 */
-uint16_t caen965_getStatus(caen965_handle_t h);
+uint16_t caen775_getStatus(caen775_handle_t h);
 
 /**
 	get the event count register
@@ -80,14 +80,14 @@ uint16_t caen965_getStatus(caen965_handle_t h);
 	@param reset if not zero reset this counter
 	@return the counter
 */
-uint32_t caen965_getEventCounter(caen965_handle_t h,int reset);
+uint32_t caen775_getEventCounter(caen775_handle_t h,int reset);
 
 /**
 	get the status register of the buffer
 	@param h handle to the board
 	@return the status
 */
-uint16_t caen965_getBufferStatus(caen965_handle_t h);
+uint16_t caen775_getBufferStatus(caen775_handle_t h);
 /**
 	acquire the number of channels given
 	@param handle to the board
@@ -99,7 +99,7 @@ uint16_t caen965_getBufferStatus(caen965_handle_t h);
 	@return the number of events acquired (0 no events)
 */
 
-int32_t caen965_acquire_channels_poll(caen965_handle_t handle,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms);
+int32_t caen775_acquire_channels_poll(caen775_handle_t handle,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms);
 
 #ifdef LABVIEW
 #include "extcode.h"
@@ -123,7 +123,7 @@ typedef struct{
 	@param error LV error struct
 	@return zero if success
 */
-int32_t caen965_LV_close(caen965_handle_t handle,errorStruct* error);
+int32_t caen775_LV_close(caen775_handle_t handle,errorStruct* error);
 
 /**
 	open the caen265 device and return an handle to it, to be used from LV with a master window already mapped
@@ -131,7 +131,7 @@ int32_t caen965_LV_close(caen965_handle_t handle,errorStruct* error);
 	@param error LV error struct
 	@return an handle or zero if error
 */
-caen965_handle_t caen965_LV_open(uint32_t mapped_address,errorStruct* error);
+caen775_handle_t caen775_LV_open(uint32_t mapped_address,errorStruct* error);
 
 /**
 	acquire all the channels, to be used from LV
@@ -143,7 +143,7 @@ caen965_handle_t caen965_LV_open(uint32_t mapped_address,errorStruct* error);
 	@param error LV error struct
 	@return the number of events acquired (0 no events, negative error)
 */
-int32_t caen965_LV_acquire_channels_poll(caen965_handle_t handle,void *lowres,void*hires,int32_t* event_under_run,int timeo_ms,errorStruct* error);
+int32_t caen775_LV_acquire_channels_poll(caen775_handle_t handle,void *lowres,void*hires,int32_t* event_under_run,int timeo_ms,errorStruct* error);
 
 #endif
 

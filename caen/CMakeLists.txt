@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 2.8)
+project(common_vme_caen)
+
+SET(src caen513_drv.c caen775_drv.c caen792_drv.c caen965_drv.c)
+
+ADD_LIBRARY(${PROJECT_NAME} STATIC ${src})
+ADD_EXECUTABLE(test_qdc965 test/test_qdc_caen.c)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} common_vme common_debug)
+TARGET_LINK_LIBRARIES(test_qdc965 ${PROJECT_NAME} common_vme vme common_debug ${FrameworkLib})
+INSTALL_TARGETS(/lib ${PROJECT_NAME})
+INSTALL_TARGETS(/bin test_qdc965)
+FILE(GLOB src *.h)
+INSTALL(FILES ${src} DESTINATION include/common/vme/caen)

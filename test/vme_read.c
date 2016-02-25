@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vmewrap/vmewrap.h>
+#include "vmewrap.h"
 #define USAGE printf("%s <vme base address> <addressing 16/32> <address off> <read size>\n",argv[0]);
 
 int main(int argc,char**argv){

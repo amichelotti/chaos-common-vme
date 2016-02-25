@@ -9,12 +9,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "caen_qdc.h"
+#include "caen_common.h"
 #include <sys/time.h>
 
 #include <common/debug/core/debug.h>
-static int32_t caen_qdc_close(void* h){
-    _caen_qdc_handle_t* handle = h;
+static int32_t caen_common_close(void* h){
+    _caen_common_handle_t* handle = h;
     DPRINT(DEV_BOARD " closing handle @0x%x\n",(unsigned)h);
     if(handle){
         int ret;
@@ -27,7 +27,7 @@ static int32_t caen_qdc_close(void* h){
     return -4;
 }
 
-static void* caen_qdc_open(uint32_t address ){
+static void* caen_common_open(uint32_t address ){
   void* mapped_address;
   int size = 0x10000;
   int boardid,manufactureid;
@@ -43,7 +43,7 @@ static void* caen_qdc_open(uint32_t address ){
     return 0;
   }
 
-  _caen_qdc_handle_t *p = malloc(sizeof(_caen_qdc_handle_t));
+  _caen_common_handle_t *p = malloc(sizeof(_caen_common_handle_t));
   if(p==NULL){
     ERR("cannot allocate resources\n");
     vmewrap_vme_close(vme);
@@ -63,7 +63,7 @@ static void* caen_qdc_open(uint32_t address ){
   PRINT(DEV_BOARD " ManufactureID:0x%x\n",manufactureid);
   if(boardid!=BOARD_ID || manufactureid!=MANUFACTURE_ID){
     ERR("device not identified expected BoardId=0x%x ManufactureId=0x%x\n",BOARD_ID,MANUFACTURE_ID);
-    caen_qdc_close((void*)p);
+    caen_common_close((void*)p);
     return 0;
   }
   
@@ -72,8 +72,8 @@ static void* caen_qdc_open(uint32_t address ){
 
 
 
-static int32_t caen_qdc_init(void* h,int32_t crate_num,int hwreset){
-  _caen_qdc_handle_t* handle = h;
+static int32_t caen_common_init(void* h,int32_t crate_num,int hwreset){
+  _caen_common_handle_t* handle = h;
   DPRINT(DEV_BOARD " intialiazing @0x%x\n",(uint32_t)h); 
   int cnt;
   if(hwreset){
@@ -105,8 +105,8 @@ static int32_t caen_qdc_init(void* h,int32_t crate_num,int hwreset){
   return 0;
 }
 
-static int32_t caen_qdc_setIped(void* h,int32_t ipedval){
-  _caen_qdc_handle_t* handle = h;
+static int32_t caen_common_setIped(void* h,int32_t ipedval){
+  _caen_common_handle_t* handle = h;
   DPRINT(DEV_BOARD " setting ipedval=x%x\n",ipedval);
   IPED_REG(handle->mapped_address)=ipedval;
   msync(handle->mapped_address,0x10000);
@@ -114,8 +114,8 @@ static int32_t caen_qdc_setIped(void* h,int32_t ipedval){
 }
 
 
-static int32_t caen_qdc_setThreashold(void* h,int16_t lowres,int16_t hires,int channel){
-  _caen_qdc_handle_t* handle = h;
+static int32_t caen_common_setThreashold(void* h,int16_t lowres,int16_t hires,int channel){
+  _caen_common_handle_t* handle = h;
   if((channel<NCHANNELS) && (channel>=0)){
     DPRINT(DEV_BOARD " setting threshold channel %d hires=x%x lores=x%x \n",channel,lowres,hires);
     BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT|OVERRANGE_EN_BIT|LOWTHR_EN_BIT;
@@ -132,8 +132,8 @@ static int32_t caen_qdc_setThreashold(void* h,int16_t lowres,int16_t hires,int c
 }
 
 
-static int32_t caen_qdc_getThreashold(void* h,int16_t* lowres,int16_t* hires,int channel){
-    _caen_qdc_handle_t* handle = h;
+static int32_t caen_common_getThreashold(void* h,int16_t* lowres,int16_t* hires,int channel){
+    _caen_common_handle_t* handle = h;
     if((channel<NCHANNELS) && (channel>=0)){
 #ifdef CAEN792
         *lowres = THRS_CHANNEL_REG(handle->mapped_address,channel,0)&0xff;
@@ -148,24 +148,24 @@ static int32_t caen_qdc_getThreashold(void* h,int16_t* lowres,int16_t* hires,int
 
 
 
-static uint16_t caen_qdc_getStatus(void* h){
+static uint16_t caen_common_getStatus(void* h){
   uint16_t ret;
-  _caen_qdc_handle_t* handle = h;
+  _caen_common_handle_t* handle = h;
   ret = STATUS_REG(handle->mapped_address);
   DPRINT(DEV_BOARD " Get Status 0x%x\n",ret);
   return ret;
 }
 
-static uint16_t caen_qdc_getBufferStatus(void* h){
+static uint16_t caen_common_getBufferStatus(void* h){
   uint16_t ret;
-  _caen_qdc_handle_t* handle = h;
+  _caen_common_handle_t* handle = h;
   ret = STATUS2_REG(handle->mapped_address);
   return ret;
 }
 
-static uint32_t caen_qdc_getEventCounter(void* h,int reset){
+static uint32_t caen_common_getEventCounter(void* h,int reset){
   uint32_t ret;
-  _caen_qdc_handle_t* handle = h;
+  _caen_common_handle_t* handle = h;
   //  ret = EVT_CNT_REG(handle->mapped_address);
   ret = EVT_CNT_LOW_REG(handle->mapped_address)|EVT_CNT_HI_REG(handle->mapped_address)<<16;
   if(reset){
@@ -174,7 +174,7 @@ static uint32_t caen_qdc_getEventCounter(void* h,int reset){
   }
   return ret;
 }
-static uint32_t search_header(_caen_qdc_handle_t* handle){
+static uint32_t search_header(_caen_common_handle_t* handle){
   evt_buffer_t a;
   uint32_t ret=0;
   a.data  = REG32(handle->mapped_address,0);
@@ -184,7 +184,7 @@ static uint32_t search_header(_caen_qdc_handle_t* handle){
   }
   return ret;
 }
-static uint32_t search_eoe(_caen_qdc_handle_t* handle){
+static uint32_t search_eoe(_caen_common_handle_t* handle){
   evt_buffer_t a;
   uint32_t ret=0;
   a.data  = REG32(handle->mapped_address,0);
@@ -196,7 +196,7 @@ static uint32_t search_eoe(_caen_qdc_handle_t* handle){
 }
 //return the channels acquired 
 static int acquire_event_channels(void* h,uint32_t *lowres,uint32_t*hires,int start_chan,int max_chan){
-  _caen_qdc_handle_t* handle = h;
+  _caen_common_handle_t* handle = h;
   int cnt=0;
   evt_buffer_t a;
   int nchannels_acquired=0;
@@ -217,16 +217,17 @@ static int acquire_event_channels(void* h,uint32_t *lowres,uint32_t*hires,int st
 	} else {
 		data = a.d.adc;
 	}
-#ifdef CAEN792
-    lowres[a.d.channel] = data;
-
-#else
+#ifdef CAEN965
 	if(a.d.rg==1){
 	  
 	  lowres[a.d.channel] = data;
 	} else {
 	  hires[a.d.channel] = data;
 	}
+
+
+#else
+	lowres[a.d.channel] = data;
 #endif
 	nchannels_acquired++;
         
@@ -246,9 +247,9 @@ static int acquire_event_channels(void* h,uint32_t *lowres,uint32_t*hires,int st
   return nchannels_acquired;
 }
 
-static int32_t caen_qdc_acquire_channels_poll(void* h,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms){
+static int32_t caen_common_acquire_channels_poll(void* h,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms){
   int ret = 0;
-  _caen_qdc_handle_t* handle = h;
+  _caen_common_handle_t* handle = h;
   uint16_t status=0;
   uint32_t counter;
   uint32_t events;
@@ -320,13 +321,13 @@ return;
 }
 
 
-static void* caen_qdc_LV_open(uint32_t mapped_address,errorStruct *error ){
+static void* caen_common_LV_open(uint32_t mapped_address,errorStruct *error ){
   int boardid,manufactureid;
-  _caen_qdc_handle_t *p;
+  _caen_common_handle_t *p;
   if(error->status)
   	return 0;
   	
-  p = malloc(sizeof(_caen_qdc_handle_t));
+  p = malloc(sizeof(_caen_common_handle_t));
   if(p==NULL){
   	error->status = 2;
   	return 0;
@@ -353,7 +354,7 @@ static void* caen_qdc_LV_open(uint32_t mapped_address,errorStruct *error ){
 }
 
 
-static int32_t caen_qdc_LV_close(void* h,errorStruct *error){
+static int32_t caen_common_LV_close(void* h,errorStruct *error){
  DPRINT(DEV_BOARD " LV close 0x@%x\n",(uint32_t)h);
   if(h){
     free(h);
@@ -361,12 +362,12 @@ static int32_t caen_qdc_LV_close(void* h,errorStruct *error){
   return 0;
 }
 
-static int32_t caen_qdc_LV_acquire_channels_poll(void* h,void *lowres,void*hires,int32_t* event_under_run,int timeo_ms,errorStruct*error){
+static int32_t caen_common_LV_acquire_channels_poll(void* h,void *lowres,void*hires,int32_t* event_under_run,int timeo_ms,errorStruct*error){
   LV_vector_uint32_t** lv_lowres=(LV_vector_uint32_t**)lowres;
   LV_vector_uint32_t** lv_hires=(LV_vector_uint32_t**)hires;
   uint64_t counter;
   int32_t ret=0;
-  _caen_qdc_handle_t* handle = h;
+  _caen_common_handle_t* handle = h;
   long numOfComp=NCHANNELS;
   if(error->status){
   	return 0;
@@ -423,7 +424,7 @@ static int32_t caen_qdc_LV_acquire_channels_poll(void* h,void *lowres,void*hires
   if((*lv_lowres)->arg && (*lv_hires)->arg){
     uint64_t old_counter = handle->cycle;
 
-    ret =caen_qdc_acquire_channels_poll(h,(uint32_t *)(*lv_lowres)->arg,(uint32_t*)(*lv_hires)->arg,0,NCHANNELS,&counter,timeo_ms); 
+    ret =caen_common_acquire_channels_poll(h,(uint32_t *)(*lv_lowres)->arg,(uint32_t*)(*lv_hires)->arg,0,NCHANNELS,&counter,timeo_ms); 
     *event_under_run = (handle->cycle - old_counter) -1;
     DPRINT(DEV_BOARD " [x%x]acquired %d channels, event underrun %d\n",handle->mapped_address,ret,*event_under_run);
 
