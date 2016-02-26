@@ -119,11 +119,12 @@ static int32_t caen_common_setThreashold(void* h,int16_t lowres,int16_t hires,in
   if((channel<NCHANNELS) && (channel>=0)){
     DPRINT(DEV_BOARD " setting threshold channel %d hires=x%x lores=x%x \n",channel,lowres,hires);
     BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT|OVERRANGE_EN_BIT|LOWTHR_EN_BIT;
-#ifdef CAEN792
-      THRS_CHANNEL_REG(handle->mapped_address,channel,0)= lowres&0xff;
-#else
+#ifdef CAEN965
     THRS_CHANNEL_REG(handle->mapped_address,channel,1)= lowres&0xff;
-    THRS_CHANNEL_REG(handle->mapped_address,channel,0)= hires&0xff;
+      THRS_CHANNEL_REG(handle->mapped_address,channel,0)= hires&0xff;
+
+#else
+      THRS_CHANNEL_REG(handle->mapped_address,channel,0)= lowres&0xff;
 #endif
     msync(handle->mapped_address,0x10000);
     return 0;

@@ -21,27 +21,40 @@ caen775_handle_t caen775_open(uint32_t address ){
 }
 
 
-int32_t caen775_init(caen775_handle_t h,int32_t crate_num,int hwreset){
-    return caen_common_init(h,crate_num,hwreset);
+int32_t caen775_init(caen775_handle_t h,int32_t crate_num,int swreset){
+	_caen_common_handle_t* handle = h;
+
+	DPRINT(DEV_BOARD " intialiazing @0x%x\n",(uint32_t)h);
+	if(swreset){
+		BITSET_REG(handle->mapped_address) = SOFTRESET_BIT;
+	}
+	CRATE_SEL_REG(handle->mapped_address)=crate_num;
+	BITSET2_REG(handle->mapped_address)=CAEN775_CLEAR_DATA; // clear data reset
+	BITCLR2_REG(handle->mapped_address)=CAEN775_MEMORY_TEST|CAEN775_ADC_OFFLINE|CAEN775_TEST_ACQ|CAEN775_CLEAR_DATA;
+
+	  //  BITSET2_REG(handle->mapped_address)=ALLTRG_EN_BIT/*|OVERRANGE_EN_BIT|LOWTHR_EN_BIT*/|EMPTY_EN_BIT|AUTOINCR_BIT;
+	  BITSET2_REG(handle->mapped_address)=CAEN775_ALL_TRIGGER|CAEN775_AUTO_INCR|CAEN775_ACCEPT_OVER_RANGE;
+    return 0;
 }
 
 int32_t caen775_close(caen775_handle_t h){
     return caen_common_close(h);
 }
 
-int32_t caen775_setIped(caen775_handle_t h,int32_t ipedval){
-   return caen_common_setIped(h,ipedval);
+
+int32_t caen775_setThreashold(caen775_handle_t h,int16_t value,int kill,int channel){
+	_caen_common_handle_t* handle = h;
+
+	if((channel<NCHANNELS) && (channel>=0)){
+	    DPRINT(DEV_BOARD " setting threshold channel %d to x%x \n",channel,value);
+	    BITSET2_REG(handle->mapped_address)=CAEN775_CLEAR_DATA|CAEN775_THRESHOLD;
+
+	      THRS_CHANNEL_REG(handle->mapped_address,channel,0)= (value&0xff)| ((kill)?0x100:0);
+	}
+	return 0;
 }
 
 
-int32_t caen775_setThreashold(caen775_handle_t h,int16_t lowres,int16_t hires,int channel){
-    return  caen_common_setThreashold(h,lowres,hires,channel);
-}
-
-
-int32_t caen775_getThreashold(caen775_handle_t h,int16_t* lowres,int16_t* hires,int channel){
-    return caen_common_getThreashold(h,lowres,hires,channel);
-}
 
 
 
@@ -57,8 +70,8 @@ uint32_t caen775_getEventCounter(caen775_handle_t h,int reset){
    return caen_common_getEventCounter(h,reset);
 }
 
-int32_t caen775_acquire_channels_poll(caen775_handle_t h,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms){
-   return caen_common_acquire_channels_poll( h, lowres,hires,start_channel,nchannels,cycle,timeo_ms);
+int32_t caen775_acquire_channels_poll(caen775_handle_t h,uint32_t *lowres,uint64_t *cycle,int timeo_ms){
+   return caen_common_acquire_channels_poll( h, lowres,0,0,NCHANNELS,cycle,timeo_ms);
 }
 #ifdef LABVIEW
 
