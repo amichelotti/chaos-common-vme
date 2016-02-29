@@ -14,6 +14,39 @@
 #define VME_WRITE32(handle,off,val) vmewrap_write32(handle,off,val)
 #define VME_WRITE8(handle,off,val) vmewrap_write8(handle,off,val)
 
+
+#define VME_OPT_CTL_EN		0x80000000
+typedef enum vme_opt {
+  VME_OPT_AM_PROG_AM=         0x1, //program access
+  VME_OPT_AM_DATA_AM=         0x2, //data access
+  VME_OPT_AM_SUPER_AM=        0x4, // supervisor mode
+  VME_OPT_AM_NON_PRIV_AM=     0x8, // not privileged mode
+  VME_OPT_BLT_ON=          0x10, // block transfer on
+  VME_OPT_BLT_OFF=         0x20, // block transfer off
+  VME_OPT_POST_WRITE_EN=   0x40, // post write cycle enable
+  VME_OPT_POST_WRITE_DIS=  0x80, // post write cycle disable 
+  VME_OPT_PREF_READ_EN =   0x100, // prefetched read cycle enable
+  VME_OPT_PREF_READ_DIS=   0x200 // prefetched write cycle disable
+} vme_opt_t;
+
+typedef enum vme_access {
+  VME_ACCESS_D64=    0x00C00000, //enable 64/32/16/8 bus cycles
+  VME_ACCESS_D32=    0x00800000, //enable 32/16/8 bus cycles
+  VME_ACCESS_D16=    0x00400000, // enable 16/8 bus cycles
+  VME_ACCESS_D8=     0x00000000 // enable 8 bus cycles
+} vme_access_t;
+
+typedef enum vme_addressing{
+  VME_ADDRESSING_A32=    0x00020000, // 32 bit addressing
+  VME_ADDRESSING_A24=    0x00010000, // 24 bit addressing 
+  VME_ADDRESSING_A16 =   0x00000000 // 16 bit addressing
+} vme_addressing_t;
+#define VME_SET_MASTER 0 // enable master
+#define VME_SET_SLAVE  1 // enable slave
+
+#define VME_SET_DMA    9 //enable DMA
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,11 +62,12 @@ typedef void* vmewrap_vme_handle_t;
 	open vme master and slave space
 	@param master_add the vme master address 
 	@param master_size (0=no map)
-	@param master_addressing (16, 32)
+	@param master_addressing (16, 32, 24)
+	@param dw data width (8,16, 32,64)
 	@param vme_options (supervisor...)
 	@return an handle or zero if error
 */
-vmewrap_vme_handle_t vmewrap_vme_open_master(uint32_t master_add,uint32_t master_size,uint32_t master_addressing,uint32_t vme_options);
+  vmewrap_vme_handle_t vmewrap_vme_open_master(uint32_t master_add,uint32_t master_size,vme_addressing_t master_addressing,vme_access_t dw, vme_opt_t vme_options);
 
 
 /**
@@ -41,10 +75,11 @@ vmewrap_vme_handle_t vmewrap_vme_open_master(uint32_t master_add,uint32_t master
 	@param slave_add the vme slave address 
 	@param slave_size (0 = no map)
  	@param slave_addressing (16, 32)
+	@param dw data width (8,16, 32,64)
 	@param vme_options (supervisor...)
 	@return an handle or zero if error
 */
-  vmewrap_vme_handle_t vmewrap_vme_open_slave(uint32_t slave_add,uint32_t slave_size,uint32_t slave_addressing,uint32_t vme_options);
+  vmewrap_vme_handle_t vmewrap_vme_open_slave(uint32_t slave_add,uint32_t slave_size,vme_addressing_t master_addressing,vme_access_t dw, vme_opt_t vme_options);
 
 
 /**

@@ -25,7 +25,7 @@ typedef struct __vme_handle__ {
 
 extern "C" {
     
-vmewrap_vme_handle_t vmewrap_vme_open_master(uint32_t master_add,uint32_t master_size,uint32_t master_addressing,uint32_t vme_opt){
+  vmewrap_vme_handle_t vmewrap_vme_open_master(uint32_t master_add,uint32_t master_size,vme_addressing master_addressing,vme_access dw,vme_opt vme_opts){
 
  
   vmewrap_int_vme_handle_t p;
@@ -35,23 +35,23 @@ vmewrap_vme_handle_t vmewrap_vme_open_master(uint32_t master_add,uint32_t master
 
   p = (vmewrap_int_vme_handle_t)calloc(1,sizeof(struct __vme_handle__ ));
   if(p==NULL){
-    ERR("cannot allocate resources\n");
+    ERR("cannot allocate resources");
     return 0;
   }
   
   if (VME_INT_INIT(p)) {
-    ERR("cannot initialize vme\n");
+    ERR("cannot initialize vme");
     perror("vme_init");
 
     return 0;
   }
  
-  DPRINT("vme init vme handle 0x%x, vme wrap handle 0x%x\n",p->bus,p);
+  DPRINT("vme init vme handle 0x%x, vme wrap handle 0x%x",p->bus,p);
 
   p->master=1;
   p->phys_add=(void*)master_add;
   p->size = master_size;
-  if(VME_INT_MAP_MASTER(p,master_add,master_size,master_addressing,vme_opt)== 0){
+  if(VME_INT_MAP_MASTER(p,master_add,master_size,master_addressing,dw,vme_opts)== 0){
     free(p);
     
     return 0;
@@ -61,7 +61,7 @@ vmewrap_vme_handle_t vmewrap_vme_open_master(uint32_t master_add,uint32_t master
   return (vmewrap_vme_handle_t) p; 
 }
 
-  vmewrap_vme_handle_t vmewrap_vme_open_slave(uint32_t slave_add,uint32_t slave_size,uint32_t slave_addressing, uint32_t vme_opt){
+  vmewrap_vme_handle_t vmewrap_vme_open_slave(uint32_t slave_add,uint32_t slave_size,vme_addressing slave_addressing,vme_access dw,vme_opt vme_opts){
 
  
   vmewrap_int_vme_handle_t p;
@@ -70,22 +70,22 @@ vmewrap_vme_handle_t vmewrap_vme_open_master(uint32_t master_add,uint32_t master
   }
   p = (vmewrap_int_vme_handle_t)calloc(1,sizeof(struct __vme_handle__ ));
   if(p==NULL){
-    ERR("cannot allocate resources\n");
+    ERR("cannot allocate resources");
     return 0;
   }
   
   if (VME_INT_INIT(p)) {
-    ERR("cannot initialize vme\n");
+    ERR("cannot initialize vme");
     perror("vme_init");
 
     return 0;
   }
  
-  DPRINT("vme init vme handle 0x%x, vme wrap handle 0x%x\n",p->bus,p);
+  DPRINT("vme init vme handle 0x%x, vme wrap handle 0x%x",p->bus,p);
 
   p->phys_add=(void*)slave_add;
   p->size = slave_size;
-  if(VME_INT_MAP_SLAVE(p,slave_add,slave_size,slave_addressing,vme_opt)== 0){
+  if(VME_INT_MAP_SLAVE(p,slave_add,slave_size,slave_addressing,dw,vme_opts)== 0){
       free(p);
       return 0;
   }
@@ -98,7 +98,7 @@ vmewrap_vme_handle_t vmewrap_vme_open_master(uint32_t master_add,uint32_t master
 
 int32_t vmewrap_vme_close(vmewrap_vme_handle_t  h){
   vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-  DPRINT("closing handle @0x%x\n",(unsigned)h);
+  DPRINT("closing handle @0x%x",(unsigned)h);
   if(handle){
     VME_INT_CLOSE(handle);
     free(handle);

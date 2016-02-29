@@ -24,17 +24,18 @@ caen775_handle_t caen775_open(uint32_t address ){
 int32_t caen775_init(caen775_handle_t h,int32_t crate_num,int swreset){
 	_caen_common_handle_t* handle = h;
 
-	DPRINT(DEV_BOARD " intialiazing @0x%x\n",(uint32_t)h);
+	DPRINT(DEV_BOARD " intialiazing @0x%x",(uint32_t)h);
 	if(swreset){
-		BITSET_REG(handle->mapped_address) = SOFTRESET_BIT;
+	  BITSET_REG(handle->mapped_address) = SOFTRESET_BIT;
 	}
 	CRATE_SEL_REG(handle->mapped_address)=crate_num;
-	BITSET2_REG(handle->mapped_address)=CAEN775_CLEAR_DATA; // clear data reset
-	BITCLR2_REG(handle->mapped_address)=CAEN775_MEMORY_TEST|CAEN775_ADC_OFFLINE|CAEN775_TEST_ACQ|CAEN775_CLEAR_DATA;
 
-	  //  BITSET2_REG(handle->mapped_address)=ALLTRG_EN_BIT/*|OVERRANGE_EN_BIT|LOWTHR_EN_BIT*/|EMPTY_EN_BIT|AUTOINCR_BIT;
-	  BITSET2_REG(handle->mapped_address)=CAEN775_ALL_TRIGGER|CAEN775_AUTO_INCR|CAEN775_ACCEPT_OVER_RANGE;
-    return 0;
+
+	BITCLR_REG(handle->mapped_address) = 0xff; // clear soft reset, berr and sel addr
+	//  BITSET2_REG(handle->mapped_address)=ALLTRG_EN_BIT/*|OVERRANGE_EN_BIT|LOWTHR_EN_BIT*/|EMPTY_EN_BIT|AUTOINCR_BIT;
+	BITSET2_REG(handle->mapped_address)=CAEN775_ALL_TRIGGER|CAEN775_AUTO_INCR|CAEN775_ACCEPT_OVER_RANGE|CAEN775_CLEAR_DATA; // clear data reset;
+	BITCLR2_REG(handle->mapped_address)=CAEN775_MEMORY_TEST|CAEN775_ADC_OFFLINE|CAEN775_TEST_ACQ|CAEN775_CLEAR_DATA; // clear data reset;;
+	return 0;
 }
 
 int32_t caen775_close(caen775_handle_t h){
@@ -46,7 +47,7 @@ int32_t caen775_setThreashold(caen775_handle_t h,int16_t value,int kill,int chan
 	_caen_common_handle_t* handle = h;
 
 	if((channel<NCHANNELS) && (channel>=0)){
-	    DPRINT(DEV_BOARD " setting threshold channel %d to x%x \n",channel,value);
+	    DPRINT(DEV_BOARD " setting threshold channel %d to x%x ",channel,value);
 	    BITSET2_REG(handle->mapped_address)=CAEN775_CLEAR_DATA|CAEN775_THRESHOLD;
 
 	      THRS_CHANNEL_REG(handle->mapped_address,channel,0)= (value&0xff)| ((kill)?0x100:0);
@@ -56,6 +57,19 @@ int32_t caen775_setThreashold(caen775_handle_t h,int16_t value,int kill,int chan
 
 
 
+
+int32_t caen775_enable_mode(caen775_handle_t h,caen775_modes_t modes){
+  	_caen_common_handle_t* handle = h;
+
+	BITSET2_REG(handle->mapped_address)=modes;
+	return 0;
+}
+
+int32_t caen775_disable_mode(caen775_handle_t h,caen775_modes_t modes){
+  _caen_common_handle_t* handle = h;
+  	BITCLR2_REG(handle->mapped_address)=modes;
+	return 0;
+}
 
 
 uint16_t caen775_getStatus(caen775_handle_t h){

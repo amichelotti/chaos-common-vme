@@ -23,18 +23,18 @@ int main(int argc,char**argv){
   int is965=1;
   int cnt;
     FILE*out;
-  if(argc<3){
+  if(argc<2){
     USAGE;
     return 1;
   }
 
-  address = strtoul(argv[2],0,0);
-  if(argc>3){
+  address = strtoul(argv[1],0,0);
+  if(argc>2){
     acquire_cycles = strtoul(argv[2],0,0);
     printf("* number of acquisitions %d\n",acquire_cycles);
   }
 
-  if(argc>4){
+  if(argc>3){
     acquire_timeo = strtoul(argv[3],0,0);
     printf("* timeout set to %d ms\n",acquire_timeo);
   }
@@ -53,13 +53,14 @@ int main(int argc,char**argv){
   if(caen){
       int stat,bufstat;
       caen775_init(caen,1,1);
+      caen775_disable_mode(caen,CAEN775_COMMON_STOP);
       stat=caen775_getStatus(caen);
        bufstat=caen775_getBufferStatus(caen);
         fprintf(out,"===CAEN stat :0x%x buf stat:0x%x",stat,bufstat);
 
     cnt = acquire_cycles;
 
-    printf("* Status 0x%x, Buffer status 0x%x, acquiring ... \n",stat ,bufstat);
+    printf("* [%d event] Status 0x%x, Buffer status 0x%x, acquiring ... \n",caen775_getEventCounter(caen,0),stat ,bufstat);
     while((acquire_cycles==0) || (cnt>=0)){
       int ret;
       ret = caen775_acquire_channels_poll(caen,ch,&cycle,acquire_timeo);

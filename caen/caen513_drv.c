@@ -33,7 +33,7 @@ caen513_handle_t caen513_open(uint32_t address ){
   int boardid,manufactureid;
   vmewrap_vme_handle_t vme;
   DPRINT("opening vme device at @0x%x\n",address);
-  vme = vmewrap_vme_open_master(address,size,32,0);
+  vme = vmewrap_vme_open_master(address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,0);
   if(vme==NULL) return NULL;
 
   mapped_address =  vmewrap_get_linux_add(vme);

@@ -39,26 +39,54 @@ static int vme_init_universe2(vmewrap_int_vme_handle_t handle){
     return 0;
     
 }
-static int  map_master_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,uint32_t addressing,uint32_t vme_opt){
-  int am;
+static int  map_master_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw, vme_opt_t vme_options){
+
   VMEBridge* vme=(VMEBridge*)handle->bus;
   int image;
-  if(addressing==32)
-    am = A32;
-  else if(addressing==16){
-    am = A16;
-  } else if(addressing==24){
-    am = A24;
-  } else {
-    ERR("master addressing not implemented %d\n",addressing);
-    return 0;
+
+  switch(addressing){
+  case 16:
+    addressing = VME_ADDRESSING_A16;
+    break;
+  case 24:
+    addressing = VME_ADDRESSING_A24;
+    break;
+  case 32:
+    addressing = VME_ADDRESSING_A32;
+    break;
   }
 
-  image=vme->getImage(add,size,am,D32,MASTER);
-  //  vme->setOption(image,SUPER_AM);
+  switch(dw){
+  case 16:
+    dw = VME_ACCESS_D16;
+    break;
+  case 8:
+    dw = VME_ACCESS_D8;
+    break;
+  case 32:
+    dw = VME_ACCESS_D32;
+    break;
+  case 64:
+    dw = VME_ACCESS_D64;
+    break;
+  }
+
+
+  if((addressing!=VME_ADDRESSING_A32) && (addressing !=VME_ADDRESSING_A16) && (addressing !=VME_ADDRESSING_A24)){
+    ERR("addressing not implemented %d",addressing);
+    return 0;
+  }
+  if((dw!=VME_ACCESS_D64) && (dw !=VME_ACCESS_D32) && (dw !=VME_ACCESS_D16) && (dw !=VME_ACCESS_D8)){
+    ERR("data access not implemented %d",dw);
+    return 0;
+  }
+  image=vme->getImage(add,size,addressing,dw,MASTER);
+  if(vme_options){
+    vme->setOption(image,vme_options);
+  }
   handle->fd=image;
   if (image < 0) {
-      ERR("Can't allocate master image vmeadd:0x%x, size:0x%x\n",add,size);
+      ERR("Can't allocate master image vmeadd:0x%x, size:0x%x",add,size);
        return 0;
     }
   handle->mapped_address=  vme->getPciBaseAddr(image);
@@ -67,29 +95,58 @@ static int  map_master_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,ui
      return 0;
  } 
  
-  DPRINT("Master address mapped at @0x%x size 0x%x\n",handle->mapped_address,size);
+  DPRINT("Master address mapped at @0x%x size 0x%x, addressing 0x%x dw: 0x%x",handle->mapped_address,size,addressing,dw);
   return 1;
 }
 
-static int  map_slave_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,uint32_t addressing,uint32_t vme_opt){
-   VMEBridge* vme=(VMEBridge*)handle->bus;
-   int am=0;
+static int  map_slave_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw,vme_opt_t vme_options){
+  VMEBridge* vme=(VMEBridge*)handle->bus;
+  int am=0;
   int image;
-  if(addressing==32)
-    am = A32;
-  else if(addressing==16){
-    am = A16;
-  } else if(addressing==24){
-    am = A24;
-  } else {
-    ERR("slave addressing not implemented %d\n",addressing);
+  switch(addressing){
+  case 16:
+    addressing = VME_ADDRESSING_A16;
+    break;
+  case 24:
+    addressing = VME_ADDRESSING_A24;
+    break;
+  case 32:
+    addressing = VME_ADDRESSING_A32;
+    break;
+  }
+
+  switch(dw){
+  case 16:
+    dw = VME_ACCESS_D16;
+    break;
+  case 8:
+    dw = VME_ACCESS_D8;
+    break;
+  case 32:
+    dw = VME_ACCESS_D32;
+    break;
+  case 64:
+    dw = VME_ACCESS_D64;
+    break;
+  }
+
+  if((addressing!=VME_ADDRESSING_A32) && (addressing !=VME_ADDRESSING_A16) && (addressing !=VME_ADDRESSING_A24)){
+    ERR("addressing not implemented %d",addressing);
+    return 0;
+  }
+  if((dw!=VME_ACCESS_D64) && (dw !=VME_ACCESS_D32) && (dw !=VME_ACCESS_D16) && (dw !=VME_ACCESS_D8)){
+    ERR("data access not implemented %d",dw);
     return 0;
   }
 
-  image=vme->getImage(add,size,am,D32,SLAVE);
+
+  if(vme_options){
+    vme->setOption(image,vme_options);
+  }
+  image=vme->getImage(add,size,addressing,dw,SLAVE);
   
   if (image < 0) {
-      ERR("Can't allocate slave image vmeadd:0x%x, size:0x%x\n",add,size);
+      ERR("Can't allocate slave image vmeadd:0x%x, size:0x%x",add,size);
        return 0;
     }
   handle->fd=image;
@@ -99,33 +156,64 @@ static int  map_slave_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,uin
      return 0;
  } 
  
-  DPRINT("slave address mapped at @0x%x size 0x%x\n",handle->mapped_address,size);
+  DPRINT("slave address mapped at @0x%x size 0x%x",handle->mapped_address,size);
   return 1;
 }
 static int vme_write8_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t data){
   VMEBridge* vme=(VMEBridge*)handle->bus;
+#ifdef DONT_USE_MAP
   return vme->wb(handle->fd,(uint32_t)handle->phys_add + off,data);
+#else
+  REG8(handle->mapped_address,off)=data;
+  return 0;
+#endif
 }
 
 static int vme_write32_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint32_t data){
   VMEBridge* vme=(VMEBridge*)handle->bus;
+#ifdef DONT_USE_MAP
   return vme->wl(handle->fd,(uint32_t)handle->phys_add + off,data);
+#else
+  REG32(handle->mapped_address,off)=data;
+  return 0;
+#endif
 }
 static int vme_write16_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t data){
   VMEBridge* vme=(VMEBridge*)handle->bus;
+#ifdef DONT_USE_MAP
   return vme->ww(handle->fd,(uint32_t)handle->phys_add + off,data);
+#else
+  REG16(handle->mapped_address,off)=data;
+  return 0;
+
+#endif  
 }
 static int vme_read32_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint32_t *data){
   VMEBridge* vme=(VMEBridge*)handle->bus;
+#ifdef DONT_USE_MAP
   return vme->rl(handle->fd,(uint32_t)handle->phys_add + off,data);
+#else
+  *data =REG32(handle->mapped_address,off);
+  return 1;
+#endif
 }
 static int vme_read16_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t *data){
   VMEBridge* vme=(VMEBridge*)handle->bus;
+#ifdef DONT_USE_MAP
   return vme->rw(handle->fd,(uint32_t)handle->phys_add + off,data);
+#else
+  *data =REG16(handle->mapped_address,off);
+  return 1;
+#endif
 }
 static int vme_read8_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t *data){
   VMEBridge* vme=(VMEBridge*)handle->bus;
+#ifdef DONT_USE_MAP
   return vme->rb(handle->fd,(uint32_t)handle->phys_add + off,data);
+#else
+  *data = REG8(handle->mapped_address,off);
+  return  1;
+#endif
 }
 
 
