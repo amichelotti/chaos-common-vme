@@ -286,7 +286,7 @@ static int32_t caen_common_acquire_channels_poll(void* h,uint32_t *lowres,uint32
     }
   } while(((status&CAEN_QDC_STATUS_DREADY)==0)&&((diff)<=(timeo_ms*1000)));
 
-  counter = EVT_CNT_LOW_REG(handle->mapped_address)|EVT_CNT_HI_REG(handle->mapped_address)<<16;
+  counter = EVT_CNT_LOW_REG(handle->mapped_address)|(EVT_CNT_HI_REG(handle->mapped_address)<<16);
   events = abs(counter - handle->event_counter);
 
   handle->cycle+= events;
