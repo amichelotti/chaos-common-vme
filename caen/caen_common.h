@@ -5,8 +5,9 @@
 extern "C" {
 #endif
 
-#include "vmewrap.h"
+#include <common/vme/core/vmewrap.h>
 // Register map
+#define MANUFACTURE_ID 0x40
 
 #define FW_REVISION_REG(base) REG16(base,0x1000)
 #define BOARD_ID_REG(base) REG16(base,0x803A)
@@ -47,13 +48,32 @@ extern "C" {
 #define CLEARDATA_BIT 0x4 /* clear data (data reset signal), write&read pointers */
 #define OVERRANGE_EN_BIT 0x8 /*no overflow suppression*/
 #define LOWTHR_EN_BIT 0x10 /* no zero suppression */
+#define VALID_CONTROL 0x20 /* 775 disable memorization of data when in common stop data)*/
 #define TESTAQ_BIT 0x40 /* acquisition test mode, the data are taken from an internal fifo */
 #define SLIDE_EN_BIT 0x80 /* slide scale enable*/
 #define STEP_TH_BIT 0x100 /* set the zero suppression resolution*/
+#define COMMON_STOP_MODE 0x200 /*775 select common stop mode*/
+#define RESERVED_1 0x400
 #define AUTOINCR_BIT 0x800 /* enable read pointer autoincrement */
 #define EMPTY_EN_BIT 0x1000 /* write the header and EOB when there are not accepted data*/
 #define SLIDESUB_EN_BIT 0x2000 /* allow to change oepration mode */
 #define ALLTRG_EN_BIT 0x4000 /* enable the event counter to increment also to not accepted trigger*/ 
+
+typedef enum caen_modes {
+	CAEN_MEMORY_TEST=0x1,
+	CAEN_ADC_OFFLINE=(1<<1),
+	CAEN_CLEAR_DATA=(1<<2),
+	CAEN_ACCEPT_OVER_RANGE=(1<<3),
+	CAEN_THRESHOLD=(1<<4),
+	CAEN_VALID_DISABLE=(1<<5),
+	CAEN_TEST_ACQ=(1<<6),
+	CAEN_SLIDE_ENABLE=(1<<7),
+	CAEN_TH_RESOLUTION=(1<<8),
+	CAEN_COMMON_STOP=(1<<10),
+	CAEN_AUTO_INCR=(1<<11),
+	CAEN_EMPTY_PROG=(1<<12),
+	CAEN_ALL_TRIGGER=(1<<14)
+} caen_modes_t;
 /****** */
 /* 
    status bits
@@ -85,6 +105,11 @@ typedef struct _header {
   uint32_t geo:5;
 } header_t;
 
+typedef struct _eob {
+  uint32_t ev_counter:24;
+  uint32_t signature:3;
+  uint32_t geo:5;
+} eob_t;
 
 #ifdef CAEN792
 
@@ -101,7 +126,6 @@ typedef struct _data {
 #define NCHANNELS 32
 #define DEV_BOARD "CAEN792"
 #define BOARD_ID 0x3
-#define MANUFACTURE_ID 0x40
 #define VERSION_ID 0x11
 #else
 
@@ -120,14 +144,12 @@ typedef struct _data {
 #define DEV_BOARD "CAEN965"
 #define NCHANNELS 16
 #define BOARD_ID 0x3
-#define MANUFACTURE_ID 0x40
 #define VERSION_ID 0
 
 #else
 #ifdef CAEN775N
 #define DEV_BOARD "CAEN775N"
 #define NCHANNELS 16
-#define MANUFACTURE_ID 0x40
 #define BOARD_ID 0x3
 #define VERSION_ID 0x13
 
@@ -146,7 +168,6 @@ typedef struct _data {
 #ifdef CAEN775
 #define DEV_BOARD "CAEN775"
 #define NCHANNELS 32
-#define MANUFACTURE_ID 0x40
 #define BOARD_ID 0x3
 #define VERSION_ID 0x13
 
@@ -162,17 +183,41 @@ typedef struct _data {
   uint32_t geo:5;
 } data_t;
 #else
+#ifdef CAEN_GENERIC
+
+typedef union {
+	eob_t ddata;
+	uint32_t data;
+} common_footer_t;
+
+typedef union {
+	header_t ddata;
+	uint32_t data;
+} common_header_t;
+typedef struct _data {
+	uint32_t adc:12;
+	uint32_t ov:1;
+	uint32_t un:1;
+	uint32_t vd:1;
+	uint32_t pad:1;
+	uint32_t channel:5;
+	uint32_t pad2:3;
+	uint32_t signature:3;
+	uint32_t geo:5;
+} data_t;
+typedef union {
+	data_t ddata;
+	uint32_t data;
+} common_data_t;
+
+#else
 #error "UKNWON CAEN BOARD"
 #endif
 #endif
 #endif
 #endif
+#endif
 
-typedef struct _eob {
-  uint32_t ev_counter:24;
-  uint32_t signature:3;
-  uint32_t geo:5;
-} eob_t;
 
 typedef struct __evt_buffer {
     
@@ -200,7 +245,7 @@ typedef struct __vme_handle__ {
   int manufactureid;
 } _caen_common_handle_t ;
 
-
+typedef void* caen_handle_t;
 #ifdef __cplusplus
 }
 #endif
