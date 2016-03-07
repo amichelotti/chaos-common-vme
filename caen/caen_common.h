@@ -13,6 +13,7 @@ extern "C" {
 #define BOARD_ID_REG(base) REG16(base,0x803A)
 #define BOARD_ID_LSB_REG(base) REG16(base,0x803E)
 #define BOARD_ID_MSB_REG(base) REG16(base,0x8036)
+#define BOARD_VERSION_REG(base) REG16(base,0x8032)
 #define OUI_REG(base) REG16(base,0x802A)
 #define THRS_CHANNEL_OFF 0x1080
 #define THRS_CHANNEL_REG(base,chan,lo) REG16(base,THRS_CHANNEL_OFF + (4*chan) + (2*lo))

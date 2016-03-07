@@ -63,27 +63,27 @@ int CaenBase::open(uint64_t address ){
   manufactureid=OUI_REG(mapped_address)&0xFF;
     handle->boardid=boardid;
     handle->manufactureid=manufactureid;
-    handle->version=FW_REVISION_REG(mapped_address);
+    handle->version=BOARD_VERSION_REG(mapped_address);
 
   channels=0;
   if(manufactureid==MANUFACTURE_ID){
 	  switch(boardid){
 	  case 0x0307:
-		  if((handle->version&0xF0)==0xE0){
-			  board="CAEN775N";
+		  if(((handle->version)&0xF0)==0xE0){
+			  board.assign("CAEN775N");
 			  channels=16;
 		  } else {
-			  board="CAEN775";
+			  board.assign("CAEN775");
 			  channels=32;
 		  }
 		  break;
 
 	  case 0x3C5:
-		  board="CAEN965";
+		  board.assign("CAEN965");
 		  channels=16;
 		  break;
 	  case 0x318:
-		  board="CAEN792";
+		  board.assign("CAEN792");
 		  channels=32;
 	 	  break;
 
@@ -93,7 +93,7 @@ int CaenBase::open(uint64_t address ){
 	  ERR("unrecognized board id=0x%x manufacture id=0x%x, FW=0x%x",boardid,manufactureid, handle->version);
 	  return -3;
   }
-
+  DPRINT("found board \"%s\" manufacture id 0x%x boardid:0x%x, version 0x%x nchannels %d",board.c_str(),manufactureid,boardid,handle->version,channels);
   return 0;
   }
 
@@ -118,7 +118,7 @@ void CaenBase::init(uint32_t crate_num,int hwreset){
 
   //  BITSET2_REG(handle->mapped_address)=ALLTRG_EN_BIT/*|OVERRANGE_EN_BIT|LOWTHR_EN_BIT*/|EMPTY_EN_BIT|AUTOINCR_BIT;
   BITSET2_REG(handle->mapped_address)=ALLTRG_EN_BIT|EMPTY_EN_BIT|AUTOINCR_BIT|OVERRANGE_EN_BIT|LOWTHR_EN_BIT;
-
+  EVT_CNTRESET_REG(handle->mapped_address)=0;
 }
 
 
@@ -180,15 +180,21 @@ uint16_t CaenBase::getBufferStatus(){
 	      diff=common::debug::getUsTime() - now;
 	    }
 	  } while(((status&CAEN_QDC_STATUS_DREADY)==0)&&((diff)<=endm));
-	 if(diff>endm)
+	 if(diff>endm){
+		 ERR("timeout expired %Lu us",diff);
 		 return -1;
+	 }
 	 return 0;
  }
 uint16_t CaenBase::searchEvent(){
 	 common_header_t a;
 		 do{
 			 a.data  = REG32(handle->mapped_address,0);
+			 if(a.ddata.signature!=2){
+				 DPRINT("found event %d not start event",a.ddata.signature);
+			 }
 		 } while(a.ddata.signature!=2);
+		 DPRINT("found event %d channels acquired",a.ddata.cnt);
 		 return a.ddata.cnt;
 }
 
@@ -200,7 +206,31 @@ uint32_t CaenBase::acquireBuffer(uint32_t* buffer,uint32_t max_size){
     }
     return ret;
 }
+uint16_t CaenBase::acquireChannels(uint32_t* channels,uint32_t *event){
+	// search header
+	 common_header_t a;
+	 common_footer_t b;
 
+	 common_data_t buf;
+
+	 uint16_t nchan,ret_channels=searchEvent();
+	 nchan=ret_channels;
+	 while(nchan--){
+		 buf.data=  REG32(handle->mapped_address,0);
+		 if(buf.ddata.signature==0){
+			 channels[buf.ddata.channel] =buf.ddata.adc;
+		 }
+	 }
+	 b.data  = REG32(handle->mapped_address,0);
+	 if(b.ddata.signature==4){
+		 handle->cycle+= abs(b.ddata.ev_counter-handle->event_counter);
+		 handle->event_counter =b.ddata.ev_counter;
+		 *event = b.ddata.ev_counter;
+		 return ret_channels;
+	 }
+	 ERR("not found end signature, found %d into word 0x%x",b.ddata.signature,b.data);
+	 return 0;
+}
 uint16_t CaenBase::acquireChannels(uint16_t* channels,uint32_t *event){
 	// search header
 	 common_header_t a;
@@ -222,7 +252,7 @@ uint16_t CaenBase::acquireChannels(uint16_t* channels,uint32_t *event){
 		 *event = b.ddata.ev_counter;
 		 return ret_channels;
 	 }
-	 ERR("not found end signature");
+	 ERR("not found end signature found %d into 0x%x",b.ddata.signature,b.data);
 	 return 0;
 
 }
@@ -234,4 +264,18 @@ void CaenBase::setMode(caen_modes_t mode){
 
 void CaenBase::clrMode(caen_modes_t mode){
 	BITCLR2_REG(handle->mapped_address)=mode;
+}
+
+void CaenBase::write(uint16_t off,uint16_t data){
+	vmewrap_write16(handle,off,data);
+}
+void CaenBase::read(uint16_t off,uint16_t &data){
+	vmewrap_read16(handle,off,&data);
+
+}
+void CaenBase::write(uint16_t off,uint32_t data){
+	vmewrap_write32(handle,off,data);
+}
+void CaenBase::read(uint16_t off,uint32_t &data){
+	vmewrap_read32(handle,off,&data);
 }

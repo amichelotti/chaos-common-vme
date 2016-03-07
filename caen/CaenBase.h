@@ -79,6 +79,13 @@ public:
 	 * @return 0 if success
 	 */
 	int32_t waitEvent(int timeo_ms);
+	/**
+		 * Acquire single event
+		 * @param[out] channels output buffer
+		 * @param[out] event tag
+		 * @return number of acquired channels
+		 */
+		uint16_t acquireChannels(uint32_t* channels,uint32_t *event);
 
 	/**
 	 * Acquire single event
@@ -109,6 +116,35 @@ public:
 	 *
 	 */
 	void clrMode(caen_modes_t mode);
+	/*
+	 * Write to a specified offset
+	 * @param off offset inside the caen device
+	 * @param data dat to write
+	 */
+
+	void write(uint16_t off,uint16_t data);
+	/*
+		 * Write to a specified offset
+		 * @param off offset inside the caen device
+		 * @param data dat to write
+		 */
+	void write(uint16_t off,uint32_t data);
+	/*
+			 * read froma a specified offset
+			 * @param off offset inside the caen device
+			 * @param data reference to data
+			 */
+	void read(uint16_t off,uint16_t &data);
+	/*
+				 * read froma a specified offset
+				 * @param off offset inside the caen device
+				 * @param data reference to data
+				 */
+	void read(uint16_t off,uint32_t &data);
+
+	uint16_t getNumberOfChannels(){return channels;}
+	std::string & getBoard(){return board;}
+
 };
 }}}
 #endif /* CAEN_CAENBASE_H_ */

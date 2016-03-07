@@ -9,7 +9,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#define CAEN775_FSR_OFF 1060
 /**
  * available modes
  */
