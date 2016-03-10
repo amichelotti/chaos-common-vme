@@ -27,14 +27,22 @@ static int32_t caen_common_close(void* h){
     return -4;
 }
 
-static void* caen_common_open(uint32_t address ){
+static void* caen_common_open(vme_driver_t vme_driver,uint32_t address ){
   void* mapped_address;
   int size = 0x10000;
   int boardid,manufactureid;
   vmewrap_vme_handle_t vme;
   DPRINT(DEV_BOARD " opening vme device at @0x%x",address);
-  vme = vmewrap_vme_open_master(address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,0);
-  if(vme==NULL) return NULL;
+  vme = vmewrap_init_driver(vme_driver);
+  	if(vme==NULL){
+  		ERR("cannot initialize VME driver %d",vme_driver);
+
+  		return NULL;
+  	}
+  	if(vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,0)!=0){
+  		ERR("cannot map vme");
+  		return NULL;
+  	}
 
   mapped_address =  vmewrap_get_linux_add(vme);
   if (0 == mapped_address) {

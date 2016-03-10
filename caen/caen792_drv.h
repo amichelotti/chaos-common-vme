@@ -7,15 +7,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include <common/vme/core/vmewrap.h>
 
 typedef void* caen792_handle_t;
 
 /**
 	open the caen792 device and return an handle to it
+	@param vme_driver id of the driver vme to be used
+
 	@param address the vme address of the board
 	@return an handle or zero if error
 */
-caen792_handle_t caen792_open(uint32_t address);
+caen792_handle_t caen792_open(vme_driver_t vme_driver,uint32_t address);
 
 
 /**

@@ -10,7 +10,7 @@
   _x ## _close(_x ## _handle);
 
 #define OPENDEV(_x)						\
-  if(_x ## _addr && (_x ## _handle = _x ## _open(_x ## _addr))){ \
+  if(_x ## _addr && (_x ## _handle = _x ## _open(VME_UNIVERSE2_DRIVER,_x ## _addr))){ \
     printf("* " # _x " successfully mapped\n");\
   } else {\
       printf("## cannot map " # _x " address 0x%x\n",_x ## _addr);\

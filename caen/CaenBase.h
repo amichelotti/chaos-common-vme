@@ -10,6 +10,7 @@
 #define CAEN_GENERIC
 #include "caen_common.h"
 #include <string>
+#include <common/vme/core/vmewrap.h>
 
 namespace common{
 namespace vme {
@@ -30,10 +31,11 @@ public:
 	virtual ~CaenBase();
 	/**
 	 * Open the Caen Device, map the address
+	 * @param vme_driver vme driver to use
 	 * @param address vme address of the board
 	 * @return 0 on success
 	 * */
-	int open(uint64_t address);
+	int open(vme_driver_t vme_driver,uint64_t address);
 	/**
 	 * Close the caen device, unmap the address
 	 * @return 0 on success
@@ -78,14 +80,14 @@ public:
 	 * @param timeo_ms timeout in ms
 	 * @return 0 if success
 	 */
-	int32_t waitEvent(int timeo_ms);
+	virtual int32_t waitEvent(int timeo_ms);
 	/**
 		 * Acquire single event
 		 * @param[out] channels output buffer
 		 * @param[out] event tag
 		 * @return number of acquired channels
 		 */
-		uint16_t acquireChannels(uint32_t* channels,uint32_t *event);
+	virtual uint16_t acquireChannels(uint32_t* channels,uint32_t *event);
 
 	/**
 	 * Acquire single event

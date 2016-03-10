@@ -46,9 +46,9 @@ int main(int argc,char**argv){
   }
   printf("* opening caen at address @0x%lx\n",address);
     if(is965){
-        caen = caen965_open(address);
+        caen = caen965_open(VME_UNIVERSE2_DRIVER,address);
     } else {
-        caen = caen792_open(address);
+        caen = caen792_open(VME_UNIVERSE2_DRIVER,address);
     }
     
     out=fopen("caen_data.out","w");

@@ -16,9 +16,9 @@
 
 
 
-caen775_handle_t caen775_open(uint32_t address ){
-   return caen_common_open(address);
-}
+caen775_handle_t caen775_open(vme_driver_t vme_driver,uint32_t address ){
+	   return caen_common_open(vme_driver,address);
+	}
 
 
 int32_t caen775_init(caen775_handle_t h,int32_t crate_num,int swreset){

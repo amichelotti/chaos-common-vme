@@ -16,9 +16,9 @@
 
 
 
-caen792_handle_t caen792_open(uint32_t address ){
-    return caen_common_open(address);
-}
+caen792_handle_t caen792_open(vme_driver_t vme_driver,uint32_t address ){
+	   return caen_common_open(vme_driver,address);
+	}
 int32_t caen792_close(caen792_handle_t h){
     return caen_common_close(h);
 }

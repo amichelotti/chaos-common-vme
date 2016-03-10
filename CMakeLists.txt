@@ -22,7 +22,7 @@ ADD_DEFINITIONS(-DUNIVERSE2)
 ADD_SUBDIRECTORY(vmedrv/universe2)
 ENDIF()
 
-SET(src core/vmewrap.cpp)
+SET(src core/vmewrap.cpp core/vmewrap_universe2.cpp)
 ADD_LIBRARY(${PROJECT_NAME} ${src})
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} common_debug boost_log boost_system boost_thread rt pthread ${FrameworkLib})
 ADD_SUBDIRECTORY(caen)

@@ -56,30 +56,42 @@ typedef void* vmewrap_vme_handle_t;
  */
 //unsigned long long getUsTime();
 
-
+typedef enum vme_driver {
+	VME_UNIVERSE2_DRIVER,
+	VME_UNIVERSE_DRIVER,
+	VME_CAEN_DRIVER
+} vme_driver_t;
+/*
+ * Initialize the appropriate driver
+ * @param driver the identifier of the driver
+ * @return a valid handle on success, zero otherwise
+ */
+vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver);
 
 /**
 	open vme master and slave space
+	@param handle vme handle
 	@param master_add the vme master address 
 	@param master_size (0=no map)
 	@param master_addressing (16, 32, 24)
 	@param dw data width (8,16, 32,64)
 	@param vme_options (supervisor...)
-	@return an handle or zero if error
+	@return zero if success
 */
-  vmewrap_vme_handle_t vmewrap_vme_open_master(uint32_t master_add,uint32_t master_size,vme_addressing_t master_addressing,vme_access_t dw, vme_opt_t vme_options);
+  int vmewrap_vme_open_master(vmewrap_vme_handle_t handle,uint32_t master_add,uint32_t master_size,vme_addressing_t master_addressing,vme_access_t dw, vme_opt_t vme_options);
 
 
 /**
 	open vme master and slave space
+	@param handle vme handle
 	@param slave_add the vme slave address 
 	@param slave_size (0 = no map)
  	@param slave_addressing (16, 32)
 	@param dw data width (8,16, 32,64)
 	@param vme_options (supervisor...)
-	@return an handle or zero if error
+	@return zero if success
 */
-  vmewrap_vme_handle_t vmewrap_vme_open_slave(uint32_t slave_add,uint32_t slave_size,vme_addressing_t master_addressing,vme_access_t dw, vme_opt_t vme_options);
+  int vmewrap_vme_open_slave(vmewrap_vme_handle_t handle,uint32_t slave_add,uint32_t slave_size,vme_addressing_t master_addressing,vme_access_t dw, vme_opt_t vme_options);
 
 
 /**
@@ -87,7 +99,7 @@ typedef void* vmewrap_vme_handle_t;
 	@param hand
 	@return zero if success
 */
-int32_t vmewrap_vme_close(vmewrap_vme_handle_t  handle);
+int vmewrap_vme_close(vmewrap_vme_handle_t  handle);
 
 /**
    
