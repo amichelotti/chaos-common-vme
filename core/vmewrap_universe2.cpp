@@ -28,6 +28,8 @@ static int vme_init_universe2(vmewrap_int_vme_handle_t handle){
     handle->fd=-1;
     if(initialized==0){    
       initialized=1;
+      DPRINT("initialized driver bus:0x%x",handle->bus);
+
       //      return vmeb.resetDriver();
     }
     return 0;
@@ -37,16 +39,16 @@ static int  map_master_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,ui
 
   VMEBridge* vme=(VMEBridge*)handle->bus;
   int image;
-
+  int uni_addressing,uni_dw;
   switch(addressing){
   case VME_ADDRESSING_A16:
-    addressing = (vme_addressing_t)A16;
+    uni_addressing = A16;
     break;
   case VME_ADDRESSING_A24:
-    addressing = (vme_addressing_t)A24;
+    uni_addressing = A24;
     break;
   case VME_ADDRESSING_A32:
-    addressing = (vme_addressing_t)A32;
+    uni_addressing = A32;
     break;
   default:
 	ERR("addressing not implemented %d",addressing);
@@ -55,23 +57,23 @@ static int  map_master_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,ui
 
   switch(dw){
   case VME_ACCESS_D16:
-    dw = (vme_access_t)D16 ;
+    uni_dw = D16 ;
     break;
   case VME_ACCESS_D8:
-    dw = (vme_access_t)D8 ;
+    uni_dw = D8 ;
     break;
   case VME_ACCESS_D32:
-    dw = (vme_access_t)D32;
+    uni_dw = D32;
     break;
   case VME_ACCESS_D64:
-    dw = (vme_access_t)D64;
+    uni_dw = D64;
     break;
   default:
 	    ERR("data access not implemented %d",dw);
 	    return -2;
   }
 
-  image=vme->getImage(add,size,addressing,dw,MASTER);
+  image=vme->getImage(add,size,uni_addressing,uni_dw,MASTER);
   if(vme_options){
     vme->setOption(image,vme_options);
   }
@@ -86,7 +88,7 @@ static int  map_master_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,ui
      return -4;
  } 
  
-  DPRINT("Master address mapped at @0x%x size 0x%x, addressing 0x%x dw: 0x%x",handle->mapped_address,size,addressing,dw);
+  DPRINT("Master address mapped at @0x%x size 0x%x, addressing %d (0x%x) dw %d (0x%x)",handle->mapped_address,size,addressing,uni_addressing,dw,uni_dw);
   return 0;
 }
 
@@ -94,44 +96,44 @@ static int  map_slave_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,uin
   VMEBridge* vme=(VMEBridge*)handle->bus;
   int am=0;
   int image;
+  int uni_addressing,uni_dw;
+   switch(addressing){
+   case VME_ADDRESSING_A16:
+     uni_addressing = A16;
+     break;
+   case VME_ADDRESSING_A24:
+     uni_addressing = A24;
+     break;
+   case VME_ADDRESSING_A32:
+     uni_addressing = A32;
+     break;
+   default:
+ 	ERR("addressing not implemented %d",addressing);
+ 	return -1;
+   }
 
-  switch(addressing){
-  case VME_ADDRESSING_A16:
-    addressing = (vme_addressing_t)A16;
-    break;
-  case VME_ADDRESSING_A24:
-    addressing = (vme_addressing_t)A24;
-    break;
-  case VME_ADDRESSING_A32:
-    addressing = (vme_addressing_t)A32;
-    break;
-  default:
-	ERR("addressing not implemented %d",addressing);
-	return -1;
-  }
-
-  switch(dw){
-  case VME_ACCESS_D16:
-    dw = (vme_access_t)D16 ;
-    break;
-  case VME_ACCESS_D8:
-    dw = (vme_access_t)D8 ;
-    break;
-  case VME_ACCESS_D32:
-    dw = (vme_access_t)D32;
-    break;
-  case VME_ACCESS_D64:
-    dw = (vme_access_t)D64;
-    break;
-  default:
-	    ERR("data access not implemented %d",dw);
-	    return -2;
-  }
+   switch(dw){
+   case VME_ACCESS_D16:
+     uni_dw = D16 ;
+     break;
+   case VME_ACCESS_D8:
+     uni_dw = D8 ;
+     break;
+   case VME_ACCESS_D32:
+     uni_dw = D32;
+     break;
+   case VME_ACCESS_D64:
+     uni_dw = D64;
+     break;
+   default:
+ 	    ERR("data access not implemented %d",dw);
+ 	    return -2;
+   }
 
   if(vme_options){
     vme->setOption(image,vme_options);
   }
-  image=vme->getImage(add,size,addressing,dw,SLAVE);
+  image=vme->getImage(add,size,uni_addressing,uni_dw,SLAVE);
   
   if (image < 0) {
       ERR("Can't allocate slave image vmeadd:0x%x, size:0x%x",add,size);

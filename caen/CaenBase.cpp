@@ -54,11 +54,13 @@ int CaenBase::open(vme_driver_t vme_driver,uint64_t address ){
 	}
 
 	handle = (_caen_common_handle_t*)calloc(1,sizeof(_caen_common_handle_t));
+
 	if(handle==NULL){
 		ERR("cannot allocate resources");
 		vmewrap_vme_close(vme);
 		return -3;
 	}
+	DPRINT("allocated caen handle 0x%x",handle);
 	handle->vme = vme;
 	handle->mapped_address = mapped_address;
 	handle->cycle = 0;

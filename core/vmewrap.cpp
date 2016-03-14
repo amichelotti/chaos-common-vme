@@ -93,7 +93,7 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
   handle->master=1;
   handle->phys_add=(void*)master_add;
   handle->size = master_size;
-  if(handle->map_master(handle,master_add,master_size,master_addressing,dw,vme_opts)== 0){
+  if(handle->map_master(handle,master_add,master_size,master_addressing,dw,vme_opts)< 0){
     free(handle);
     ERR("failed mapping as master");
     return -3;
@@ -122,7 +122,7 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
   handle->master=0;
   handle->phys_add=(void*)slave_add;
   handle->size = slave_size;
-  if(handle->map_slave(handle,slave_add,slave_size,slave_addressing,dw,vme_opts)== 0){
+  if(handle->map_slave(handle,slave_add,slave_size,slave_addressing,dw,vme_opts)< 0){
     free(handle);
     ERR("failed mapping as slave");
     return -3;
