@@ -44,8 +44,8 @@ int main(int argc,char**argv){
    }
   ptr=vmewrap_get_linux_add(handle);
   if(ptr==NULL){
-      printf("## cannot remap address 0x%x\n",address);
-    return -1;
+      printf("%% cannot remap address 0x%x to linux space\n",address);
+
   }
   for(cnt=0;cnt<ndati;cnt++){
     if(dw==16){

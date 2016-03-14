@@ -50,7 +50,7 @@ int CaenBase::open(vme_driver_t vme_driver,uint64_t address ){
 
 	mapped_address =  vmewrap_get_linux_add(vme);
 	if (0 == mapped_address) {
-		ERR("cannot map VME window to address space");
+		DERR("cannot map VME window to address space");
 	}
 
 	handle = (_caen_common_handle_t*)calloc(1,sizeof(_caen_common_handle_t));
