@@ -50,9 +50,7 @@ int CaenBase::open(vme_driver_t vme_driver,uint64_t address ){
 
 	mapped_address =  vmewrap_get_linux_add(vme);
 	if (0 == mapped_address) {
-		ERR("cannot map VME window");
-		perror("vme_master_window_map");
-		return -2;
+		ERR("cannot map VME window to address space");
 	}
 
 	handle = (_caen_common_handle_t*)calloc(1,sizeof(_caen_common_handle_t));
@@ -64,11 +62,12 @@ int CaenBase::open(vme_driver_t vme_driver,uint64_t address ){
 	handle->vme = vme;
 	handle->mapped_address = mapped_address;
 	handle->cycle = 0;
-	boardid=((BOARD_ID_REG(mapped_address)&0xFF)<<8) | (BOARD_ID_LSB_REG(mapped_address)&0xFF);
-	manufactureid=OUI_REG(mapped_address)&0xFF;
+	boardid =((VME_READ_REG16(vme,BOARD_ID_OFF)&0xFF)<<8) | VME_READ_REG16(vme,BOARD_ID_LSB_OFF)&0xFF;
+
+	manufactureid=VME_READ_REG16(vme,OUI_OFF)&0xFF;
 	handle->boardid=boardid;
 	handle->manufactureid=manufactureid;
-	handle->version=BOARD_VERSION_REG(mapped_address);
+	handle->version=VME_READ_REG16(vme,BOARD_VERSION_OFF);
 
 	channels=0;
 	if(manufactureid==MANUFACTURE_ID){
@@ -108,50 +107,50 @@ void CaenBase::init(uint32_t crate_num,int hwreset){
 	DPRINT("%s intialiazing @0x%x",board.c_str(),(uint32_t)handle);
 	int cnt;
 	if(hwreset){
-		SSRESET_REG(handle->mapped_address) = 1;
-		BITSET_REG(handle->mapped_address) = SOFTRESET_BIT;
+		VME_WRITE16(handle->vme,SSRESET_OFF,1);
+		VME_WRITE16(handle->vme,BITSET_OFF,SOFTRESET_BIT);
 		sleep(1);
-		BITCLR_REG(handle->mapped_address) = SOFTRESET_BIT;
-
+		VME_WRITE16(handle->vme,BITCLR_OFF,SOFTRESET_BIT);
 	}
 
 
+	VME_WRITE16(handle->vme,CRATE_SEL_OFF,crate_num);
+	VME_WRITE16(handle->vme,BITSET2_OFF,CAEN_COMMON_STOP|CAEN_CLEAR_DATA|CAEN_EMPTY_PROG|CAEN_AUTO_INCR|CAEN_ACCEPT_OVER_RANGE|CAEN_VALID_DISABLE|CAEN_THRESHOLD_DISABLE);
+	VME_WRITE16(handle->vme,BITCLR2_OFF,CAEN_ALL_TRIGGER|CAEN_MEMORY_TEST|CAEN_ADC_OFFLINE|CAEN_TEST_ACQ|CAEN_CLEAR_DATA);
 
-	CRATE_SEL_REG(handle->mapped_address)=crate_num;
-	BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT; // clear data reset
-	BITCLR2_REG(handle->mapped_address)=ALLTRG_EN_BIT|TEST_MEM_BIT|OFFLINE_BIT|TESTAQ_BIT|CLEARDATA_BIT;
-
-	//  BITSET2_REG(handle->mapped_address)=ALLTRG_EN_BIT/*|OVERRANGE_EN_BIT|LOWTHR_EN_BIT*/|EMPTY_EN_BIT|AUTOINCR_BIT;
-	BITSET2_REG(handle->mapped_address)=EMPTY_EN_BIT|AUTOINCR_BIT|CAEN_ACCEPT_OVER_RANGE|CAEN_VALID_DISABLE|CAEN_THRESHOLD_DISABLE;
-	EVT_CNTRESET_REG(handle->mapped_address)=0;
+	resetEventBuffer();
+	resetEventCounter();
 }
 
+void CaenBase::resetEventCounter(){
+	VME_WRITE32(handle->vme,EVT_CNTRESET_OFF,0);
 
+}
 void CaenBase::setThreashold(uint16_t chan,uint16_t value){
 	DPRINT("%s setting threshold chan %d = 0x%x",board.c_str(),chan,value);
 
-	BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT|OVERRANGE_EN_BIT|LOWTHR_EN_BIT;
-
-	REG16(handle->mapped_address,THRS_CHANNEL_OFF + (2*chan))=value;
+	VME_WRITE16(handle->vme,BITCLR2_OFF,CAEN_VALID_DISABLE|CAEN_THRESHOLD_DISABLE);
+	VME_WRITE16(handle->vme,THRS_CHANNEL_OFF + (2*chan),value);
 }
 
 uint16_t CaenBase::getThreashold(uint16_t chan){
 	DPRINT("%s getting threshold chan %d",board.c_str(),chan);
 
-	return REG16(handle->mapped_address,THRS_CHANNEL_OFF + (2*chan));
+	return VME_READ_REG16(handle->vme,THRS_CHANNEL_OFF + (2*chan));
 }
 
 
 uint16_t CaenBase::getStatus(){
 	uint16_t ret;
-	ret = STATUS_REG(handle->mapped_address);
+	ret =  VME_READ_REG16(handle->vme,STATUS_OFF);
 	DPRINT("%s get status 0x%x",board.c_str(),ret);
 	return ret;
 }
 
 uint16_t CaenBase::getBufferStatus(){
 	uint16_t ret;
-	ret = STATUS2_REG(handle->mapped_address);
+	ret =  VME_READ_REG16(handle->vme,STATUS2_OFF);
+
 	DPRINT("%s get buffer status 0x%x",board.c_str(),ret);
 	return ret;
 }
@@ -160,17 +159,17 @@ uint16_t CaenBase::getBufferStatus(){
 uint32_t CaenBase::getEventCounter(bool reset){
 	uint32_t ret;
 
-	ret = EVT_CNT_LOW_REG(handle->mapped_address)|EVT_CNT_HI_REG(handle->mapped_address)<<16;
+	ret = VME_READ_REG16(handle->vme,EVT_CNT_LOW_OFF)|(VME_READ_REG16(handle->vme,EVT_CNT_HI_OFF)<<16);
 	if(reset){
-		EVT_CNTRESET_REG(handle->mapped_address)=0;
+		resetEventCounter();
 		handle->event_counter=0;
 	}
 	return ret;
 }
 
 void CaenBase::resetEventBuffer(){
-	BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT;
-	BITCLR2_REG(handle->mapped_address)=CLEARDATA_BIT;
+	VME_WRITE16(handle->vme,BITSET2_OFF,CLEARDATA_BIT);
+	VME_WRITE16(handle->vme,BITCLR2_OFF,CLEARDATA_BIT);
 }
 
 int32_t CaenBase::waitEvent(int timeo_ms){
@@ -179,7 +178,7 @@ int32_t CaenBase::waitEvent(int timeo_ms){
 	uint32_t endm=timeo_ms*1000;
 	do{
 		// get the status from the caen_qdc
-		status = STATUS_REG(handle->mapped_address);
+		status = VME_READ_REG16(handle->vme,STATUS_OFF);
 		//usleep(100);
 		if(endm>0){
 			diff=common::debug::getUsTime() - now;
@@ -194,7 +193,7 @@ int32_t CaenBase::waitEvent(int timeo_ms){
 uint16_t CaenBase::searchEvent(){
 	common_header_t a;
 	do{
-		a.data  = REG32(handle->mapped_address,0);
+		a.data  = VME_READ_REG32(handle->vme,0);
 		if(a.ddata.signature!=2){
 			DPRINT("found event %d not start event",a.ddata.signature);
 		}
@@ -206,7 +205,7 @@ uint16_t CaenBase::searchEvent(){
 uint32_t CaenBase::acquireBuffer(uint32_t* buffer,uint32_t max_size){
 	uint32_t ret=0;
 	uint16_t status;
-	while((ret<max_size)&&((status =  STATUS2_REG(handle->mapped_address))&CAEN_QDC_STATUS_BUFFER_EMPTY)==0){
+	while((ret<max_size)&&((status =  (VME_READ_REG32(handle->vme,STATUS2_OFF)&CAEN_QDC_STATUS_BUFFER_EMPTY))==0)){
 		buffer[ret++]= REG32(handle->mapped_address,0);
 	}
 	return ret;
@@ -221,7 +220,7 @@ uint16_t CaenBase::acquireChannels(uint32_t* channel,uint32_t *event){
 	int ch;
 	nchan=ret_channels;
 	while(nchan--){
-		buf.data=  REG32(handle->mapped_address,0);
+		buf.data=  VME_READ_REG32(handle->vme,0);
 		if(buf.ddata.signature==0){
 			if(channels==16)
 				ch=buf.ddata.channel>>1;
@@ -231,7 +230,7 @@ uint16_t CaenBase::acquireChannels(uint32_t* channel,uint32_t *event){
 			channel[ch] =buf.ddata.adc;
 		}
 	}
-	b.data  = REG32(handle->mapped_address,0);
+	b.data  = VME_READ_REG32(handle->vme,0);
 	if(b.ddata.signature==4){
 		handle->cycle+= abs(b.ddata.ev_counter-handle->event_counter);
 		handle->event_counter =b.ddata.ev_counter;
@@ -264,7 +263,7 @@ uint16_t CaenBase::acquireChannels(uint16_t* channel,uint32_t *event){
 			channel[ch] =buf.ddata.adc;
 		}
 	}
-	b.data  = REG32(handle->mapped_address,0);
+	b.data  = VME_READ_REG32(handle->vme,0);
 	if(b.ddata.signature==4){
 		handle->cycle+= abs(b.ddata.ev_counter-handle->event_counter);
 		handle->event_counter =b.ddata.ev_counter;
@@ -278,11 +277,11 @@ uint16_t CaenBase::acquireChannels(uint16_t* channel,uint32_t *event){
 
 
 void CaenBase::setMode(caen_modes_t mode){
-	BITSET2_REG(handle->mapped_address)=mode;
+	VME_WRITE16(handle->vme,BITSET2_OFF,mode);
 }
 
 void CaenBase::clrMode(caen_modes_t mode){
-	BITCLR2_REG(handle->mapped_address)=mode;
+	VME_WRITE16(handle->vme,BITCLR2_OFF,mode);
 }
 
 void CaenBase::write(uint16_t off,uint16_t data){

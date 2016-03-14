@@ -21,6 +21,7 @@ typedef struct __vme_handle__ {
   uint32_t size;
   int fd;
   int master;
+  vme_driver_t type;
   int (*vme_init)(struct __vme_handle__ *  handle);
   int (*map_master)(struct __vme_handle__ * handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw, vme_opt_t vme_options);
   int (*map_slave)(struct __vme_handle__ * handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw, vme_opt_t vme_options);

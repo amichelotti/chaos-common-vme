@@ -107,6 +107,11 @@ public:
 	 * * Reset Event buffer
 	 */
 	void resetEventBuffer();
+
+	/*
+		 * * Reset Event counter
+		 */
+	void resetEventCounter();
 	/*
 	 * Set operational mode
 	 * @param mode bitfield of operational modes to enable

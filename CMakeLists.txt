@@ -13,16 +13,16 @@ ELSE()
   INCLUDE_DIRECTORIES(. ../.. ${CMAKE_INSTALL_PREFIX}/include)
   LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/build ${CMAKE_INSTALL_PREFIX}/lib)
 ENDIF()
-ADD_DEFINITIONS(-fpermissive)
+ADD_DEFINITIONS(-DDEBUG -fpermissive)
 INCLUDE_DIRECTORIES(core)
 
-IF(DEFINED UNIVERSE2)
 MESSAGE(STATUS "enable universe2 driver")
 ADD_DEFINITIONS(-DUNIVERSE2)  
-ADD_SUBDIRECTORY(vmedrv/universe2)
-ENDIF()
 
-SET(src core/vmewrap.cpp core/vmewrap_universe2.cpp)
+ADD_SUBDIRECTORY(vmedrv/universe2)
+
+
+SET(src core/vmewrap.cpp core/vmewrap_universe2.cpp core/vmewrap_caenvme.cpp) 
 ADD_LIBRARY(${PROJECT_NAME} ${src})
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} common_debug boost_log boost_system boost_thread rt pthread ${FrameworkLib})
 ADD_SUBDIRECTORY(caen)
