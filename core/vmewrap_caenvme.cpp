@@ -281,6 +281,12 @@ int vme_init_driver_caenvme(vmewrap_vme_handle_t handle){
 	p->vme_close=caenvme_deinit;
 	p->map_master=map_master_caenvme;
 	p->map_slave=NULL;
+	p->vme_read16 = vme_read16_caenvme;
+	p->vme_read32 = vme_read32_caenvme;
+	p->vme_read8 = vme_read8_caenvme;
+	p->vme_write16 = vme_write16_caenvme;
+		p->vme_write32 = vme_write32_caenvme;
+		p->vme_write8 = vme_write8_caenvme;
 	p->priv = caen;
 	return 0;
 }
