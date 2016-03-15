@@ -12,11 +12,15 @@ using namespace common::vme::caen;
 
 CaenBase::CaenBase() {
 	// TODO Auto-generated constructor stub
-
+	handle = NULL;
 }
 
 CaenBase::~CaenBase() {
 	// TODO Auto-generated destructor stub
+	if(handle){
+		delete handle;
+		handle = NULL;
+	}
 }
 
 int CaenBase::close(){
@@ -48,12 +52,15 @@ int CaenBase::open(vme_driver_t vme_driver,uint64_t address ){
 		return -3;
 	}
 
-	mapped_address =  vmewrap_get_linux_add(vme);
+/*	mapped_address =  vmewrap_get_linux_add(vme);
 	if (0 == mapped_address) {
 		DERR("cannot map VME window to address space");
 	}
-
-	handle = (_caen_common_handle_t*)calloc(1,sizeof(_caen_common_handle_t));
+*/
+	if(handle==NULL){
+		DPRINT("allocating caen handle size:%d",sizeof(_caen_common_handle_t));
+		handle = (_caen_common_handle_t*)calloc(1,sizeof(_caen_common_handle_t));
+	}
 
 	if(handle==NULL){
 		ERR("cannot allocate resources");

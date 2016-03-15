@@ -19,9 +19,9 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
 	p->type = driver;
 	switch(driver){
 	case VME_UNIVERSE2_DRIVER:
-	case VME_UNIVERSE_DRIVER:
+	//case VME_UNIVERSE_DRIVER:
 
-		DPRINT("initializing UNIVERSE driver");
+		DPRINT("initializing UNIVERSE2 driver");
 		if(vme_init_driver_universe2(p)!=0){
 		    ERR("cannot initialize universe2");
 			delete p;
@@ -37,6 +37,7 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
 				}
 		break;
 	default:
+		ERR("uknown driver");
 		delete p;
 		return 0;
 	}
@@ -149,7 +150,7 @@ int vmewrap_vme_close(vmewrap_vme_handle_t  h){
 void* vmewrap_get_linux_add(vmewrap_vme_handle_t  h){
   vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
   if(handle){
-	DPRINT("returning mapped linux address 0x%x",handle->mapped_address);
+	DPRINT("returning mapped linux address 0x%x, if zero driver unable to map",handle->mapped_address);
     return handle->mapped_address;
   }
   return 0;

@@ -24,7 +24,7 @@ static int vme_init_universe2(vmewrap_int_vme_handle_t handle){
 		ERR("init driver must be done before");
 		return -1;
 	}
-    handle->bus = ( VMEBridge*)vmeb;
+    handle->bus = ( void*)vmeb;
     handle->fd=-1;
     if(initialized==0){    
       initialized=1;
@@ -225,6 +225,7 @@ int vme_init_driver_universe2(vmewrap_vme_handle_t handle){
 	p->vme_read8=vme_read8_universe2;
 	p->vme_read16=vme_read16_universe2;
 	p->vme_read32=vme_read32_universe2;
+	p->bus = vmeb;
 	return 0;
 }
 int vme_deinit_driver_universe2(vmewrap_vme_handle_t handle){
