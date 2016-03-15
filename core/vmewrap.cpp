@@ -66,6 +66,14 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
 			err= -1;
 		}
 		break;
+	case VME_CAEN1718_DRIVER:
+	case VME_CAEN2718_DRIVER:
+		if(vme_deinit_driver_caenvme(p)!=0){
+			ERR("cannot deinitialize caenvme");
+			delete p;
+			return 0;
+			}
+		break;
 	default:
 		err=-2;
 		ERR("undefined driver type");

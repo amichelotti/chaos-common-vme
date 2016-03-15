@@ -70,10 +70,12 @@ typedef struct _caen_vme {
 
 
 static int caenvme_deinit(vmewrap_int_vme_handle_t handle) {
-	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
+	caen_vme_t* caen_handle;
 	if(handle==NULL) return -3;
+	caen_handle=(caen_vme_t*)handle->priv;
 	caen_handle->CAENVME_SystemReset(handle->fd);
 	caen_handle->CAENVME_End(handle->fd);
+
 	return 0;
 }
 
@@ -186,7 +188,7 @@ static int caenvme_init(vmewrap_int_vme_handle_t handle){
 		ERR("Error opening the device");
 		return -2;
 	} else{
-		DPRINT("CAENVME initialized \n");
+		DPRINT("CAENVME initialized");
 	}
 
 	caen_handle->CAENVME_SystemReset(BHandle);
@@ -209,7 +211,7 @@ static int caenvme_init(vmewrap_int_vme_handle_t handle){
 static int vme_write8_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t data){
 	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
 	if(handle==NULL) return -100;
-	  DPRINT(" addr=0x%x, am = 0x%x dw=8 ptr=@0x%x\n",off,caen_handle->am,data);
+	  DPRINT(" addr=0x%x, am = 0x%x dw=8 ptr=@0x%x",off,caen_handle->am,data);
 	  return caen_handle->CAENVME_WriteCycle(handle->fd, (uint32_t)handle->phys_add + off, &data,caen_handle->am, cvD8);
 }
 
@@ -217,7 +219,7 @@ static int vme_write32_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uin
 	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
 
 	if(handle==NULL) return -100;
-		  DPRINT(" addr=0x%x, am = 0x%x dw=32 ptr=@0x%x\n",off,caen_handle->am,data);
+		  DPRINT(" addr=0x%x, am = 0x%x dw=32 ptr=@0x%x",off,caen_handle->am,data);
 		  return caen_handle->CAENVME_WriteCycle(handle->fd, (uint32_t)handle->phys_add + off, &data,caen_handle->am, cvD32);
 
 }
@@ -225,7 +227,7 @@ static int vme_write16_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uin
 	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
 
 		if(handle==NULL) return -100;
-			  DPRINT(" addr=0x%x, am = 0x%x dw=16 ptr=@0x%x\n",off,caen_handle->am,data);
+			  DPRINT(" addr=0x%x, am = 0x%x dw=16 ptr=@0x%x",off,caen_handle->am,data);
 			  return caen_handle->CAENVME_WriteCycle(handle->fd, (uint32_t)handle->phys_add + off, &data,caen_handle->am, cvD16);
 
 }
@@ -233,7 +235,7 @@ static int vme_read32_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint
 	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
 
 			if(handle==NULL) return -100;
-				  DPRINT(" addr=0x%x, am = 0x%x dw=32 ptr=@0x%x\n",off,caen_handle->am,data);
+				  DPRINT(" addr=0x%x, am = 0x%x dw=32 ptr=@0x%x",off,caen_handle->am,data);
 				  return caen_handle->CAENVME_ReadCycle(handle->fd, (uint32_t)handle->phys_add + off, data,caen_handle->am, cvD32);
 }
 static int vme_read16_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t *data){
@@ -247,7 +249,7 @@ static int vme_read8_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint8
 	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
 
 				if(handle==NULL) return -100;
-					  DPRINT(" addr=0x%x, am = 0x%x dw=8 ptr=@0x%x\n",off,caen_handle->am,data);
+					  DPRINT(" addr=0x%x, am = 0x%x dw=8 ptr=@0x%x",off,caen_handle->am,data);
 					  return caen_handle->CAENVME_ReadCycle(handle->fd, (uint32_t)handle->phys_add + off, data,caen_handle->am, cvD8);
 }
 
@@ -288,6 +290,18 @@ int vme_init_driver_caenvme(vmewrap_vme_handle_t handle){
 		p->vme_write32 = vme_write32_caenvme;
 		p->vme_write8 = vme_write8_caenvme;
 	p->priv = caen;
+	return 0;
+}
+int vme_deinit_driver_caenvme(vmewrap_vme_handle_t handle){
+	vmewrap_int_vme_handle_t p=(vmewrap_int_vme_handle_t)handle;
+	if(p==NULL){
+		ERR("invalid handle");
+		return -1;
+	}
+	caen_vme_t *caen=(caen_vme_t *)p->priv;
+	dlclose(caen->libhandle);
+	delete caen;
+	p->priv=NULL;
 	return 0;
 }
 
