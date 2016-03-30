@@ -123,6 +123,14 @@ public:
 	 *
 	 */
 	void clrMode(caen_modes_t mode);
+
+
+	/*
+	 * get operational mode
+	 * @return  the operational mode
+	 */
+	int16_t getMode();
+
 	/*
 	 * Write to a specified offset
 	 * @param off offset inside the caen device

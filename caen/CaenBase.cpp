@@ -34,6 +34,9 @@ int CaenBase::close(){
 
 	return -4;
 }
+int16_t CaenBase::getMode(){
+	 return VME_READ_REG16(handle->vme, BITSET2_OFF);
+}
 
 int CaenBase::open(vme_driver_t vme_driver,uint64_t address ){
 	void* mapped_address;
@@ -293,16 +296,17 @@ void CaenBase::clrMode(caen_modes_t mode){
 	VME_WRITE16(handle->vme,BITCLR2_OFF,mode);
 }
 
+
 void CaenBase::write(uint16_t off,uint16_t data){
-	vmewrap_write16(handle,off,data);
+	vmewrap_write16(handle->vme,off,data);
 }
 void CaenBase::read(uint16_t off,uint16_t &data){
-	vmewrap_read16(handle,off,&data);
+	vmewrap_read16(handle->vme,off,&data);
 
 }
 void CaenBase::write(uint16_t off,uint32_t data){
-	vmewrap_write32(handle,off,data);
+	vmewrap_write32(handle->vme,off,data);
 }
 void CaenBase::read(uint16_t off,uint32_t &data){
-	vmewrap_read32(handle,off,&data);
+	vmewrap_read32(handle->vme,off,&data);
 }
