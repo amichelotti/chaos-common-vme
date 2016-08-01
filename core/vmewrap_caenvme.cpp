@@ -5,6 +5,8 @@
  */
 #include "vmewrap_int.h"
 #include <common/debug/core/debug.h>
+#include <unistd.h>
+
 #define LINUX
 #define LIBRARY "libCAENVME.so"
 #include <vmedrv/CAENVMELib/CAENVMElib.h>

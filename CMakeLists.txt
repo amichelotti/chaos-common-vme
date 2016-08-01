@@ -3,7 +3,7 @@ project(common_vme)
 option(UNIVERSE2 "open source universe2 driver" ON)
 
 ADD_DEFINITIONS(-fpermissive)
-INCLUDE_DIRECTORIES(core)
+INCLUDE_DIRECTORIES(core . ../ )
 
 MESSAGE(STATUS "enable universe2 driver")
 ADD_DEFINITIONS(-DUNIVERSE2)  
