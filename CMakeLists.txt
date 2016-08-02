@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(common_vme)
 option(UNIVERSE2 "open source universe2 driver" ON)
 
-ADD_DEFINITIONS(-fpermissive)
+ADD_DEFINITIONS(-fpermissive -fPIC)
 INCLUDE_DIRECTORIES(core . ../ )
 
 MESSAGE(STATUS "enable universe2 driver")
