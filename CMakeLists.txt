@@ -13,7 +13,7 @@ ADD_SUBDIRECTORY(vmedrv/universe2)
 
 SET(src core/vmewrap.cpp core/vmewrap_universe2.cpp core/vmewrap_caenvme.cpp) 
 ADD_LIBRARY(${PROJECT_NAME} ${src})
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} common_debug boost_log boost_system boost_thread rt pthread ${FrameworkLib})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} common_debug boost_log boost_system boost_thread pthread ${FrameworkLib})
 ADD_SUBDIRECTORY(caen)
 ADD_SUBDIRECTORY(sis)
 SET(test_btf_daq_src test/test_btf_daq.c )

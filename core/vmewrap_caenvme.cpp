@@ -267,7 +267,7 @@ int vme_init_driver_caenvme(vmewrap_vme_handle_t handle){
 	void *lib;
 	char *error;
 	DPRINT("try to open " LIBRARY);
-	lib = dlopen(LIBRARY, RTLD_NOW | RTLD_GLOBAL |RTLD_DEEPBIND);
+	lib = dlopen(LIBRARY, RTLD_NOW | RTLD_GLOBAL );
 	if (!handle) {
 		ERR("Error opening " LIBRARY " :%s",dlerror());
 
