@@ -24,7 +24,7 @@ CaenBase::~CaenBase() {
 }
 
 int CaenBase::close(){
-	DPRINT("%s closing handle @0x%x",board.c_str(),(unsigned)handle);
+	DPRINT("%s closing handle @0x%x",board.c_str(),(unsigned long)handle);
 	if(handle){
 		int ret;
 		ret=vmewrap_vme_close(handle->vme);
@@ -116,7 +116,7 @@ int CaenBase::open(vme_driver_t vme_driver,uint64_t address ){
 
 
 void CaenBase::init(uint32_t crate_num,int hwreset){
-	DPRINT("%s intialiazing @0x%x",board.c_str(),(uint32_t)handle);
+	DPRINT("%s intialiazing @0x%x",board.c_str(),(unsigned long)handle);
 	int cnt;
 	if(hwreset){
 		VME_WRITE16(handle->vme,SSRESET_OFF,1);

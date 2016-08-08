@@ -16,7 +16,7 @@ typedef struct __vme_handle__ {
   void* bus;
   void* handle;
   void* mapped_address;
-  void* phys_add;
+  uint64_t phys_add;
   void* priv;//private to the specific driver
   uint32_t size;
   int fd;

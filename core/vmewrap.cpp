@@ -2,7 +2,7 @@
 #include <common/debug/core/debug.h>
 #include "vmewrap.h"
 #include "vmewrap_int.h"
-#include <common/debug/core/debug.h>
+
 #include "vmewrap_universe2.h"
 #include "vmewrap_caenvme.h"
 
@@ -100,7 +100,7 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
   DPRINT("vme init vme handle 0x%x, vme wrap handle 0x%x",handle->bus,h);
 
   handle->master=1;
-  handle->phys_add=(void*)master_add;
+  handle->phys_add=(uint64_t)master_add;
   handle->size = master_size;
   if(handle->map_master(handle,master_add,master_size,master_addressing,dw,vme_opts)< 0){
     free(handle);
@@ -129,7 +129,7 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
   DPRINT("vme init vme handle 0x%x, vme wrap handle 0x%x",handle->bus,h);
 
   handle->master=0;
-  handle->phys_add=(void*)slave_add;
+  handle->phys_add=(uint64_t)slave_add;
   handle->size = slave_size;
   if(handle->map_slave(handle,slave_add,slave_size,slave_addressing,dw,vme_opts)< 0){
     free(handle);
@@ -145,7 +145,7 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
 
 int vmewrap_vme_close(vmewrap_vme_handle_t  h){
   vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-  DPRINT("closing handle @0x%x",(unsigned)h);
+  DPRINT("closing handle @0x%x",(unsigned long)h);
   if(handle){
     handle->vme_close(handle);
     free(handle);

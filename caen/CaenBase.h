@@ -9,6 +9,8 @@
 #define CAEN_CAENBASE_H_
 #define CAEN_GENERIC
 #include "caen_common.h"
+#include <stdlib.h>
+#include <unistd.h>
 #include <string>
 #include <common/vme/core/vmewrap.h>
 

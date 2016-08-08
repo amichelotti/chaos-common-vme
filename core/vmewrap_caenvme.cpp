@@ -5,13 +5,21 @@
  */
 #include "vmewrap_int.h"
 #include <common/debug/core/debug.h>
+#include <unistd.h>
+
 #define LINUX
 #define LIBRARY "libCAENVME.so"
 #include <vmedrv/CAENVMELib/CAENVMElib.h>
 #include <vmedrv/CAENVMELib/CAENVMEtypes.h>
 #include <vmedrv/CAENVMELib/CAENVMEoslib.h>
 #include <dlfcn.h>
-
+typedef	CAENVME_API  (*CAENVME_Init_t)(CVBoardTypes BdType, short Link, short BdNum, int32_t *Handle);
+typedef CAENVME_API (*CAENVME_ReadRegister_t)(int32_t Handle, CVRegisters Reg, unsigned int *Data);
+typedef CAENVME_API (*CAENVME_WriteRegister_t)(int32_t Handle, CVRegisters Reg, unsigned int Data);
+typedef CAENVME_API (*CAENVME_ReadCycle_t)(int32_t Handle, uint32_t Address, void *Data,CVAddressModifier AM, CVDataWidth DW);
+typedef CAENVME_API (*CAENVME_WriteCycle_t)(int32_t Handle, uint32_t Address, void *Data,CVAddressModifier AM, CVDataWidth DW);
+typedef	CAENVME_API (*CAENVME_SystemReset_t)(int32_t Handle);
+typedef CAENVME_API (*CAENVME_End_t)(int32_t Handle);
 typedef struct _caen_vme {
 	CAENVME_API  (*CAENVME_Init)(CVBoardTypes BdType, short Link, short BdNum, int32_t *Handle);
 	void (*CAENVME_DecodeError)(CVErrorCodes Code);
@@ -64,8 +72,8 @@ typedef struct _caen_vme {
 	CVAddressModifier am;
 
 } caen_vme_t;
-#define INIT_LIB(name) \
-		caen->name = dlsym(lib,# name); \
+#define INIT_LIB(name)				\
+  caen->name = (name ##_t)dlsym(lib,# name);					\
 		if(caen->name == NULL){ ERR("Error loaging \"%s\" :%s",# name, dlerror());free(caen);return -2;} else {DPRINT("load " # name);}
 
 
@@ -82,7 +90,7 @@ static int caenvme_deinit(vmewrap_int_vme_handle_t handle) {
 static int  map_master_caenvme(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw, vme_opt_t vme_options){
 	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
 
-	handle->phys_add=(void*)add;
+	handle->phys_add=(uint64_t)add;
 	handle->size = size;
 
 	switch(addressing){
@@ -259,7 +267,7 @@ int vme_init_driver_caenvme(vmewrap_vme_handle_t handle){
 	void *lib;
 	char *error;
 	DPRINT("try to open " LIBRARY);
-	lib = dlopen(LIBRARY, RTLD_NOW | RTLD_GLOBAL |RTLD_DEEPBIND);
+	lib = dlopen(LIBRARY, RTLD_NOW | RTLD_GLOBAL );
 	if (!handle) {
 		ERR("Error opening " LIBRARY " :%s",dlerror());
 
