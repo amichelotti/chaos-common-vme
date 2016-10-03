@@ -18,16 +18,20 @@
 #define MANUFACTURE_ID 0x832
 #define NCHANNELS 16
 
-
- 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include <common/vme/core/vmewrap.h>
 typedef void* caen513_handle_t;
 
 /**
 	open the caen513 device and return an handle to it
+		@param vme_driver id of the driver vme to be used
+
 	@param address the vme address of the board
 	@return an handle or zero if error
 */
-caen513_handle_t caen513_open(uint32_t address);
+caen513_handle_t caen513_open(vme_driver_t vme_driver,uint32_t address);
 
 
 /**
@@ -151,5 +155,9 @@ uint32_t caen513_getEventCounter(caen513_handle_t h,int reset);
 */
 uint16_t caen513_getBufferStatus(caen513_handle_t h);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

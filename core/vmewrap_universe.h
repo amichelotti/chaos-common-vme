@@ -1,3 +1,10 @@
+/*
+ *
+@file vmewrap_universe.h
+@author Andrea Michelotti
+@date Mar 11, 2016
+ * */
+
 #ifndef _VMEWRAPUNIVERSE_H_
 
 #define _VMEWRAPUNIVERSE_H_

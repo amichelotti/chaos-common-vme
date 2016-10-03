@@ -1,15 +1,20 @@
 #ifndef __SIS3800_H__
 #define __SIS3800_H__
 #include <stdint.h>
+#include <common/vme/core/vmewrap.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef void* sis3800_handle_t;
 
 /**
  open the sis3800 device and return an handle to it
+ @param vme_driver id of the driver vme to be used
  @param address the vme address of the board
  @return an handle or zero if error
  */
-sis3800_handle_t sis3800_open(uint32_t address);
+sis3800_handle_t sis3800_open(vme_driver_t vme_driver,uint32_t address);
 
 
 /**
@@ -76,5 +81,10 @@ void sis3800_clear(sis3800_handle_t h);
  @param h handle to the board
  */
 void sis3800_reset(sis3800_handle_t h);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 

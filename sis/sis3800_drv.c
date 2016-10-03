@@ -13,18 +13,25 @@ typedef struct __vme_handle__ {
     int version;
 } _sis_handle_t ;
 
-sis3800_handle_t sis3800_open(uint32_t address){
+sis3800_handle_t sis3800_open(vme_driver_t vme_driver,uint32_t address){
     void* mapped_address;
     int size = 0x10000;
     int boardid,manufactureid;
     vmewrap_vme_handle_t vme;
     DPRINT(DEV_BOARD " opening vme device at @0x%x\n",address);
-    vme = vmewrap_vme_open(address,size,32,0,0,0);
+    vme = vmewrap_init_driver(vme_driver);
     if(vme==NULL){
-        return NULL;
+    	ERR("cannot initialize VME driver %d",vme_driver);
+
+            return NULL;
+    }
+    if(vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,0)!=0){
+    	ERR("cannot map vme");
+    	return NULL;
     }
     
-    mapped_address =  vmewrap_get_vme_master_linux_add(vme);
+
+    mapped_address =  vmewrap_get_linux_add(vme);
     if (0 == mapped_address) {
         ERR("cannot map VME window\n");
         perror("vme_master_window_map");

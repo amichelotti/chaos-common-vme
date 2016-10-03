@@ -1,5 +1,5 @@
-#include "caen965_drv.h"
-#include "caen792_drv.h"
+#include <common/vme/caen/caen965_drv.h>
+#include <common/vme/caen/caen792_drv.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
