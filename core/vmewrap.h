@@ -25,6 +25,9 @@
 #define VME_WRITE32(handle,off,val) vmewrap_write32(handle,off,val)
 #define VME_WRITE8(handle,off,val) vmewrap_write8(handle,off,val)
 
+#define VME_WRITE_REG16(handle,off,val) vmewrap_write16(handle,off,val)
+#define VME_WRITE_REG32(handle,off,val)  vmewrap_write32(handle,off,val)
+#define VME_WRITE_REG8(handle,off,val) vmewrap_write8(handle,off,val)
 
 
 #define VME_OPT_CTL_EN		0x80000000
