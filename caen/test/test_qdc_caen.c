@@ -9,7 +9,7 @@
 void dump_channels(FILE*o,uint32_t *chan,uint64_t cycle,int channels){
     int cnt;
     for(cnt=0;cnt<channels;cnt++){
-        fprintf(o,"- %lld [%d] = 0x%x\n",cycle,cnt,chan[cnt]);
+        fprintf(o,"- %ld [%d] = 0x%x\n",cycle,cnt,chan[cnt]);
     }
 }
 
@@ -89,7 +89,7 @@ int main(int argc,char**argv){
            dump_channels(out,ch,cycle,ret);
 
        }
-      printf("* acquired %d channels, events:%lld\n",ret,cycle);
+      printf("* acquired %d channels, events:%ld\n",ret,cycle);
       cnt--;
     }
     if(is965){

@@ -50,7 +50,7 @@ sis3800_handle_t sis3800_open(vme_driver_t vme_driver,uint32_t address){
     boardid=BOARD_IDENTIFICATION_REG(mapped_address)>>12;
     p->version=boardid&0xF;
     p->boardid=boardid>>4;
-    DPRINT(DEV_BOARD " successfully mapped at @0x%x\n",mapped_address);
+    DPRINT(DEV_BOARD " successfully mapped at @0x%p\n",mapped_address);
     PRINT(DEV_BOARD " Version:0x%x\n",p->version);
     PRINT(DEV_BOARD " BoardID:0x%x\n",p->boardid);
     return (void*) p;
@@ -59,7 +59,7 @@ sis3800_handle_t sis3800_open(vme_driver_t vme_driver,uint32_t address){
 
 int32_t sis3800_close(sis3800_handle_t h){
      _sis_handle_t* handle = h;
-    DPRINT(DEV_BOARD " closing handle @0x%x\n",(unsigned)h);
+    DPRINT(DEV_BOARD " closing handle @0x%p\n",(void*)h);
     if(handle){
         int ret;
         DPRINT(DEV_BOARD " caen_qdc sucessfully closed\n");
