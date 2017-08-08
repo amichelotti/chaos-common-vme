@@ -97,7 +97,7 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
     return -2;
   }
  
-  DPRINT("vme init vme handle 0x%x, vme wrap handle 0x%x",handle->bus,h);
+  DPRINT("vme init vme handle %p, vme wrap handle %p",handle->bus,h);
 
   handle->master=1;
   handle->phys_add=(uint64_t)master_add;
@@ -126,7 +126,7 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
     return -2;
   }
  
-  DPRINT("vme init vme handle 0x%x, vme wrap handle 0x%x",handle->bus,h);
+  DPRINT("vme init vme handle %p, vme wrap handle %p",handle->bus,h);
 
   handle->master=0;
   handle->phys_add=(uint64_t)slave_add;
@@ -145,7 +145,7 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
 
 int vmewrap_vme_close(vmewrap_vme_handle_t  h){
   vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-  DPRINT("closing handle @0x%x",(unsigned long)h);
+  DPRINT("closing handle %p",h);
   if(handle){
     handle->vme_close(handle);
     free(handle);
@@ -158,7 +158,7 @@ int vmewrap_vme_close(vmewrap_vme_handle_t  h){
 void* vmewrap_get_linux_add(vmewrap_vme_handle_t  h){
   vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
   if(handle){
-	DPRINT("returning mapped linux address 0x%x, if zero driver unable to map",handle->mapped_address);
+	DPRINT("returning mapped linux address %p, if zero driver unable to map",handle->mapped_address);
     return handle->mapped_address;
   }
   return 0;
