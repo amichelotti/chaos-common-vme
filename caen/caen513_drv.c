@@ -61,7 +61,7 @@ caen513_handle_t caen513_open(vme_driver_t vme_driver,uint32_t address ){
 	p->mapped_address = mapped_address;
 	boardid=BOARD_ID_REG(mapped_address)&0xFFFF;
 	manufactureid=MANUFACTURE_ID_REG(mapped_address)&0xFFFF;
-	DPRINT("CAEN513 successfully mapped at @0x%x\n",mapped_address);
+	DPRINT("CAEN513 successfully mapped at @%p\n",mapped_address);
 	PRINT("CAEN513 Version:0x%x\n",VERSION_REG(mapped_address));
 	PRINT("CAEN513 BoardID:0x%x\n",boardid);
 	PRINT("CAEN513 Manufacture:0x%x\n",manufactureid);
@@ -76,7 +76,7 @@ caen513_handle_t caen513_open(vme_driver_t vme_driver,uint32_t address ){
 
 int32_t caen513_close(caen513_handle_t h){
 	_caen513_handle_t* handle = (_caen513_handle_t*)h;
-	DPRINT("closing handle @0x%x\n",(unsigned)h);
+	DPRINT("closing handle @%p\n",h);
 	if(handle){
 		int ret;
 		DPRINT("caen513 sucessfully closed\n");

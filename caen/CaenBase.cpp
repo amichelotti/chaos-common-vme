@@ -24,7 +24,7 @@ CaenBase::~CaenBase() {
 }
 
 int CaenBase::close(){
-	DPRINT("%s closing handle @0x%x",board.c_str(),(unsigned long)handle);
+	DPRINT("%s closing handle @%p",board.c_str(),handle);
 	if(handle){
 		int ret;
 		ret=vmewrap_vme_close(handle->vme);
@@ -43,7 +43,7 @@ int CaenBase::open(vme_driver_t vme_driver,uint64_t address ){
 	int size = 0x10000;
 	int boardid,manufactureid;
 	vmewrap_vme_handle_t vme;
-	DPRINT(" opening vme device at @0x%x",address);
+	DPRINT(" opening vme device at @0x%llx",address);
 	vme = vmewrap_init_driver(vme_driver);
 	if(vme==NULL){
 		ERR("cannot initialize VME driver %d",vme_driver);
