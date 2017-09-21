@@ -93,7 +93,6 @@ static int32_t caen_common_init(void* h,int32_t crate_num,int hwreset){
   }
   for(cnt=0;cnt<NCHANNELS;cnt++){
     //    DPRINT(DEV_BOARD " clearing threashold %d",cnt);
-    unsigned off=cnt*4;
     //    THRS_CHANNEL_REG(handle->mapped_address,cnt,0)= 0;
     VME_WRITE16(handle->vme,THRS_CHANNEL_OFF+(4*cnt),0);
     //    msync(handle->mapped_address+off,4);
@@ -295,7 +294,7 @@ static int32_t caen_common_acquire_channels_poll(void* h,uint32_t *lowres,uint32
   } while(((status&CAEN_QDC_STATUS_DREADY)==0)&&((diff)<=(timeo_ms*1000)));
 
   counter = EVT_CNT_LOW_REG(handle->mapped_address)|(EVT_CNT_HI_REG(handle->mapped_address)<<16);
-  events = abs(counter - handle->event_counter);
+    events = (counter > handle->event_counter)?(counter - handle->event_counter):0;
 
   handle->cycle+= events;
   handle->event_counter =counter;

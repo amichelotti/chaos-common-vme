@@ -94,8 +94,7 @@ static int  map_master_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,ui
 
 static int  map_slave_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw,vme_opt_t vme_options){
   VMEBridge* vme=(VMEBridge*)handle->bus;
-  int am=0;
-  int image;
+  int image=0; //TODO CHECK THIS
   int uni_addressing,uni_dw;
    switch(addressing){
    case VME_ADDRESSING_A16:
