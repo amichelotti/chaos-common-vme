@@ -31,14 +31,9 @@ void dump_channels(FILE*o,uint32_t *chan,uint64_t cycle,int channels){
 }
 
 int main(int argc,char**argv){
-  unsigned long address=0;
-  void* caen;
   char*conf_file;
   FILE* fconf_file;
   int ret;
-  uint32_t acquire_cycles=0;
-  uint32_t acquire_timeo=0;
-  int timeo_counter=0;
   uint32_t low[16],hi[16],ch[32],counters[32];
   uint32_t caen513_addr=0,caen965_addr=0,caen792_addr=0,sis3800_addr=0;
   uint64_t loop=0,cycle0=0,cycle1=0,loop_time_start=0;
@@ -47,7 +42,6 @@ int main(int argc,char**argv){
   caen513_handle_t caen513_handle=NULL;
   sis3800_handle_t sis3800_handle=NULL;
   int32_t pio;
-  int is965=1;
   int cnt;
   uint32_t counter_before=0,counter_after,old_counter,discard;
   uint64_t lost=0,tot_lost=0;
@@ -127,7 +121,7 @@ int main(int argc,char**argv){
 
     //    dump_channels(out,low,cycle0,ret);
     // dump_channels(out,hi,cycle0,ret);
-    printf("acquire 792\n",pio);
+    printf("acquire 792\n");
     ret = caen792_acquire_channels_poll(caen792_handle,ch,0,16,&cycle1,0);
     
     //    dump_channels(out,ch,cycle1,ret);

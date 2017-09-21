@@ -27,7 +27,6 @@ typedef struct __vme_handle__ {
 
 
 caen513_handle_t caen513_open(vme_driver_t vme_driver,uint32_t address ){
-	int am,flags;
 	void* mapped_address;
 	int size = 0x10000;
 	int boardid,manufactureid;

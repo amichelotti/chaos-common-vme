@@ -9,7 +9,6 @@ int main(int argc,char**argv){
   unsigned long address=0;
   unsigned addressing=32;
   unsigned off=0;
-  int size=4;
   vmewrap_vme_handle_t handle;
   unsigned* data=0;
   int cnt;
@@ -17,7 +16,6 @@ int main(int argc,char**argv){
   int dw=0;
   void*ptr;
   int type;
-    FILE*out;
   if(argc<7){
     USAGE;
     return 1;

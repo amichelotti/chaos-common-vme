@@ -265,7 +265,6 @@ int vme_init_driver_caenvme(vmewrap_vme_handle_t handle){
 	vmewrap_int_vme_handle_t p=(vmewrap_int_vme_handle_t)handle;
 	caen_vme_t *caen;
 	void *lib;
-	char *error;
 	DPRINT("try to open " LIBRARY);
 	lib = dlopen(LIBRARY, RTLD_NOW | RTLD_GLOBAL );
 	if (!handle) {
