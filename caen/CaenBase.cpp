@@ -70,7 +70,7 @@ int CaenBase::open(vme_driver_t vme_driver,uint64_t address ){
 		vmewrap_vme_close(vme);
 		return -3;
 	}
-	DPRINT("allocated caen handle 0x%x",handle);
+	DPRINT("allocated caen handle 0x%p",handle);
 	handle->vme = vme;
 	handle->mapped_address = mapped_address;
 	handle->cycle = 0;
@@ -116,8 +116,7 @@ int CaenBase::open(vme_driver_t vme_driver,uint64_t address ){
 
 
 void CaenBase::init(uint32_t crate_num,int hwreset){
-	DPRINT("%s intialiazing @0x%x",board.c_str(),(unsigned long)handle);
-	int cnt;
+	DPRINT("%s intialiazing @0x%Lx",board.c_str(),(unsigned long)handle);
 	if(hwreset){
 		VME_WRITE16(handle->vme,SSRESET_OFF,1);
 		VME_WRITE16(handle->vme,BITSET_OFF,SOFTRESET_BIT);
@@ -197,7 +196,7 @@ int32_t CaenBase::waitEvent(int timeo_ms){
 		}
 	} while(((status&CAEN_QDC_STATUS_DREADY)==0)&&((diff)<=endm));
 	if(diff>endm){
-		ERR("timeout expired %Lu us",diff);
+		ERR("timeout expired %llu us",diff);
 		return -1;
 	}
 	return 0;
@@ -224,7 +223,6 @@ uint32_t CaenBase::acquireBuffer(uint32_t* buffer,uint32_t max_size){
 }
 uint16_t CaenBase::acquireChannels(uint32_t* channel,uint32_t *event){
 	// search header
-	common_header_t a;
 	common_footer_t b;
 
 	common_data_t buf;
@@ -244,7 +242,7 @@ uint16_t CaenBase::acquireChannels(uint32_t* channel,uint32_t *event){
 	}
 	b.data  = VME_READ_REG32(handle->vme,0);
 	if(b.ddata.signature==4){
-		handle->cycle+= abs(b.ddata.ev_counter-handle->event_counter);
+        handle->cycle+= (b.ddata.ev_counter>handle->event_counter)?(b.ddata.ev_counter-handle->event_counter):0;
 		handle->event_counter =b.ddata.ev_counter;
 		*event = b.ddata.ev_counter;
 		return ret_channels;
@@ -254,7 +252,6 @@ uint16_t CaenBase::acquireChannels(uint32_t* channel,uint32_t *event){
 }
 uint16_t CaenBase::acquireChannels(uint16_t* channel,uint32_t *event){
 	// search header
-	common_header_t a;
 	common_footer_t b;
 	int ch;
 	common_data_t buf;
@@ -277,7 +274,7 @@ uint16_t CaenBase::acquireChannels(uint16_t* channel,uint32_t *event){
 	}
 	b.data  = VME_READ_REG32(handle->vme,0);
 	if(b.ddata.signature==4){
-		handle->cycle+= abs(b.ddata.ev_counter-handle->event_counter);
+        handle->cycle+= (b.ddata.ev_counter>handle->event_counter)?(b.ddata.ev_counter-handle->event_counter): 0;
 		handle->event_counter =b.ddata.ev_counter;
 		*event = b.ddata.ev_counter;
 		return ret_channels;
