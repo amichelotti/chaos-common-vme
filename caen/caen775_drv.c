@@ -24,7 +24,7 @@ caen775_handle_t caen775_open(vme_driver_t vme_driver,uint32_t address ){
 int32_t caen775_init(caen775_handle_t h,int32_t crate_num,int swreset){
 	_caen_common_handle_t* handle = h;
 
-	DPRINT(DEV_BOARD " intialiazing @0x%x",(uint32_t)h);
+	DPRINT(DEV_BOARD " intialiazing @%p",h);
 	if(swreset){
 	  BITSET_REG(handle->mapped_address) = SOFTRESET_BIT;
 	}

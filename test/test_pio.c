@@ -19,23 +19,15 @@
 
 
 int main(int argc,char**argv){
-  unsigned long address=0;
-  void* caen;
+ 
   char*conf_file;
   FILE* fconf_file;
-  int ret;
-  uint32_t acquire_cycles=0;
-  uint32_t acquire_timeo=0;
-  int timeo_counter=0;
-  uint32_t low[16],hi[16],ch[32],counters[32];
+ 
   uint32_t caen513_addr=0,caen965_addr=0,caen792_addr=0,sis3800_addr=0;
-  uint64_t loop=0,cycle0=0,cycle1=0,loop_time_start=0;
   caen513_handle_t caen513_handle=NULL;
   uint32_t write_mask=0x0;
   int32_t pio;
-  int is965=1;
   int cnt;
-    FILE*out;
   if(argc<3){
     USAGE;
     return 1;

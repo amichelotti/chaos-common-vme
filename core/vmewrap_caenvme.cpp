@@ -243,21 +243,21 @@ static int vme_read32_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint
 	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
 
 			if(handle==NULL) return -100;
-				  DPRINT(" addr=0x%x, am = 0x%x dw=32 ptr=@0x%x",off,caen_handle->am,data);
+				  DPRINT(" addr=0x%x, am = 0x%x dw=32 ptr=@%p",off,caen_handle->am,data);
 				  return caen_handle->CAENVME_ReadCycle(handle->fd, (uint32_t)handle->phys_add + off, data,caen_handle->am, cvD32);
 }
 static int vme_read16_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t *data){
 	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
 
 				if(handle==NULL) return -100;
-					  DPRINT(" addr=0x%x, am = 0x%x dw=16 ptr=@0x%x\n",off,caen_handle->am,data);
+					  DPRINT(" addr=0x%x, am = 0x%x dw=16 ptr=@%p\n",off,caen_handle->am,data);
 					  return caen_handle->CAENVME_ReadCycle(handle->fd, (uint32_t)handle->phys_add + off, data,caen_handle->am, cvD16);
 }
 static int vme_read8_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t *data){
 	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
 
 				if(handle==NULL) return -100;
-					  DPRINT(" addr=0x%x, am = 0x%x dw=8 ptr=@0x%x",off,caen_handle->am,data);
+					  DPRINT(" addr=0x%x, am = 0x%x dw=8 ptr=@%p",off,caen_handle->am,data);
 					  return caen_handle->CAENVME_ReadCycle(handle->fd, (uint32_t)handle->phys_add + off, data,caen_handle->am, cvD8);
 }
 
@@ -265,7 +265,6 @@ int vme_init_driver_caenvme(vmewrap_vme_handle_t handle){
 	vmewrap_int_vme_handle_t p=(vmewrap_int_vme_handle_t)handle;
 	caen_vme_t *caen;
 	void *lib;
-	char *error;
 	DPRINT("try to open " LIBRARY);
 	lib = dlopen(LIBRARY, RTLD_NOW | RTLD_GLOBAL );
 	if (!handle) {

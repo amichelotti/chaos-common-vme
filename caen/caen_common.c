@@ -15,7 +15,7 @@
 #include <common/debug/core/debug.h>
 static int32_t caen_common_close(void* h){
     _caen_common_handle_t* handle = h;
-    DPRINT(DEV_BOARD " closing handle @0x%x",(unsigned)h);
+    DPRINT(DEV_BOARD " closing handle @%p",h);
     if(handle){
         int ret;
         DPRINT(DEV_BOARD " caen_qdc sucessfully closed");
@@ -65,7 +65,7 @@ static void* caen_common_open(vme_driver_t vme_driver,uint32_t address ){
     p->boardid=boardid;
     p->manufactureid=manufactureid;
     p->version=FW_REVISION_REG(mapped_address);
-  DPRINT(DEV_BOARD " caen_qdc successfully mapped at @0x%x",mapped_address);
+  DPRINT(DEV_BOARD " caen_qdc successfully mapped at @%p",mapped_address);
   PRINT(DEV_BOARD " FW:0x%x",p->version);
   PRINT(DEV_BOARD " BoardID:0x%x",boardid);
   PRINT(DEV_BOARD " ManufactureID:0x%x",manufactureid);
@@ -82,7 +82,7 @@ static void* caen_common_open(vme_driver_t vme_driver,uint32_t address ){
 
 static int32_t caen_common_init(void* h,int32_t crate_num,int hwreset){
   _caen_common_handle_t* handle = h;
-  DPRINT(DEV_BOARD " intialiazing @0x%x",(uint32_t)h); 
+  DPRINT(DEV_BOARD " intialiazing @%p",h);
   int cnt;
   if(hwreset){
     SSRESET_REG(handle->mapped_address) = 1;
@@ -93,7 +93,6 @@ static int32_t caen_common_init(void* h,int32_t crate_num,int hwreset){
   }
   for(cnt=0;cnt<NCHANNELS;cnt++){
     //    DPRINT(DEV_BOARD " clearing threashold %d",cnt);
-    unsigned off=cnt*4;
     //    THRS_CHANNEL_REG(handle->mapped_address,cnt,0)= 0;
     VME_WRITE16(handle->vme,THRS_CHANNEL_OFF+(4*cnt),0);
     //    msync(handle->mapped_address+off,4);
@@ -295,11 +294,11 @@ static int32_t caen_common_acquire_channels_poll(void* h,uint32_t *lowres,uint32
   } while(((status&CAEN_QDC_STATUS_DREADY)==0)&&((diff)<=(timeo_ms*1000)));
 
   counter = EVT_CNT_LOW_REG(handle->mapped_address)|(EVT_CNT_HI_REG(handle->mapped_address)<<16);
-  events = abs(counter - handle->event_counter);
+    events = (counter > handle->event_counter)?(counter - handle->event_counter):0;
 
   handle->cycle+= events;
   handle->event_counter =counter;
-  DPRINT(DEV_BOARD " counter events %u, events %d, totcycle %Ld",counter,events,handle->cycle);
+  DPRINT(DEV_BOARD " counter events %u, events %d, totcycle %lld",counter,events,handle->cycle);
   if(status&CAEN_QDC_STATUS_DREADY){
     ret = acquire_event_channels(handle,lowres,hires,start_channel,nchannels);
   }

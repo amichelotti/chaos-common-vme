@@ -28,7 +28,7 @@ static int vme_init_universe2(vmewrap_int_vme_handle_t handle){
     handle->fd=-1;
     if(initialized==0){    
       initialized=1;
-      DPRINT("initialized driver bus:0x%x",handle->bus);
+      DPRINT("initialized driver bus:0x%p",handle->bus);
 
       //      return vmeb.resetDriver();
     }
@@ -88,14 +88,13 @@ static int  map_master_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,ui
      return -4;
  } 
  
-  DPRINT("Master address mapped at @0x%x size 0x%x, addressing %d (0x%x) dw %d (0x%x)",handle->mapped_address,size,addressing,uni_addressing,dw,uni_dw);
+  DPRINT("Master address mapped at @0x%p size 0x%x, addressing %d (0x%x) dw %d (0x%x)",handle->mapped_address,size,addressing,uni_addressing,dw,uni_dw);
   return 0;
 }
 
 static int  map_slave_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw,vme_opt_t vme_options){
   VMEBridge* vme=(VMEBridge*)handle->bus;
-  int am=0;
-  int image;
+  int image=0; //TODO CHECK THIS
   int uni_addressing,uni_dw;
    switch(addressing){
    case VME_ADDRESSING_A16:
@@ -146,7 +145,7 @@ static int  map_slave_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,uin
      return -4;
  } 
  
-  DPRINT("slave address mapped at @0x%x size 0x%x",handle->mapped_address,size);
+  DPRINT("slave address mapped at @0x%p size 0x%x",handle->mapped_address,size);
   return 0;
 }
 static int vme_write8_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t data){
@@ -210,9 +209,9 @@ int vme_init_driver_universe2(vmewrap_vme_handle_t handle){
 	vmewrap_int_vme_handle_t p=(vmewrap_int_vme_handle_t)handle;
 	if(vmeb==NULL){
 			vmeb = new VMEBridge();
-			DPRINT("allocated a new vme universe2 bridge 0x%x",(void*)vmeb);
+			DPRINT("allocated a new vme universe2 bridge 0x%p",(void*)vmeb);
 		} else {
-			DPRINT("reusing vme universe2 bridge 0x%x",(void*)vmeb);
+			DPRINT("reusing vme universe2 bridge 0x%p",(void*)vmeb);
 	}
 	p->vme_close=vme_close_universe2;
 	p->vme_init=vme_init_universe2;
@@ -230,7 +229,7 @@ int vme_init_driver_universe2(vmewrap_vme_handle_t handle){
 }
 int vme_deinit_driver_universe2(vmewrap_vme_handle_t handle){
 	vmewrap_int_vme_handle_t p=(vmewrap_int_vme_handle_t)handle;
-	DPRINT("deallocating universe2 driver 0x%x",(void*)vmeb);
+	DPRINT("deallocating universe2 driver 0x%p",(void*)vmeb);
 	int ret=vme_close_universe2(p);
 	if(vmeb){
 		delete vmeb;

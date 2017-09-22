@@ -9,7 +9,6 @@ int main(int argc,char**argv){
   unsigned long address=0;
   unsigned addressing=32;
   unsigned off=0;
-  int size=4;
   vmewrap_vme_handle_t handle;
   unsigned* data=0;
   int cnt;
@@ -17,7 +16,6 @@ int main(int argc,char**argv){
   int dw=0;
   void*ptr;
   int type;
-    FILE*out;
   if(argc<7){
     USAGE;
     return 1;
@@ -39,12 +37,12 @@ int main(int argc,char**argv){
      return -1;
    }
    if(vmewrap_vme_open_master(handle,address,0x1000000,addressing,32,0)!=0){
- 	  printf("## cannot map address 0x%x\n",address);
+ 	  printf("## cannot map address 0x%lx\n",address);
  	  return -2;
    }
   ptr=vmewrap_get_linux_add(handle);
   if(ptr==NULL){
-      printf("%% cannot remap address 0x%x to linux space\n",address);
+      printf("%% cannot remap address 0x%lx to linux space\n",address);
 
   }
   for(cnt=0;cnt<ndati;cnt++){
