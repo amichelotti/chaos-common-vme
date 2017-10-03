@@ -19,7 +19,7 @@
 
 #define _XOPEN_SOURCE 500
 
-#include <iostream>
+//#include <iostream>
 #include <stdio.h>
 #include <unistd.h>
 #include <ctype.h>
@@ -742,7 +742,7 @@ int VMEBridge::delCmdPktList(int list)
 unsigned int VMEBridge::addCmdPkt(int list, int write, unsigned int vmeAddr,
                                   int size, int vas, int vdw)
 {
-    unsigned int offset;
+    int offset;
     list_packet_t lpacket;
 
     if ((write < 0) || (write > 1)) {

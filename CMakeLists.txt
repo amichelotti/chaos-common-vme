@@ -4,10 +4,8 @@ option(UNIVERSE2 "open source universe2 driver" ON)
 
 ADD_DEFINITIONS(-fPIC)
 INCLUDE_DIRECTORIES(core . ../ )
-
 MESSAGE(STATUS "enable universe2 driver")
 ADD_DEFINITIONS(-DUNIVERSE2)  
-
 ADD_SUBDIRECTORY(vmedrv/universe2)
 
 
