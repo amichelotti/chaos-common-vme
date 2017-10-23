@@ -61,7 +61,7 @@ int CaenBase::open(vme_driver_t vme_driver,uint64_t address ){
 	}
 */
 	if(handle==NULL){
-		DPRINT("allocating caen handle size:%d",sizeof(_caen_common_handle_t));
+		DPRINT("allocating caen handle size:%ld",sizeof(_caen_common_handle_t));
 		handle = (_caen_common_handle_t*)calloc(1,sizeof(_caen_common_handle_t));
 	}
 
@@ -116,7 +116,7 @@ int CaenBase::open(vme_driver_t vme_driver,uint64_t address ){
 
 
 void CaenBase::init(uint32_t crate_num,int hwreset){
-	DPRINT("%s intialiazing @0x%Lx",board.c_str(),(unsigned long)handle);
+	DPRINT("%s intialiazing @0x%p",board.c_str(),handle);
 	if(hwreset){
 		VME_WRITE16(handle->vme,SSRESET_OFF,1);
 		VME_WRITE16(handle->vme,BITSET_OFF,SOFTRESET_BIT);
@@ -295,15 +295,15 @@ void CaenBase::clrMode(caen_modes_t mode){
 
 
 void CaenBase::write(uint16_t off,uint16_t data){
-	vmewrap_write16(handle->vme,off,data);
+	vmewrap_write16(handle->vme,off,&data,1);
 }
 void CaenBase::read(uint16_t off,uint16_t &data){
-	vmewrap_read16(handle->vme,off,&data);
+	vmewrap_read16(handle->vme,off,&data,1);
 
 }
 void CaenBase::write(uint16_t off,uint32_t data){
-	vmewrap_write32(handle->vme,off,data);
+	vmewrap_write32(handle->vme,off,&data,1);
 }
 void CaenBase::read(uint16_t off,uint32_t &data){
-	vmewrap_read32(handle->vme,off,&data);
+	vmewrap_read32(handle->vme,off,&data,1);
 }
