@@ -1,36 +1,42 @@
 /*
- * CaenBase.h
+ * CaenDaqBase.h
  *
  *  Created on: Mar 3, 2016
  *      Author: michelo
  */
 
-#ifndef CAEN_CAENBASE_H_
-#define CAEN_CAENBASE_H_
+#ifndef CAEN_CAENDAQBASE_H_
+#define CAEN_CAENDAQBASE_H_
 #define CAEN_GENERIC
 #include "caen_common.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <string>
-#include <common/vme/core/vmewrap.h>
+#include <common/vme/core/VmeBase.h>
 
 namespace common{
 namespace vme {
 namespace caen {
 
 
-class CaenBase {
+class CaenDaqBase: public ::common::vme::VmeBase {
 
 protected:
-	_caen_common_handle_t* handle;
+	uint32_t event_counter;
+	uint64_t cycle;
+	int boardid;
+	int version;
+	int manufactureid;
+	//_caen_common_handle_t* handle;
 	std::string board;
 	int channels;
 
 	//return the number of channels acquired;
 	uint16_t searchEvent();
 public:
-	CaenBase();
-	virtual ~CaenBase();
+
+	CaenDaqBase();
+	virtual ~CaenDaqBase();
 	/**
 	 * Open the Caen Device, map the address
 	 * @param vme_driver vme driver to use
@@ -84,11 +90,11 @@ public:
 	 */
 	virtual int32_t waitEvent(int timeo_ms);
 	/**
-		 * Acquire single event
-		 * @param[out] channels output buffer
-		 * @param[out] event tag
-		 * @return number of acquired channels
-		 */
+	 * Acquire single event
+	 * @param[out] channels output buffer
+	 * @param[out] event tag
+	 * @return number of acquired channels
+	 */
 	virtual uint16_t acquireChannels(uint32_t* channels,uint32_t *event);
 
 	/**
@@ -111,8 +117,8 @@ public:
 	void resetEventBuffer();
 
 	/*
-		 * * Reset Event counter
-		 */
+	 * * Reset Event counter
+	 */
 	void resetEventCounter();
 	/*
 	 * Set operational mode
@@ -141,22 +147,22 @@ public:
 
 	void write(uint16_t off,uint16_t data);
 	/*
-		 * Write to a specified offset
-		 * @param off offset inside the caen device
-		 * @param data dat to write
-		 */
+	 * Write to a specified offset
+	 * @param off offset inside the caen device
+	 * @param data dat to write
+	 */
 	void write(uint16_t off,uint32_t data);
 	/*
-			 * read froma a specified offset
-			 * @param off offset inside the caen device
-			 * @param data reference to data
-			 */
+	 * read froma a specified offset
+	 * @param off offset inside the caen device
+	 * @param data reference to data
+	 */
 	void read(uint16_t off,uint16_t &data);
 	/*
-				 * read froma a specified offset
-				 * @param off offset inside the caen device
-				 * @param data reference to data
-				 */
+	 * read froma a specified offset
+	 * @param off offset inside the caen device
+	 * @param data reference to data
+	 */
 	void read(uint16_t off,uint32_t &data);
 
 	uint16_t getNumberOfChannels(){return channels;}
@@ -164,4 +170,4 @@ public:
 
 };
 }}}
-#endif /* CAEN_CAENBASE_H_ */
+#endif /* CAEN_CAENDAQBASE_H_ */
