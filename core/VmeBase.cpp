@@ -142,9 +142,12 @@ int VmeBase::interrupt_handler(){
 }
 int VmeBase::close(){
 	run=0;
-	int ret= vmewrap_vme_close(vme);
-	vme=NULL;
-	return ret;
+    if(vme){
+        int ret= vmewrap_vme_close(vme);
+        vme=NULL;
+        return ret;
+    }
+    return 0;
 }
 VmeBase::~VmeBase(){
 	close();

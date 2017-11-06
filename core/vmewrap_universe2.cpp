@@ -232,7 +232,16 @@ static int vme_read8_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uin
 int vme_init_driver_universe2(vmewrap_vme_handle_t handle){
 	vmewrap_int_vme_handle_t p=(vmewrap_int_vme_handle_t)handle;
 	if(vmeb==NULL){
+        int err;
 		vmeb = new VMEBridge();
+        err=vmeb->bridge_error;
+
+        if(err!=0){
+            DERR("error opening bridge: err:%d",err);
+            delete vmeb;
+            vmeb = NULL;
+            return err;
+        }
 		DPRINT("allocated a new vme universe2 bridge 0x%p",(void*)vmeb);
 	} else {
 		DPRINT("reusing vme universe2 bridge 0x%p",(void*)vmeb);
