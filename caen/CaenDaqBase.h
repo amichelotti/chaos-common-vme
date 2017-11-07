@@ -30,7 +30,6 @@ protected:
 	//_caen_common_handle_t* handle;
 	std::string board;
 	int channels;
-
 	//return the number of channels acquired;
 	uint16_t searchEvent();
 public:
@@ -145,28 +144,14 @@ public:
 	 * @param data dat to write
 	 */
 
-	void write(uint16_t off,uint16_t data);
-	/*
-	 * Write to a specified offset
-	 * @param off offset inside the caen device
-	 * @param data dat to write
-	 */
-	void write(uint16_t off,uint32_t data);
-	/*
-	 * read froma a specified offset
-	 * @param off offset inside the caen device
-	 * @param data reference to data
-	 */
-	void read(uint16_t off,uint16_t &data);
-	/*
-	 * read froma a specified offset
-	 * @param off offset inside the caen device
-	 * @param data reference to data
-	 */
-	void read(uint16_t off,uint32_t &data);
 
 	uint16_t getNumberOfChannels(){return channels;}
 	std::string & getBoard(){return board;}
+    /**
+      enable interrupts specifing the length ot the meb
+    */
+    int interrupt_enable(int meb_lenght);
+    int interrupt_disable();
 
 };
 }}}

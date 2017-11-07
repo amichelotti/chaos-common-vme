@@ -111,7 +111,6 @@ int vmewrap_vme_open_master(vmewrap_vme_handle_t  h,uint32_t master_add,uint32_t
 	handle->phys_add=(uint64_t)master_add;
 	handle->size = master_size;
 	if(handle->map_master(handle,master_add,master_size,master_addressing,dw,vme_opts)< 0){
-		free(handle);
 		ERR("failed mapping as master");
 		return -3;
 	}
@@ -140,7 +139,6 @@ int vmewrap_vme_open_slave(vmewrap_vme_handle_t  h,uint32_t slave_add,uint32_t s
 	handle->phys_add=(uint64_t)slave_add;
 	handle->size = slave_size;
 	if(handle->map_slave(handle,slave_add,slave_size,slave_addressing,dw,vme_opts)< 0){
-		free(handle);
 		ERR("failed mapping as slave");
 		return -3;
 	}
@@ -153,9 +151,9 @@ int vmewrap_vme_open_slave(vmewrap_vme_handle_t  h,uint32_t slave_add,uint32_t s
 
 int vmewrap_vme_close(vmewrap_vme_handle_t  h){
 	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-	DPRINT("closing handle %p",h);
+    DPRINT("closing handle 0x%p",h);
 	if(handle){
-		handle->vme_close(handle);
+        handle->vme_close(handle);
 		free(handle);
 		return 0;
 	}

@@ -9,13 +9,10 @@
 #include <common/vme/core/vmewrap.h>
 #include "CaenDaqBase.h"
 using namespace common::vme::caen;
-
 CaenDaqBase::CaenDaqBase() {
-	// TODO Auto-generated constructor stub
 }
 
 CaenDaqBase::~CaenDaqBase() {
-	// TODO Auto-generated destructor stub
 
 }
 
@@ -75,6 +72,7 @@ int CaenDaqBase::open(vme_driver_t vme_driver,uint64_t address ){
 		ERR("unrecognized board id=0x%x manufacture id=0x%x, FW=0x%x",boardid,manufactureid, version);
 		return -3;
 	}
+
 	DPRINT("found board \"%s\" manufacture id 0x%x boardid:0x%x, version 0x%x nchannels %d",board.c_str(),manufactureid,boardid,version,channels);
 	return 0;
 }
@@ -216,6 +214,8 @@ uint16_t CaenDaqBase::acquireChannels(uint32_t* channel,uint32_t *event){
 	ERR("not found end signature, found %d into word 0x%x",b.ddata.signature,b.data);
 	return 0;
 }
+
+
 uint16_t CaenDaqBase::acquireChannels(uint16_t* channel,uint32_t *event){
 	// search header
 	common_footer_t b;
@@ -259,4 +259,22 @@ void CaenDaqBase::clrMode(caen_modes_t mode){
 	write16(BITCLR2_OFF,mode);
 }
 
+int CaenDaqBase::interrupt_enable(int meb_lenght){
+    // initialize the IVR with the most significant byte of the address
+    int ivr=(address>>24);
+    if((meb_lenght<0) && (meb_lenght>32) ){
+        return -2;
+    }
+    if(ivr>0){
+        return -3;
+    }
+    write16(IVR_STATUS,ivr);
+    write16(EVT_TRG_OFF,meb_lenght);
+    return VmeBase::interrupt_enable(8-getBoardId(),ivr);
 
+}
+int CaenDaqBase::interrupt_disable(){
+    write16(EVT_TRG_OFF,0);
+    return VmeBase::interrupt_disable();
+
+}

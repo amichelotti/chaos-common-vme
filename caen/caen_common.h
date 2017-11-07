@@ -33,7 +33,7 @@ extern "C" {
 #define CRATE_SEL_OFF 0x103C
 #define BITSET2_OFF 0x1032
 #define BITCLR2_OFF 0x1034
-
+#define IVR_STATUS 0x100C
 #define FW_REVISION_REG(base) REG16(base,FW_REVISION_OFF)
 #define BOARD_ID_REG(base) REG16(base,BOARD_ID_OFF)
 #define BOARD_ID_LSB_REG(base) REG16(base,BOARD_ID_LSB_OFF)

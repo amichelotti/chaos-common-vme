@@ -18,14 +18,21 @@ class VmeBase {
 	boost::thread m_thread;
 	int run;
 	void sched_task();
-
+    static int nboard;
+protected:
+    uint64_t address;
+    uint32_t size;
+    vme_addressing_t master_addressing;
+    vme_access_t dw;
+    vme_opt_t vme_options;
 public:
 	VmeBase();
 	virtual int open(vme_driver_t vme_driver,uint64_t address,uint32_t size,vme_addressing_t master_addressing=VME_ADDRESSING_A32,vme_access_t dw=VME_ACCESS_D32, vme_opt_t vme_options=VME_OPT_AM_USER_AM);
 	virtual int close();
-	virtual int interrupt_enable(int level, int signature);
-	virtual int interrupt_disable();
+    int interrupt_enable(int level, int signature);
+    int interrupt_disable();
 	int install_interrupt_handler(int level,int signature);
+    int wait_interrupt();
 	int remove_interrupt_handler();
 	virtual int interrupt_handler();
 	virtual ~VmeBase();
@@ -75,7 +82,7 @@ public:
 	int write16(uint32_t off,uint16_t);
 	int write32(uint32_t off,uint32_t);
 	int write8(uint32_t off,uint8_t);
-
+    int getBoardId(){return nboard;}
 };
 
 } /* namespace vme */

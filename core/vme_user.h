@@ -76,6 +76,7 @@ struct vme_user_drv {
 #define VME_SET_MASTER _IOW(VME_IOC_MAGIC, 4, struct vme_master)
 #define VME_IRQ_GEN _IOW(VME_IOC_MAGIC, 5, struct vme_irq_id)
 #define VME_IRQ_HANDLE _IOW(VME_IOC_MAGIC, 6, struct vme_irq_handle)
+#define VME_IRQ_REMOVE _IO(VME_IOC_MAGIC, 7)
 
 #endif /* _VME_USER_H_ */
 

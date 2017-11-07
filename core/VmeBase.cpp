@@ -9,15 +9,16 @@
 #include <common/debug/core/debug.h>
 namespace common {
 namespace vme {
+int VmeBase::nboard=0;
 
-VmeBase::VmeBase():vme(NULL),run(0) {
+VmeBase::VmeBase():vme(NULL),run(0),address(0),size(0) {
 	// TODO Auto-generated constructor stub
-
+    nboard++;
 }
 
 
 
-int VmeBase::open(vme_driver_t vme_driver,uint64_t address,uint32_t size,vme_addressing_t master_addressing,vme_access_t dw, vme_opt_t vme_options){
+int VmeBase::open(vme_driver_t vme_driver,uint64_t address_,uint32_t size_,vme_addressing_t master_addressing_,vme_access_t dw_, vme_opt_t vme_options_){
 	run=0;
 	if(vme==NULL){
 		vme = vmewrap_init_driver(vme_driver);
@@ -28,10 +29,15 @@ int VmeBase::open(vme_driver_t vme_driver,uint64_t address,uint32_t size,vme_add
 
 		return -2;
 	}
-	if(vmewrap_vme_open_master(vme,address,size,master_addressing,dw,vme_options)!=0){
+    if(vmewrap_vme_open_master(vme,address_,size_,master_addressing_,dw_,vme_options_)!=0){
 		ERR("cannot map vme");
 		return -3;
 	}
+    address=address_;
+    size=size_;
+    master_addressing=master_addressing_;
+    dw=dw_;
+    vme_options=vme_options_;
 	return 0;
 }
 
@@ -110,11 +116,16 @@ int VmeBase::read(uint32_t off,uint32_t &data){
 }
 
 int VmeBase::interrupt_enable(int level, int signature){
-	return 0;
+    return vmewrap_interrupt_enable(vme, level,  signature);
+
 }
 int VmeBase::interrupt_disable(){
-	return 0;
+  return vmewrap_interrupt_disable(vme);
 }
+int VmeBase::wait_interrupt(){
+    return vmewrap_wait_interrupt(vme,0);
+}
+
 void VmeBase::sched_task(){
 	DPRINT("Interrupt Scheduler Started");
 
@@ -151,6 +162,8 @@ int VmeBase::close(){
 }
 VmeBase::~VmeBase(){
 	close();
+    nboard--;
+
 }
 } /* namespace vme */
 } /* namespace common */
