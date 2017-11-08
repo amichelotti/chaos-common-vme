@@ -6,7 +6,6 @@
  */
 
 #include <common/debug/core/debug.h>
-#include <common/vme/core/vmewrap.h>
 #include "CaenDaqBase.h"
 using namespace common::vme::caen;
 CaenDaqBase::CaenDaqBase() {
@@ -98,7 +97,7 @@ void CaenDaqBase::init(uint32_t crate_num,int hwreset){
 }
 
 void CaenDaqBase::resetEventCounter(){
-	write32(EVT_CNTRESET_OFF,0);
+    write16(EVT_CNTRESET_OFF,0);
 
 }
 void CaenDaqBase::setThreashold(uint16_t chan,uint16_t value){
@@ -260,21 +259,29 @@ void CaenDaqBase::clrMode(caen_modes_t mode){
 }
 
 int CaenDaqBase::interrupt_enable(int meb_lenght){
+    int ret;
     // initialize the IVR with the most significant byte of the address
     int ivr=(address>>24);
     if((meb_lenght<0) && (meb_lenght>32) ){
+        DERR("invalid meb lenght %d",meb_lenght);
         return -2;
     }
-    if(ivr>0){
+    if(ivr==0){
+        DERR("invalid signature");
+
         return -3;
     }
+    ret= VmeBase::interrupt_enable(8-getBoardId(),ivr);
     write16(IVR_STATUS,ivr);
     write16(EVT_TRG_OFF,meb_lenght);
-    return VmeBase::interrupt_enable(8-getBoardId(),ivr);
+    write16(IVR_LEVEL,8-getBoardId());
+    return ret;
 
 }
 int CaenDaqBase::interrupt_disable(){
     write16(EVT_TRG_OFF,0);
+    write16(IVR_LEVEL,0);
+
     return VmeBase::interrupt_disable();
 
 }

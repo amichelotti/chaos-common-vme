@@ -371,18 +371,35 @@ static int vme_read8_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uint8
 int vme_interrupt_enable_uservme(vmewrap_int_vme_handle_t  handle,int level, int signature){
     int fd=handle->fd;
     struct vme_irq_handle irq_req;
+    int ret;
     irq_req.statid=signature;
     irq_req.level=level;
-    return ioctl(fd, VME_IRQ_HANDLE, &irq_req);
+    ret=ioctl(fd, VME_IRQ_HANDLE, &irq_req);
+    DPRINT("[%d] interrupt enable 0x%x ivr 0x%x, ret=%d",fd,level,signature,ret);
+
+    return ret;
 }
 int vme_interrupt_disable_uservme(vmewrap_int_vme_handle_t  handle){
     int fd=handle->fd;
-    return ioctl(fd,VME_IRQ_REMOVE,0);
+    int ret=ioctl(fd,VME_IRQ_REMOVE,0);
+    DPRINT("[%d] interrupt disable ret=%d",fd,ret);
+
+    return ret;
 
 }
 int vme_wait_interrupt_uservme(vmewrap_int_vme_handle_t  handle,int timeo_ms){
     struct pollfd pol;
-    return poll(&pol,1,-1);
+    int fd=handle->fd;
+
+    int ret;
+    pol.fd=fd;
+    pol.events=POLLIN | POLLHUP;
+
+    DPRINT("[%d] waiting interrupt timeo %d",fd,timeo_ms);
+    ret = poll(&pol,1,-1);
+    DPRINT("[%d] exiting wait interrupt ret %d",fd,ret);
+
+    return ret;
 
 }
 int vme_init_driver_uservme(vmewrap_vme_handle_t handle){

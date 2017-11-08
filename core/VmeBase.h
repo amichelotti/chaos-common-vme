@@ -19,6 +19,7 @@ class VmeBase {
 	int run;
 	void sched_task();
     static int nboard;
+    int boardid;
 protected:
     uint64_t address;
     uint32_t size;
@@ -82,7 +83,7 @@ public:
 	int write16(uint32_t off,uint16_t);
 	int write32(uint32_t off,uint32_t);
 	int write8(uint32_t off,uint8_t);
-    int getBoardId(){return nboard;}
+    int getBoardId(){return boardid;}
 };
 
 } /* namespace vme */

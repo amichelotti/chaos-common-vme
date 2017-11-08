@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(common_vme_caen)
 
-SET(src CaenDaqBase.cpp Caen775.cpp caen513_drv.c caen775_drv.c caen792_drv.c caen965_drv.c caen977_drv.c)
+SET(src CaenDaqBase.cpp CaenPioBase.cpp Caen775.cpp caen513_drv.c caen775_drv.c caen792_drv.c caen965_drv.c caen977_drv.c)
 ADD_LIBRARY(${PROJECT_NAME} STATIC ${src})
 ADD_EXECUTABLE(test_qdc965 test/test_qdc_caen.c)
 ADD_EXECUTABLE(test_tdc775 test/test_tdc_caen.c)

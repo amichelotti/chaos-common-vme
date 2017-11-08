@@ -2,6 +2,8 @@ caen/Caen775.cpp
 caen/Caen775.h
 caen/CaenDaqBase.cpp
 caen/CaenDaqBase.h
+caen/CaenPioBase.cpp
+caen/CaenPioBase.h
 caen/caen513_drv.c
 caen/caen513_drv.h
 caen/caen775_drv.c

@@ -13,7 +13,7 @@ int VmeBase::nboard=0;
 
 VmeBase::VmeBase():vme(NULL),run(0),address(0),size(0) {
 	// TODO Auto-generated constructor stub
-    nboard++;
+    boardid=++nboard;
 }
 
 

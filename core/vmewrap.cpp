@@ -219,7 +219,6 @@ int vmewrap_interrupt_enable(vmewrap_vme_handle_t  h,int level, int signature){
 					return -1;
 	}
 	ret = handle->vme_interrupt_enable((vmewrap_int_vme_handle_t)handle,level,signature);
-	DPRINT("interrupt enable level %d signature=0x%x, ret=%d",level,signature,ret);
 	return ret;
 }
 
@@ -251,9 +250,7 @@ int vmewrap_wait_interrupt(vmewrap_vme_handle_t  h,int timeo_ms){
 		DERR("not implemented")
 					return -1;
 	}
-	DPRINT("waiting interrupt timeo %d",timeo_ms);
 	ret = handle->vme_wait_interrupt((vmewrap_int_vme_handle_t)handle,timeo_ms);
-	DPRINT("exiting wait interruot ret %d",ret);
 
 	return ret;
 }
