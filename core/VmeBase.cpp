@@ -115,8 +115,8 @@ int VmeBase::read(uint32_t off,uint32_t &data){
 	return 0;
 }
 
-int VmeBase::interrupt_enable(int level, int signature){
-    return vmewrap_interrupt_enable(vme, level,  signature);
+int VmeBase::interrupt_enable(int level, int signature,int type,void*priv){
+    return vmewrap_interrupt_enable(vme, level,  signature,type,priv);
 
 }
 int VmeBase::interrupt_disable(){
@@ -160,6 +160,11 @@ int VmeBase::close(){
     }
     return 0;
 }
+int VmeBase::reset(){
+    return 0;
+}
+
+
 VmeBase::~VmeBase(){
 	close();
     nboard--;

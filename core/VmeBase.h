@@ -9,6 +9,7 @@
 #define CORE_VMEBASE_H_
 #include <common/vme/core/vmewrap.h>
 #include <boost/thread.hpp>
+#include <sys/ioctl.h>
 
 namespace common {
 namespace vme {
@@ -30,12 +31,16 @@ public:
 	VmeBase();
 	virtual int open(vme_driver_t vme_driver,uint64_t address,uint32_t size,vme_addressing_t master_addressing=VME_ADDRESSING_A32,vme_access_t dw=VME_ACCESS_D32, vme_opt_t vme_options=VME_OPT_AM_USER_AM);
 	virtual int close();
-    int interrupt_enable(int level, int signature);
+    int interrupt_enable(int level, int signature,int type=0,void*priv=NULL);
     int interrupt_disable();
 	int install_interrupt_handler(int level,int signature);
     int wait_interrupt();
 	int remove_interrupt_handler();
 	virtual int interrupt_handler();
+    /**
+    reset of the board
+    */
+    virtual int reset();
 	virtual ~VmeBase();
 
 	int write(uint32_t off,uint16_t* data,int sizen);

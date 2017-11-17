@@ -368,13 +368,19 @@ static int vme_read8_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uint8
     return read(fd,data,sizen*sizeof(uint8_t));
 }
 
-int vme_interrupt_enable_uservme(vmewrap_int_vme_handle_t  handle,int level, int signature){
+int vme_interrupt_enable_uservme(vmewrap_int_vme_handle_t  handle,int level, int signature,int type,void*priv){
     int fd=handle->fd;
     struct vme_irq_handle irq_req;
     int ret;
     irq_req.statid=signature;
     irq_req.level=level;
-    ret=ioctl(fd, VME_IRQ_HANDLE, &irq_req);
+    if((type!=0)&& priv){
+        memcpy(priv,&irq_req,sizeof(struct vme_irq_handle));
+        ret=ioctl(fd, type, priv);
+    } else {
+        ret=ioctl(fd, VME_IRQ_HANDLE, &irq_req);
+    }
+
     DPRINT("[%d] interrupt enable 0x%x ivr 0x%x, ret=%d",fd,level,signature,ret);
 
     return ret;

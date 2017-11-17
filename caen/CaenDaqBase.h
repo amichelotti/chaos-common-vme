@@ -148,10 +148,11 @@ public:
 	uint16_t getNumberOfChannels(){return channels;}
 	std::string & getBoard(){return board;}
     /**
-      enable interrupts specifing the length ot the meb
+      enable interrupts specifing the length ot the meb, register buffer to be passed to vme_user driver
     */
-    int interrupt_enable(int meb_lenght);
+    int interrupt_enable(int meb_lenght,uint32_t*meb_buf,uint32_t *event_counter);
     int interrupt_disable();
+    int reset();
 
 };
 }}}

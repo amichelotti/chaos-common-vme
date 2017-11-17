@@ -142,9 +142,11 @@ int vmewrap_vme_close(vmewrap_vme_handle_t  handle);
    * @param handle handle to vme
    * @param level interrupt to be sensible
    * @param signature to be enable
+   * @param type (optional) specify additional parameters
+   * @param priv (optional) private structure
 	@return 0 on success
    */
-   int vmewrap_interrupt_enable(vmewrap_vme_handle_t  handle,int level, int signature);
+   int vmewrap_interrupt_enable(vmewrap_vme_handle_t  handle,int level, int signature,int type,void*priv);
 
    /**
       * interrupt disable

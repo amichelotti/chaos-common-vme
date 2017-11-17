@@ -8,6 +8,7 @@
 typedef uint32_t __u32;
 typedef uint64_t __u64;
 typedef uint8_t __u8;
+
 #endif
 /*
  * VMEbus Master Window Configuration Structure
@@ -57,7 +58,14 @@ struct vme_irq_id {
 struct vme_irq_handle {
   __u8 statid;
   __u8 level; 
-  int ack_reg; // acknoledge register offset
+};
+
+struct vme_irq_handle_caen {
+    __u8 statid;
+    __u8 level;
+    __u8 channels;
+    void*meb; // the user must provide a heap buffer, where the meb is filled
+    void*events; // the user must provide valid pointer to fill with the nenvents
 };
 
 struct vme_user_drv {
@@ -77,6 +85,9 @@ struct vme_user_drv {
 #define VME_IRQ_GEN _IOW(VME_IOC_MAGIC, 5, struct vme_irq_id)
 #define VME_IRQ_HANDLE _IOW(VME_IOC_MAGIC, 6, struct vme_irq_handle)
 #define VME_IRQ_REMOVE _IO(VME_IOC_MAGIC, 7)
+
+#define VME_IRQ_HANDLE_CAENDAQ _IOW(VME_IOC_MAGIC, 8, struct vme_irq_handle_caen)
+
 
 #endif /* _VME_USER_H_ */
 

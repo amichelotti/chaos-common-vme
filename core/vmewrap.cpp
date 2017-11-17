@@ -211,14 +211,14 @@ int vmewrap_read8(vmewrap_vme_handle_t  h,unsigned off,uint8_t* data,int sizen){
 }
 
 
-int vmewrap_interrupt_enable(vmewrap_vme_handle_t  h,int level, int signature){
+int vmewrap_interrupt_enable(vmewrap_vme_handle_t  h,int level, int signature,int type,void*priv){
 	int ret;
 	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
 	if(handle == NULL){
 		DERR("not implemented")
 					return -1;
 	}
-	ret = handle->vme_interrupt_enable((vmewrap_int_vme_handle_t)handle,level,signature);
+    ret = handle->vme_interrupt_enable((vmewrap_int_vme_handle_t)handle,level,signature,type,priv);
 	return ret;
 }
 

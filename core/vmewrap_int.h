@@ -32,7 +32,7 @@ typedef struct __vme_handle__ {
   int (*vme_read16)(struct __vme_handle__ *  handle,unsigned off,uint16_t *data,int sizen);
   int (*vme_read8)(struct __vme_handle__ * handle,unsigned off,uint8_t *data,int sizen);
   int (*vme_close)(struct __vme_handle__ *  handle);
-  int (*vme_interrupt_enable)(struct __vme_handle__ *  handle,int level, int signature);
+  int (*vme_interrupt_enable)(struct __vme_handle__ *  handle,int level, int signature,int type,void*priv);
   int (*vme_interrupt_disable)(struct __vme_handle__ *  handle);
   int (*vme_wait_interrupt)(struct __vme_handle__ *  handle,int timeo_ms);
 
