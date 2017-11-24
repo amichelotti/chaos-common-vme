@@ -8,7 +8,7 @@ ADD_EXECUTABLE(test_sis test/test_sis.c)
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} common_vme common_debug)
 
-TARGET_LINK_LIBRARIES(test_sis ${PROJECT_NAME} common_vme vme common_debug ${FrameworkLib})
+TARGET_LINK_LIBRARIES(test_sis ${PROJECT_NAME} common_vme common_debug ${FrameworkLib})
 FILE(GLOB src *.h)
 INSTALL(FILES ${src} DESTINATION include/common/vme/sis)
 INSTALL_TARGETS(/lib ${PROJECT_NAME})

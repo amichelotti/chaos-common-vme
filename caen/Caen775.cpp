@@ -20,12 +20,11 @@ Caen775::~Caen775() {
 	// TODO Auto-generated destructor stub
 }
 void Caen775::setFSR(uint16_t data){
-	write(CAEN775_FSR_OFF,data);
+	write16(CAEN775_FSR_OFF,data);
 }
 uint16_t Caen775::getFSR(){
-	uint16_t data;
-	read(CAEN775_FSR_OFF,data);
-	return data;
+
+	return read16(CAEN775_FSR_OFF);
 }
 } /* namespace caen */
 } /* namespace vme */

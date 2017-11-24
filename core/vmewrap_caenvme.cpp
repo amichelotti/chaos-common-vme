@@ -73,7 +73,7 @@ typedef struct _caen_vme {
 
 } caen_vme_t;
 #define INIT_LIB(name)				\
-  caen->name = (name ##_t)dlsym(lib,# name);					\
+		caen->name = (name ##_t)dlsym(lib,# name);					\
 		if(caen->name == NULL){ ERR("Error loaging \"%s\" :%s",# name, dlerror());free(caen);return -2;} else {DPRINT("load " # name);}
 
 
@@ -106,48 +106,48 @@ static int  map_master_caenvme(vmewrap_int_vme_handle_t handle,uint32_t add,uint
 		case VME_ADDRESSING_A24:
 			switch(vme_options){
 			case (VME_OPT_AM_SUPER_AM| VME_OPT_AM_DATA_AM):
-					  caen_handle->am=cvA24_S_DATA;
+							  caen_handle->am=cvA24_S_DATA;
 			break;
 			case (VME_OPT_AM_SUPER_AM| VME_OPT_AM_PROG_AM):
-		  					caen_handle->am=cvA24_S_PGM;
+		  							caen_handle->am=cvA24_S_PGM;
 			break;
 			case (VME_OPT_AM_SUPER_AM| VME_OPT_BLT_ON):
-		  				caen_handle->am=cvA24_S_MBLT;
+		  						caen_handle->am=cvA24_S_MBLT;
 			break;
-			case (VME_OPT_AM_NON_PRIV_AM| VME_OPT_AM_DATA_AM):
-		  					  caen_handle->am=cvA24_U_DATA;
+			case (VME_OPT_AM_USER_AM| VME_OPT_AM_DATA_AM):
+		  							  caen_handle->am=cvA24_U_DATA;
 			break;
-			case (VME_OPT_AM_NON_PRIV_AM| VME_OPT_AM_PROG_AM):
-		  		  					caen_handle->am=cvA24_U_PGM;
+			case (VME_OPT_AM_USER_AM| VME_OPT_AM_PROG_AM):
+		  		  							caen_handle->am=cvA24_U_PGM;
 			break;
-			case (VME_OPT_AM_NON_PRIV_AM| VME_OPT_BLT_ON):
-		  		  				caen_handle->am=cvA24_U_BLT;
+			case (VME_OPT_AM_USER_AM| VME_OPT_BLT_ON):
+		  		  						caen_handle->am=cvA24_U_BLT;
 			break;
 			default:
 				caen_handle->am=cvA24_U_DATA;
-			break;
+				break;
 			}
 			break;
 
 			case VME_ADDRESSING_A32:
 				switch(vme_options){
 				case (VME_OPT_AM_SUPER_AM| VME_OPT_AM_DATA_AM):
-							  caen_handle->am=cvA32_S_DATA;
+									  caen_handle->am=cvA32_S_DATA;
 				break;
 				case (VME_OPT_AM_SUPER_AM| VME_OPT_AM_PROG_AM):
-				  					caen_handle->am=cvA32_S_PGM;
+				  							caen_handle->am=cvA32_S_PGM;
 				break;
 				case (VME_OPT_AM_SUPER_AM| VME_OPT_BLT_ON):
-				  				caen_handle->am=cvA32_S_MBLT;
+				  						caen_handle->am=cvA32_S_MBLT;
 				break;
-				case (VME_OPT_AM_NON_PRIV_AM| VME_OPT_AM_DATA_AM):
-				  					  caen_handle->am=cvA32_U_DATA;
+				case (VME_OPT_AM_USER_AM| VME_OPT_AM_DATA_AM):
+				  							  caen_handle->am=cvA32_U_DATA;
 				break;
-				case (VME_OPT_AM_NON_PRIV_AM| VME_OPT_AM_PROG_AM):
-				  		  					caen_handle->am=cvA24_U_PGM;
+				case (VME_OPT_AM_USER_AM| VME_OPT_AM_PROG_AM):
+				  		  							caen_handle->am=cvA24_U_PGM;
 				break;
-				case (VME_OPT_AM_NON_PRIV_AM| VME_OPT_BLT_ON):
-				  		  				caen_handle->am=cvA32_U_BLT;
+				case (VME_OPT_AM_USER_AM| VME_OPT_BLT_ON):
+				  		  						caen_handle->am=cvA32_U_BLT;
 				break;
 				default:
 					caen_handle->am=cvA32_U_DATA;
@@ -216,49 +216,70 @@ static int caenvme_init(vmewrap_int_vme_handle_t handle){
 
 
 
-static int vme_write8_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t data){
+static int vme_write8_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t* data,int sizen){
 	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
+	int ret=0;
 	if(handle==NULL) return -100;
-	  DPRINT(" addr=0x%x, am = 0x%x dw=8 ptr=@0x%x",off,caen_handle->am,data);
-	  return caen_handle->CAENVME_WriteCycle(handle->fd, (uint32_t)handle->phys_add + off, &data,caen_handle->am, cvD8);
+	DPRINT(" addr=0x%x, am = 0x%x dw=8 ptr=@0x%p",off,caen_handle->am,data);
+	for(int cnt=0;cnt<sizen;cnt++){
+		ret+=caen_handle->CAENVME_WriteCycle(handle->fd, (uint32_t)handle->phys_add + off+cnt, &data[cnt],caen_handle->am, cvD8);
+	}
+	return ret;
 }
 
-static int vme_write32_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint32_t data){
+static int vme_write32_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint32_t* data,int sizen){
 	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
+	int ret=0;
+	if(handle==NULL) return -100;
+	DPRINT(" addr=0x%x, am = 0x%x dw=32 ptr=@0x%p",off,caen_handle->am,data);
+	for(int cnt=0;cnt<sizen;cnt++){
+		ret+=caen_handle->CAENVME_WriteCycle(handle->fd, (uint32_t)handle->phys_add + off + (cnt*sizeof(uint32_t)), &data[cnt],caen_handle->am, cvD32);
+	}
+	return ret;
+
+}
+static int vme_write16_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t* data,int sizen){
+	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
+	int ret=0;
+	if(handle==NULL) return -100;
+	DPRINT(" addr=0x%x, am = 0x%x dw=16 ptr=@0x%p",off,caen_handle->am,data);
+	for(int cnt=0;cnt<sizen;cnt++){
+		ret+=caen_handle->CAENVME_WriteCycle(handle->fd, (uint32_t)handle->phys_add + off+(cnt*sizeof(uint16_t)), &data,caen_handle->am, cvD16);
+	}
+	return ret;
+
+}
+static int vme_read32_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint32_t *data,int sizen){
+	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
+	int ret=0;
+	if(handle==NULL) return -100;
+	DPRINT(" addr=0x%x, am = 0x%x dw=32 ptr=@%p",off,caen_handle->am,data);
+	for(int cnt=0;cnt<sizen;cnt++){
+		ret+=caen_handle->CAENVME_ReadCycle(handle->fd, (uint32_t)handle->phys_add + off+(cnt*sizeof(uint32_t)), &data[cnt],caen_handle->am, cvD32);
+	}
+	return ret;
+}
+static int vme_read16_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t *data,int sizen){
+	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
+	int ret=0;
 
 	if(handle==NULL) return -100;
-		  DPRINT(" addr=0x%x, am = 0x%x dw=32 ptr=@0x%x",off,caen_handle->am,data);
-		  return caen_handle->CAENVME_WriteCycle(handle->fd, (uint32_t)handle->phys_add + off, &data,caen_handle->am, cvD32);
-
+	DPRINT(" addr=0x%x, am = 0x%x dw=16 ptr=@%p\n",off,caen_handle->am,data);
+	for(int cnt=0;cnt<sizen;cnt++){
+		ret+=caen_handle->CAENVME_ReadCycle(handle->fd, (uint32_t)handle->phys_add + off+(cnt*sizeof(uint16_t)), &data[cnt],caen_handle->am, cvD16);
+	}
+	return ret;
 }
-static int vme_write16_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t data){
+static int vme_read8_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t *data,int sizen){
 	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
+	int ret=0;
 
-		if(handle==NULL) return -100;
-			  DPRINT(" addr=0x%x, am = 0x%x dw=16 ptr=@0x%x",off,caen_handle->am,data);
-			  return caen_handle->CAENVME_WriteCycle(handle->fd, (uint32_t)handle->phys_add + off, &data,caen_handle->am, cvD16);
-
-}
-static int vme_read32_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint32_t *data){
-	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
-
-			if(handle==NULL) return -100;
-				  DPRINT(" addr=0x%x, am = 0x%x dw=32 ptr=@%p",off,caen_handle->am,data);
-				  return caen_handle->CAENVME_ReadCycle(handle->fd, (uint32_t)handle->phys_add + off, data,caen_handle->am, cvD32);
-}
-static int vme_read16_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t *data){
-	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
-
-				if(handle==NULL) return -100;
-					  DPRINT(" addr=0x%x, am = 0x%x dw=16 ptr=@%p\n",off,caen_handle->am,data);
-					  return caen_handle->CAENVME_ReadCycle(handle->fd, (uint32_t)handle->phys_add + off, data,caen_handle->am, cvD16);
-}
-static int vme_read8_caenvme(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t *data){
-	caen_vme_t* caen_handle=(caen_vme_t*)handle->priv;
-
-				if(handle==NULL) return -100;
-					  DPRINT(" addr=0x%x, am = 0x%x dw=8 ptr=@%p",off,caen_handle->am,data);
-					  return caen_handle->CAENVME_ReadCycle(handle->fd, (uint32_t)handle->phys_add + off, data,caen_handle->am, cvD8);
+	if(handle==NULL) return -100;
+	DPRINT(" addr=0x%x, am = 0x%x dw=8 ptr=@%p",off,caen_handle->am,data);
+	for(int cnt=0;cnt<sizen;cnt++){
+		ret+=caen_handle->CAENVME_ReadCycle(handle->fd, (uint32_t)handle->phys_add + off+cnt, &data[cnt],caen_handle->am, cvD8);
+	}
+	return ret;
 }
 
 int vme_init_driver_caenvme(vmewrap_vme_handle_t handle){
@@ -294,8 +315,8 @@ int vme_init_driver_caenvme(vmewrap_vme_handle_t handle){
 	p->vme_read32 = vme_read32_caenvme;
 	p->vme_read8 = vme_read8_caenvme;
 	p->vme_write16 = vme_write16_caenvme;
-		p->vme_write32 = vme_write32_caenvme;
-		p->vme_write8 = vme_write8_caenvme;
+	p->vme_write32 = vme_write32_caenvme;
+	p->vme_write8 = vme_write8_caenvme;
 	p->priv = caen;
 	return 0;
 }

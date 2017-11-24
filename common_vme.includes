@@ -1,0 +1,11 @@
+caen
+core
+ip-hiadc/include
+ip-hiadc/source
+sis
+vmedrv/CAENVMELib
+vmedrv/CAENVMELib/sample
+vmedrv/universe
+vmedrv/universe2
+vmedrv/universe2/driver-2.6
+/usr/local/chaos/chaos-distrib/include
