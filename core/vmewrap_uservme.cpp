@@ -14,8 +14,24 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <poll.h>
+#ifdef __LINUX__
 #include <byteswap.h>
+#else
 
+static inline unsigned short __bswap_16(unsigned short x) {
+  return (x>>8) | (x<<8);
+}
+
+static inline unsigned int __bswap_32(unsigned int x) {
+  return (__bswap_16(x&0xffff)<<16) | (__bswap_16(x>>16));
+}
+
+static inline unsigned long long bswap_64(unsigned long long x) {
+  return (((unsigned long long)__bswap_32(x&0xffffffffull))<<32) |
+    (__bswap_32(x>>32));
+}
+
+#endif
 /* Resource Type */
 /// from linux/vme.h
 
