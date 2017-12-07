@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <poll.h>
-#ifdef __LINUX__
+#ifdef __linux__
 #include <byteswap.h>
 #else
 
