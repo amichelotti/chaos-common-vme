@@ -132,7 +132,18 @@ uint16_t CaenDaqBase::getBufferStatus(){
     return ret;
 }
 
+/**
+  Full Scale Range(TDC)
+*/
+void CaenDaqBase::setFSR(int32_t value){
+    if(board.compare(0,7,"CAEN775")==0){
+        DPRINT("%s setting FSR=0x%x",board.c_str(),value);
+        write16(FSR_OFF,value);
+        return;
+    }
+    DPRINT("%s SET FSR NOT APPLICABLE to THIS BOARD",board.c_str());
 
+}
 uint32_t CaenDaqBase::getEventCounter(bool reset){
     uint32_t ret;
 

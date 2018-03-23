@@ -138,7 +138,12 @@ public:
 	 */
 	int16_t getMode();
 
-	/*
+    /*
+    *
+    */
+    void setFSR(int32_t value);
+
+    /*
 	 * Write to a specified offset
 	 * @param off offset inside the caen device
 	 * @param data dat to write
