@@ -132,6 +132,10 @@ public:
 	void clrMode(caen_modes_t mode);
 
 
+    /**
+    * Set bitset register
+    */
+    void setBset(uint16_t mode);
 	/*
 	 * get operational mode
 	 * @return  the operational mode

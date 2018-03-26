@@ -91,9 +91,10 @@ void CaenDaqBase::init(uint32_t crate_num,int hwreset){
 
 
     write16(CRATE_SEL_OFF,crate_num);
-    write16(BITSET2_OFF,
+    write16(BITSET2_OFF,CAEN_ALL_TRIGGER|
             CAEN_COMMON_STOP|CAEN_CLEAR_DATA|CAEN_EMPTY_PROG|CAEN_AUTO_INCR|CAEN_ACCEPT_OVER_RANGE|CAEN_VALID_DISABLE|CAEN_THRESHOLD_DISABLE);
-    write16(BITCLR2_OFF,CAEN_ALL_TRIGGER|CAEN_MEMORY_TEST|CAEN_ADC_OFFLINE|CAEN_TEST_ACQ|CAEN_CLEAR_DATA);
+    //    write16(BITCLR2_OFF,CAEN_ALL_TRIGGER|CAEN_MEMORY_TEST|CAEN_ADC_OFFLINE|CAEN_TEST_ACQ|CAEN_CLEAR_DATA);
+        write16(BITCLR2_OFF,CAEN_MEMORY_TEST|CAEN_ADC_OFFLINE|CAEN_TEST_ACQ|CAEN_CLEAR_DATA);
     //write16(BITCLR2_OFF,CAEN_MEMORY_TEST|CAEN_ADC_OFFLINE|CAEN_TEST_ACQ|CAEN_CLEAR_DATA);
     resetEventBuffer();
     resetEventCounter();
@@ -263,6 +264,12 @@ uint16_t CaenDaqBase::acquireChannels(uint16_t* channel,uint32_t *event){
 
 }
 
+void CaenDaqBase::setBset(uint16_t mode){
+    write16(BITSET2_OFF,mode);
+    write16(BITCLR2_OFF,~mode);
+
+
+}
 
 void CaenDaqBase::setMode(caen_modes_t mode){
     write16(BITSET2_OFF,mode);
