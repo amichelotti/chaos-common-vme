@@ -14,6 +14,8 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <poll.h>
+#include <sstream>
+#include <cstring>
 #ifdef __linux__
 #include <byteswap.h>
 #else
@@ -391,7 +393,7 @@ int vme_interrupt_enable_uservme(vmewrap_int_vme_handle_t  handle,int level, int
     irq_req.statid=signature;
     irq_req.level=level;
     if((type!=0)&& priv){
-        memcpy(priv,&irq_req,sizeof(struct vme_irq_handle));
+      std::memcpy(priv,&irq_req,sizeof(struct vme_irq_handle));
         ret=ioctl(fd, type, priv);
     } else {
         ret=ioctl(fd, VME_IRQ_HANDLE, &irq_req);
