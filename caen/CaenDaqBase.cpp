@@ -38,7 +38,7 @@ int CaenDaqBase::open(vme_driver_t vme_driver,uint64_t address ){
     }
 
     cycle = 0;
-    boardid =((read16(BOARD_ID_OFF)&0xFF)<<8) | read16(BOARD_ID_LSB_OFF)&0xFF;
+    boardid =((read16(BOARD_ID_OFF)&0xFF)<<8) | (read16(BOARD_ID_LSB_OFF)&0xFF);
 
     manufactureid=read16(OUI_OFF)&0xFF;
     boardid=boardid;
