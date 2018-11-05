@@ -20,6 +20,12 @@ public:
     int reset();
     int out(uint32_t outmask);
     int in(uint32_t& stat);
+    // clear flip flop
+    int clr(uint32_t outmask=0xffff);
+    // inhibit front input 
+    int maskin(uint32_t outmask);
+    // inhibit flip flop output
+    int maskout(uint32_t outmask);
     int interrupt_enable(int signature,uint32_t inmask);
     int interrupt_disable();
 };

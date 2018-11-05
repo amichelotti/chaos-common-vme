@@ -36,6 +36,19 @@ int CaenPioBase::in(uint32_t& stat){
     stat=read16(0x54);
     return 0;
 }
+int CaenPioBase::clr(uint32_t outmask){
+    write16(0x10,outmask);
+    return 0;
+}
+int CaenPioBase::maskin(uint32_t outmask){
+    write16(0x2,outmask);
+    return 0;
+}
+int CaenPioBase::maskout(uint32_t outmask){
+    write16(0xC,outmask);
+
+}
+    
 int CaenPioBase::interrupt_enable(int signature,uint32_t inmask){
     int ret;
     int ivl=8-getBoardId();
