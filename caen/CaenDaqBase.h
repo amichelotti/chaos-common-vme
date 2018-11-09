@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <string>
 #include <common/vme/core/VmeBase.h>
+#include <common/vme/core/vme_user.h>
 
 namespace common{
 namespace vme {
@@ -159,7 +160,7 @@ public:
     /**
       enable interrupts specifing the length ot the meb, register buffer to be passed to vme_user driver
     */
-    int interrupt_enable(int meb_lenght,uint32_t*meb_buf,uint32_t *event_counter);
+    int interrupt_enable(int meb_lenght,uint32_t*meb_buf,uint32_t *event_counter, int int_type=VME_IRQ_HANDLE_CAENDAQ);
     int interrupt_disable();
     int reset();
 

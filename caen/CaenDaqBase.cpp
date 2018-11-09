@@ -7,7 +7,6 @@
 
 #include <common/debug/core/debug.h>
 #include "CaenDaqBase.h"
-#include <common/vme/core/vme_user.h>
 #include <sys/mman.h>
 using namespace common::vme::caen;
 CaenDaqBase::CaenDaqBase() {
@@ -279,7 +278,7 @@ void CaenDaqBase::clrMode(caen_modes_t mode){
     write16(BITCLR2_OFF,mode);
 }
 
-int CaenDaqBase::interrupt_enable(int meb_lenght,uint32_t*meb_buf,uint32_t *event_counter){
+int CaenDaqBase::interrupt_enable(int meb_lenght,uint32_t*meb_buf,uint32_t *event_counter, int int_type){
     int ret;
     // initialize the IVR with the most significant byte of the address
     int ivr=(address>>24);
@@ -296,7 +295,7 @@ int CaenDaqBase::interrupt_enable(int meb_lenght,uint32_t*meb_buf,uint32_t *even
     params.meb=meb_buf;
     params.events=event_counter;
     params.channels=channels;
-    ret= VmeBase::interrupt_enable(8-getBoardId(),ivr,VME_IRQ_HANDLE_CAENDAQ,&params);
+    ret= VmeBase::interrupt_enable(8-getBoardId(),ivr,int_type,&params);
     write16(IVR_STATUS,ivr);
     write16(EVT_TRG_OFF,meb_lenght);
     write16(IVR_LEVEL,8-getBoardId());
@@ -313,6 +312,6 @@ int CaenDaqBase::interrupt_disable(){
 int CaenDaqBase::reset(){
     // single shot reset
     write16(SSRESET_OFF,1);
-
+    return 0;
 
 }

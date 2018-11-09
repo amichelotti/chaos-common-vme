@@ -87,6 +87,7 @@ struct vme_user_drv {
 #define VME_IRQ_REMOVE _IO(VME_IOC_MAGIC, 7)
 
 #define VME_IRQ_HANDLE_CAENDAQ _IOW(VME_IOC_MAGIC, 8, struct vme_irq_handle_caen)
+#define VME_IRQ_HANDLE_CAENDAQ_COMBINE _IOW(VME_IOC_MAGIC, 9, struct vme_irq_handle_caen)
 
 
 #endif /* _VME_USER_H_ */
