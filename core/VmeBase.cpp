@@ -126,8 +126,8 @@ int VmeBase::interrupt_enable(int level, int signature,int type,void*priv){
 int VmeBase::interrupt_disable(){
   return vmewrap_interrupt_disable(vme);
 }
-int VmeBase::wait_interrupt(){
-    return vmewrap_wait_interrupt(vme,0);
+int VmeBase::wait_interrupt(int timeo){
+    return vmewrap_wait_interrupt(vme,timeo);
 }
 
 void VmeBase::sched_task(){

@@ -34,7 +34,7 @@ public:
     int interrupt_enable(int level, int signature,int type=0,void*priv=NULL);
     int interrupt_disable();
 	int install_interrupt_handler(int level,int signature);
-    int wait_interrupt();
+    int wait_interrupt(int timeo_ms=0);
 	int remove_interrupt_handler();
 	virtual int interrupt_handler();
     /**
