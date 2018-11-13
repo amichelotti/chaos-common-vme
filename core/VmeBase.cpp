@@ -17,6 +17,10 @@ VmeBase::VmeBase():vme(NULL),run(0),address(0),size(0) {
 }
 
 
+int VmeBase::getFD(){
+	return vmewrap_getFD(vme);
+	
+}
 
 int VmeBase::open(vme_driver_t vme_driver,uint64_t address_,uint32_t size_,vme_addressing_t master_addressing_,vme_access_t dw_, vme_opt_t vme_options_){
 	run=0;

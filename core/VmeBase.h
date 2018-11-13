@@ -51,6 +51,7 @@ public:
 	int read(uint32_t off,uint8_t* data,int sizen);
 	int write(uint32_t off,uint8_t data);
 	int read(uint32_t off,uint8_t& data);
+	int getFD();
 
 
 	/*
