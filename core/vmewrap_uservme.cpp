@@ -1,6 +1,7 @@
 
 
 #include "vmewrap_int.h"
+#include <poll.h>
 #include <common/debug/core/debug.h>
 #include "vme_user.h"
 #include <map>
@@ -13,7 +14,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <poll.h>
+
 #include <sstream>
 #include <cstring>
 #ifdef __linux__
@@ -416,11 +417,15 @@ int vme_wait_interrupt_uservme(vmewrap_int_vme_handle_t  handle,int timeo_ms){
     int fd=handle->fd;
 
     int ret;
+    int t=-1;
     pol.fd=fd;
     pol.events=POLLIN | POLLHUP;
 
     DPRINT("[%d] waiting interrupt timeo %d",fd,timeo_ms);
-    ret = poll(&pol,1,-1);
+    if(timeo_ms!=0){
+        t=timeo_ms;
+    }
+    ret = poll(&pol,1,t);
     DPRINT("[%d] exiting wait interrupt ret %d",fd,ret);
 
     return ret;
