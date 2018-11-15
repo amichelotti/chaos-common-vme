@@ -163,7 +163,8 @@ public:
     int interrupt_enable(int meb_lenght,uint32_t*meb_buf,uint32_t *event_counter, int int_type=VME_IRQ_HANDLE_CAENDAQ);
     int interrupt_disable();
     int reset();
-
+	void setChannels(int ch){channels=ch;};
+	int getChannels(){return channels;};
 };
 }}}
 #endif /* CAEN_CAENDAQBASE_H_ */
