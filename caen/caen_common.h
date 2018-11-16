@@ -21,7 +21,7 @@ extern "C" {
 #define STATUS_OFF 0x100E
 #define CTRL_OFF 0x1010
 #define SSRESET_OFF 0x1016
-#define FSR_OFF 0x102E
+#define FSR_OFF 0x1060
 /**interrupt*/
 #define IVR_STATUS 0x100C
 #define IVR_LEVEL 0x100A
