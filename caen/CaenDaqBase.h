@@ -164,7 +164,8 @@ public:
     int interrupt_disable();
     int reset();
 	void setChannels(int ch){channels=ch;};
-	int getChannels(){return channels;};
+	int getChannels(){return channels;}
+	// disable interrupt and reset data of all cambined board;
 };
 }}}
 #endif /* CAEN_CAENDAQBASE_H_ */

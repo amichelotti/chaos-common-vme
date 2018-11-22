@@ -315,3 +315,4 @@ int CaenDaqBase::reset(){
     return 0;
 
 }
+
