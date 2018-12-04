@@ -46,7 +46,7 @@ int CaenPioBase::maskin(uint32_t outmask){
 }
 int CaenPioBase::maskout(uint32_t outmask){
     write16(0xC,outmask);
-
+    return 0;
 }
     
 int CaenPioBase::interrupt_enable(int signature,uint32_t inmask){
