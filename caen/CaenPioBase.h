@@ -18,10 +18,16 @@ public:
      * */
     int open(vme_driver_t vme_driver,uint64_t address);
     int reset();
-    int out(uint32_t outmask);
+    // set output pins
+    // @outmask is the mask of the bits we want to set.
+    // @return the resulting content of the output register
+    
+    uint16_t out(uint16_t outmask);
     int in(uint32_t& stat);
-    // clear flip flop
-    int clr(uint32_t outmask=0xffff);
+    // clear output pins
+    // @outmask is the mask of the bits we want to clear.
+    // @return the resulting content of the output register
+    uint16_t clr(uint16_t outmask=0xffff);
     // inhibit front input 
     int maskin(uint32_t outmask);
     // inhibit flip flop output
