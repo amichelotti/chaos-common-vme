@@ -27,8 +27,13 @@ protected:
     vme_addressing_t master_addressing;
     vme_access_t dw;
     vme_opt_t vme_options;
+	int unixdev;
+
 public:
 	VmeBase();
+	// unix mapped device
+	int openUnixDev(const char* dev);
+
 	virtual int open(vme_driver_t vme_driver,uint64_t address,uint32_t size,vme_addressing_t master_addressing=VME_ADDRESSING_A32,vme_access_t dw=VME_ACCESS_D32, vme_opt_t vme_options=VME_OPT_AM_USER_AM);
 	virtual int close();
     int interrupt_enable(int level, int signature,int type=0,void*priv=NULL);

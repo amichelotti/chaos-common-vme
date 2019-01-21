@@ -6,7 +6,7 @@ namespace common{
 namespace vme {
 namespace caen {
 
-class CaenPioBase : public VmeBase
+class CaenPioBase : public ::common::vme::VmeBase
 {
 public:
     CaenPioBase();

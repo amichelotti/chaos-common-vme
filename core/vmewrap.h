@@ -176,6 +176,7 @@ int vmewrap_vme_close(vmewrap_vme_handle_t  handle);
    int vmewrap_write_reg16(vmewrap_vme_handle_t  handle,uint16_t data,unsigned off);
    int vmewrap_write_reg8(vmewrap_vme_handle_t  handle,uint8_t data,unsigned off);
    int vmewrap_getFD(vmewrap_vme_handle_t  handle);
+   int vmewrap_setFD(vmewrap_vme_handle_t  handle,int fd);
 
 #ifdef __cplusplus
 

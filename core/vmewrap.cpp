@@ -100,7 +100,15 @@ int vmewrap_getFD(vmewrap_vme_handle_t  h){
 	return handle->fd;
 
 }
+int vmewrap_setFD(vmewrap_vme_handle_t  h,int fd){
+	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
+	if(h==NULL){
+		return -1;
+	}
+	handle->fd=fd;
+	return handle->fd;
 
+}
 int vmewrap_vme_open_master(vmewrap_vme_handle_t  h,uint32_t master_add,uint32_t master_size,vme_addressing master_addressing,vme_access dw,vme_opt vme_opts){
 	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
 
