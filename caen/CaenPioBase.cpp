@@ -29,22 +29,20 @@ int CaenPioBase::reset(){
 }
 
 uint16_t CaenPioBase::out(uint16_t outmask){
-    uint16_t r=read16(0xA);
-    r|=outmask;
-    write16(0xA,r);
-    return r;
+    return write16(0xA,outmask);
 
+}
+uint16_t CaenPioBase::set(uint16_t outmask){
+    return VmeBase::set(0xA,outmask);
+}
+uint16_t CaenPioBase::clr(uint16_t outmask){
+    return VmeBase::clr(0xA,outmask);
 }
 int CaenPioBase::in(uint32_t& stat){
     stat=read16(0x54);
     return 0;
 }
-uint16_t CaenPioBase::clr(uint16_t outmask){
-    uint16_t r=read16(0xA);
-    r&=~outmask;
-    write16(0xA,r);
-    return r;
-}
+
 int CaenPioBase::maskin(uint32_t outmask){
     write16(0x2,outmask);
     return 0;

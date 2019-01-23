@@ -6,8 +6,6 @@
  */
 
 #include "VmeBase.h"
-//#define DEBUG 1
-#include <common/debug/core/debug.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -15,6 +13,7 @@
 namespace common {
 namespace vme {
 int VmeBase::nboard=0;
+bool VmeBase::isUnixDev(){return (unixdev>0);};
 
 VmeBase::VmeBase():vme(NULL),run(0),address(0),size(0),unixdev(-1) {
 	// TODO Auto-generated constructor stub

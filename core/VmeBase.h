@@ -7,6 +7,9 @@
 
 #ifndef CORE_VMEBASE_H_
 #define CORE_VMEBASE_H_
+//#define DEBUG 1
+#include <common/debug/core/debug.h>
+
 #include <common/vme/core/vmewrap.h>
 #include <boost/thread.hpp>
 #include <sys/ioctl.h>
@@ -33,7 +36,7 @@ public:
 	VmeBase();
 	// unix mapped device
 	int openUnixDev(const char* dev);
-
+	bool isUnixDev();
 	virtual int open(vme_driver_t vme_driver,uint64_t address,uint32_t size,vme_addressing_t master_addressing=VME_ADDRESSING_A32,vme_access_t dw=VME_ACCESS_D32, vme_opt_t vme_options=VME_OPT_AM_USER_AM);
 	virtual int close();
     int interrupt_enable(int level, int signature,int type=0,void*priv=NULL);
@@ -47,6 +50,19 @@ public:
     */
     virtual int reset();
 	virtual ~VmeBase();
+	template<typename T>
+	int set(uint32_t off,T& data){
+		DPRINT("VMESET off 0x%x data=0x%x fd=%d",off,data,getFD());
+
+		return vmewrap_set_reg(vme,&data, off,sizeof(T));
+	}
+	template<typename T>
+	int clr(uint32_t off,T& data){
+		DPRINT("VMECLR off 0x%x data=0x%x fd=%d",off,data,getFD());
+
+		return vmewrap_clr_reg(vme,&data, off,sizeof(T));
+
+	}
 
 	int write(uint32_t off,uint16_t* data,int sizen);
 	int read(uint32_t off,uint16_t* data,int sizen);

@@ -173,6 +173,9 @@ int vmewrap_vme_close(vmewrap_vme_handle_t  handle);
    uint8_t vmewrap_read_reg8(vmewrap_vme_handle_t  handle,unsigned off);
 
    int vmewrap_write_reg32(vmewrap_vme_handle_t  handle,uint32_t data, unsigned off);
+   int vmewrap_set_reg(vmewrap_vme_handle_t  handle,void* data, unsigned off,int size);
+   int vmewrap_clr_reg(vmewrap_vme_handle_t  handle,void* data, unsigned off,int size);
+
    int vmewrap_write_reg16(vmewrap_vme_handle_t  handle,uint16_t data,unsigned off);
    int vmewrap_write_reg8(vmewrap_vme_handle_t  handle,uint8_t data,unsigned off);
    int vmewrap_getFD(vmewrap_vme_handle_t  handle);

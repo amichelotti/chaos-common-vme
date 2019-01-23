@@ -202,8 +202,16 @@ int vmewrap_write16(vmewrap_vme_handle_t  h,unsigned off,uint16_t* data,int size
 int vmewrap_write8(vmewrap_vme_handle_t  h,unsigned off,uint8_t* data,int sizen){
 	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
 	return handle->vme_write8((vmewrap_int_vme_handle_t)handle,off,data,sizen);
-
 }
+int vmewrap_set_reg(vmewrap_vme_handle_t  h,void* data, unsigned off,int size){
+	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
+	return handle->vme_set_reg((vmewrap_int_vme_handle_t)handle,off,data,size);
+}
+int vmewrap_clr_reg(vmewrap_vme_handle_t  h,void* data, unsigned off,int size){
+	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
+	return handle->vme_clr_reg((vmewrap_int_vme_handle_t)handle,off,data,size);
+}
+
 int vmewrap_read32(vmewrap_vme_handle_t  h,unsigned off,uint32_t* data,int sizen){
 	int ret;
 	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;

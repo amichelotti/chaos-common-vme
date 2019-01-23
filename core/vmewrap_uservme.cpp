@@ -1,5 +1,5 @@
 
-
+//#define DEBUG 1
 #include "vmewrap_int.h"
 #include <poll.h>
 #include <common/debug/core/debug.h>
@@ -387,6 +387,36 @@ static int vme_read8_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uint8
     return read(fd,data,sizen*sizeof(uint8_t));
 }
 
+static int vme_set_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,void *data,int sizeb){
+    int fd=handle->fd;
+
+    struct pack{
+        uint32_t off;
+        uint32_t data;
+        uint8_t sizeb;
+    } d={off,0,(uint8_t)sizeb};
+    memcpy(&d.data,data,sizeb);
+
+    int  ret=ioctl(fd, VME_SET_REG, &d);
+        DPRINT("vme set off %d data:0x%x fd:%d, ret=0x%x cmd=0x%x",d.off,d.data,handle->fd,ret,VME_SET_REG);
+
+    return ret;
+}
+static int vme_clr_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,void *data,int sizeb){
+    int fd=handle->fd;
+
+    struct pack{
+        uint32_t off;
+        uint32_t data;
+        uint8_t sizeb;
+    } d={off,0,(uint8_t)sizeb};
+
+    memcpy(&d.data,data,sizeb);
+    DPRINT("vme clr off %d data:0x%x fd:%d",d.off,d.data,handle->fd);
+
+    int  ret=ioctl(fd, VME_CLR_REG, &d);
+    return ret;
+}
 int vme_interrupt_enable_uservme(vmewrap_int_vme_handle_t  handle,int level, int signature,int type,void*priv){
     int fd=handle->fd;
     struct vme_irq_handle irq_req;
@@ -410,8 +440,8 @@ int vme_interrupt_disable_uservme(vmewrap_int_vme_handle_t  handle){
     DPRINT("[%d] interrupt disable ret=%d",fd,ret);
 
     return ret;
-
 }
+
 int vme_wait_interrupt_uservme(vmewrap_int_vme_handle_t  handle,int timeo_ms){
     struct pollfd pol;
     int fd=handle->fd;
@@ -448,6 +478,9 @@ int vme_init_driver_uservme(vmewrap_vme_handle_t handle){
     p->vme_read8=vme_read8_uservme;
     p->vme_read16=vme_read16_uservme;
     p->vme_read32=vme_read32_uservme;
+    p->vme_set_reg=vme_set_uservme;
+    p->vme_clr_reg=vme_clr_uservme;
+
     return 0;
 }
 int vme_deinit_driver_uservme(vmewrap_vme_handle_t handle){
