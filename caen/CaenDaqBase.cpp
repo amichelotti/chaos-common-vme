@@ -31,7 +31,7 @@ int CaenDaqBase::open(vme_driver_t vme_driver,uint64_t address ){
     int boardid,manufactureid;
     DPRINT(" opening vme device at @0x%llx",address);
 
-    if(::common::vme::VmeBase::open(vme_driver,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,VME_OPT_AM_USER_AM)!=0){
+    if(::common::vme::VmeBase::open(vme_driver,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,(vme_opt_t)((int)VME_OPT_AM_USER_AM|(int)VME_OPT_BLT_ON))!=0){
         ERR("cannot map vme");
         return -3;
     }
