@@ -75,9 +75,13 @@ struct vme_user_drv {
   int irq_level;
   struct vme_dev *vdev;
   struct vme_resource *window;
-
 };
-
+struct vme_setclr_reg {
+  uint32_t off;
+  uint32_t data;
+  uint8_t size;
+  
+};
 #define VME_GET_SLAVE _IOR(VME_IOC_MAGIC, 1, struct vme_slave)
 #define VME_SET_SLAVE _IOW(VME_IOC_MAGIC, 2, struct vme_slave)
 #define VME_GET_MASTER _IOR(VME_IOC_MAGIC, 3, struct vme_master)
@@ -87,6 +91,10 @@ struct vme_user_drv {
 #define VME_IRQ_REMOVE _IO(VME_IOC_MAGIC, 7)
 
 #define VME_IRQ_HANDLE_CAENDAQ _IOW(VME_IOC_MAGIC, 8, struct vme_irq_handle_caen)
+#define VME_IRQ_HANDLE_CAENDAQ_COMBINE _IOW(VME_IOC_MAGIC, 9, struct vme_irq_handle_caen)
+#define VME_RESTART_CAENDAQ _IO(VME_IOC_MAGIC, 10)
+#define VME_SET_REG _IOW(VME_IOC_MAGIC, 11, struct vme_setclr_reg)
+#define VME_CLR_REG _IOW(VME_IOC_MAGIC, 12, struct vme_setclr_reg)
 
 
 #endif /* _VME_USER_H_ */

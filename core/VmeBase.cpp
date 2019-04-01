@@ -6,20 +6,49 @@
  */
 
 #include "VmeBase.h"
-#include <common/debug/core/debug.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <fcntl.h>
+
 namespace common {
 namespace vme {
 int VmeBase::nboard=0;
+bool VmeBase::isUnixDev(){return (unixdev>0);};
 
-VmeBase::VmeBase():vme(NULL),run(0),address(0),size(0) {
+VmeBase::VmeBase():vme(NULL),run(0),address(0),size(0),unixdev(-1) {
 	// TODO Auto-generated constructor stub
     boardid=++nboard;
 }
 
 
+int VmeBase::getFD(){
+	if(unixdev<0)
+		return vmewrap_getFD(vme);
+
+	return unixdev;
+	
+}
+int VmeBase::openUnixDev(const char*dev){
+	int fd = ::open(dev,O_RDWR);
+	if(fd<0){
+			DERR("Opening unix dev \"%s\" fd=%d",dev,unixdev);
+
+		return fd;
+	}
+	if(vme==NULL){
+		vme = vmewrap_init_driver(VME_LINUX_USER);
+	}
+	vmewrap_setFD(vme,fd);
+	unixdev=fd;
+	DPRINT("Opening unix dev \"%s\" fd=%d",dev,unixdev);
+
+	return 0;
+}
 
 int VmeBase::open(vme_driver_t vme_driver,uint64_t address_,uint32_t size_,vme_addressing_t master_addressing_,vme_access_t dw_, vme_opt_t vme_options_){
 	run=0;
+	unixdev=-1;
+
 	if(vme==NULL){
 		vme = vmewrap_init_driver(vme_driver);
 	}
@@ -42,25 +71,52 @@ int VmeBase::open(vme_driver_t vme_driver,uint64_t address_,uint32_t size_,vme_a
 }
 
 int VmeBase::write(uint32_t off,uint16_t* data,int sizen){
+	if(unixdev>0){
+		::lseek(unixdev,off,SEEK_SET);
+		DPRINT("unix write at off=0x%x data=0x%x fd=%d",off,*data,unixdev);
+
+		return ::write(unixdev,(void*)data,sizeof(uint16_t)*sizen);
+	}
+	DPRINT("vme write at off=0x%x data=0x%x fd=%d",off,*data,getFD());
 	return vmewrap_write16(vme,off,data,sizen);
 }
 int VmeBase::read(uint32_t off,uint16_t* data,int sizen){
+	if(unixdev>0){
+		::lseek(unixdev,off,SEEK_SET);
+		return ::read(unixdev,(void*)data,sizeof(uint16_t)*sizen);
+	}
 	return vmewrap_read16(vme,off,data,sizen);
 
 }
 int VmeBase::write(uint32_t off,uint32_t* data,int sizen){
+	if(unixdev>0){
+		::lseek(unixdev,off,SEEK_SET);
+		return ::write(unixdev,(void*)data,sizeof(uint32_t)*sizen);
+	}
 	return vmewrap_write32(vme,off,data,sizen);
 
 }
 int VmeBase::read(uint32_t off,uint32_t* data,int sizen){
+	if(unixdev>0){
+		::lseek(unixdev,off,SEEK_SET);
+		return ::read(unixdev,(void*)data,sizeof(uint32_t)*sizen);
+	}
 	return vmewrap_read32(vme,off,data,sizen);
 
 }
 int VmeBase::write(uint32_t off,uint8_t* data,int sizen){
+	if(unixdev>0){
+		::lseek(unixdev,off,SEEK_SET);
+		return ::write(unixdev,(void*)data,sizen);
+	}
 	return vmewrap_write8(vme,off,data,sizen);
 
 }
 int VmeBase::read(uint32_t off,uint8_t* data,int sizen){
+	if(unixdev>0){
+		::lseek(unixdev,off,SEEK_SET);
+		return ::read(unixdev,(void*)data,sizen);
+	}
 	return vmewrap_read8(vme,off,data,sizen);
 
 
@@ -68,51 +124,94 @@ int VmeBase::read(uint32_t off,uint8_t* data,int sizen){
 
 
 int VmeBase::write(uint32_t off,uint16_t data){
-	return vmewrap_write_reg16(vme, data,  off);
+	if(unixdev>0){
+		return this->write(off, &data,  1);
+	} 
+	 return vmewrap_write_reg16(vme, data,  off);
 }
 
 int VmeBase::write(uint32_t off,uint32_t data){
-	return vmewrap_write_reg32(vme, data,  off);
+	if(unixdev>0){
+		return this->write(off, &data,  1);
+	} 
+	 return vmewrap_write_reg32(vme, data,  off);
 
 }
 int VmeBase::write(uint32_t off,uint8_t data){
-	return vmewrap_write_reg8(vme, data,  off);
+	if(unixdev>0){
+		return this->write(off, &data,  1);
+	} 
+	 return vmewrap_write_reg8(vme, data,  off);
 
 }
 int VmeBase::read(uint32_t off,uint8_t &data){
+	if(unixdev>0){
+		return this->read(off,&data,1);
+	}
 	data = vmewrap_read_reg8(vme,  off);
-	return 0;
+    return 0;
+
 }
 int VmeBase::read(uint32_t off,uint16_t &data){
+	if(unixdev>0){
+		return this->read(off,&data,1);
+	}
 	data = vmewrap_read_reg16(vme,  off);
-	return 0;
+    return 0;
 }
 uint16_t VmeBase::read16(uint32_t off){
+	if(unixdev>0){
+		uint16_t data;
+		this->read(off,&data,1);
+		return data;
+	}
 	uint16_t ret=vmewrap_read_reg16(vme,  off);
-	return ret;
+    return ret;
+
 }
 uint32_t VmeBase::read32(uint32_t off){
+	if(unixdev>0){
+		uint32_t data;
+		this->read(off,&data,1);
+		return data;
+	} 
 	uint32_t ret=vmewrap_read_reg32(vme,  off);
-	return ret;
-
+    return ret;
 }
 
 int VmeBase::write16(uint32_t off,uint16_t data){
+	if(unixdev>0){
+		return this->write(off, &data,  1);
+	}
 	return vmewrap_write_reg16(vme, data,  off);
+
+	
 }
 int VmeBase::write32(uint32_t off,uint32_t data){
+		if(unixdev>0){
+
+			return this->write(off, &data,  1);
+		}
 	return vmewrap_write_reg32(vme, data,  off);
+
 }
 int VmeBase::write8(uint32_t off,uint8_t data){
+			if(unixdev>0){
+
+		return this->write(off, &data,  1);
+			}
 	return vmewrap_write_reg8(vme, data,  off);
+
 }
 uint8_t VmeBase::read8(uint32_t off){
-	uint8_t ret=vmewrap_read_reg8(vme,  off);
-		return ret;
+	uint8_t data;
+	this->read(off,&data,1);
+	return data;
+
 }
 int VmeBase::read(uint32_t off,uint32_t &data){
-	data = vmewrap_read_reg32(vme,  off);
-	return 0;
+		return this->read(off,&data,1);
+
 }
 
 int VmeBase::interrupt_enable(int level, int signature,int type,void*priv){
@@ -122,8 +221,8 @@ int VmeBase::interrupt_enable(int level, int signature,int type,void*priv){
 int VmeBase::interrupt_disable(){
   return vmewrap_interrupt_disable(vme);
 }
-int VmeBase::wait_interrupt(){
-    return vmewrap_wait_interrupt(vme,0);
+int VmeBase::wait_interrupt(int timeo){
+    return vmewrap_wait_interrupt(vme,timeo);
 }
 
 void VmeBase::sched_task(){
@@ -153,6 +252,10 @@ int VmeBase::interrupt_handler(){
 }
 int VmeBase::close(){
 	run=0;
+	if(unixdev>0){
+		::close(unixdev);
+		return 0;
+	}
     if(vme){
         int ret= vmewrap_vme_close(vme);
         vme=NULL;

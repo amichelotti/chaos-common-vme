@@ -7,7 +7,6 @@
 
 #include <common/debug/core/debug.h>
 #include "CaenDaqBase.h"
-#include <common/vme/core/vme_user.h>
 #include <sys/mman.h>
 using namespace common::vme::caen;
 CaenDaqBase::CaenDaqBase() {
@@ -32,13 +31,13 @@ int CaenDaqBase::open(vme_driver_t vme_driver,uint64_t address ){
     int boardid,manufactureid;
     DPRINT(" opening vme device at @0x%llx",address);
 
-    if(::common::vme::VmeBase::open(vme_driver,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,VME_OPT_AM_USER_AM)!=0){
+    if(::common::vme::VmeBase::open(vme_driver,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,(vme_opt_t)((int)VME_OPT_AM_USER_AM|(int)VME_OPT_BLT_ON))!=0){
         ERR("cannot map vme");
         return -3;
     }
 
     cycle = 0;
-    boardid =((read16(BOARD_ID_OFF)&0xFF)<<8) | read16(BOARD_ID_LSB_OFF)&0xFF;
+    boardid =((read16(BOARD_ID_OFF)&0xFF)<<8) | (read16(BOARD_ID_LSB_OFF)&0xFF);
 
     manufactureid=read16(OUI_OFF)&0xFF;
     boardid=boardid;
@@ -93,6 +92,7 @@ void CaenDaqBase::init(uint32_t crate_num,int hwreset){
     write16(CRATE_SEL_OFF,crate_num);
     write16(BITSET2_OFF,
             CAEN_COMMON_STOP|CAEN_CLEAR_DATA|CAEN_EMPTY_PROG|CAEN_AUTO_INCR|CAEN_ACCEPT_OVER_RANGE|CAEN_VALID_DISABLE|CAEN_THRESHOLD_DISABLE);
+    //    write16(BITCLR2_OFF,CAEN_ALL_TRIGGER|CAEN_MEMORY_TEST|CAEN_ADC_OFFLINE|CAEN_TEST_ACQ|CAEN_CLEAR_DATA);
     write16(BITCLR2_OFF,CAEN_ALL_TRIGGER|CAEN_MEMORY_TEST|CAEN_ADC_OFFLINE|CAEN_TEST_ACQ|CAEN_CLEAR_DATA);
     //write16(BITCLR2_OFF,CAEN_MEMORY_TEST|CAEN_ADC_OFFLINE|CAEN_TEST_ACQ|CAEN_CLEAR_DATA);
     resetEventBuffer();
@@ -132,7 +132,18 @@ uint16_t CaenDaqBase::getBufferStatus(){
     return ret;
 }
 
+/**
+  Full Scale Range(TDC)
+*/
+void CaenDaqBase::setFSR(int32_t value){
+    if(board.compare(0,7,"CAEN775")==0){
+        DPRINT("%s setting FSR=0x%x",board.c_str(),value);
+        write16(FSR_OFF,value);
+        return;
+    }
+    DPRINT("%s SET FSR NOT APPLICABLE to THIS BOARD",board.c_str());
 
+}
 uint32_t CaenDaqBase::getEventCounter(bool reset){
     uint32_t ret;
 
@@ -252,6 +263,12 @@ uint16_t CaenDaqBase::acquireChannels(uint16_t* channel,uint32_t *event){
 
 }
 
+void CaenDaqBase::setBset(uint16_t mode){
+    write16(BITSET2_OFF,mode);
+    write16(BITCLR2_OFF,~mode);
+
+
+}
 
 void CaenDaqBase::setMode(caen_modes_t mode){
     write16(BITSET2_OFF,mode);
@@ -261,7 +278,7 @@ void CaenDaqBase::clrMode(caen_modes_t mode){
     write16(BITCLR2_OFF,mode);
 }
 
-int CaenDaqBase::interrupt_enable(int meb_lenght,uint32_t*meb_buf,uint32_t *event_counter){
+int CaenDaqBase::interrupt_enable(int meb_lenght,uint32_t*meb_buf,uint32_t *event_counter, int int_type){
     int ret;
     // initialize the IVR with the most significant byte of the address
     int ivr=(address>>24);
@@ -278,7 +295,7 @@ int CaenDaqBase::interrupt_enable(int meb_lenght,uint32_t*meb_buf,uint32_t *even
     params.meb=meb_buf;
     params.events=event_counter;
     params.channels=channels;
-    ret= VmeBase::interrupt_enable(8-getBoardId(),ivr,VME_IRQ_HANDLE_CAENDAQ,&params);
+    ret= VmeBase::interrupt_enable(8-getBoardId(),ivr,int_type,&params);
     write16(IVR_STATUS,ivr);
     write16(EVT_TRG_OFF,meb_lenght);
     write16(IVR_LEVEL,8-getBoardId());
@@ -295,6 +312,7 @@ int CaenDaqBase::interrupt_disable(){
 int CaenDaqBase::reset(){
     // single shot reset
     write16(SSRESET_OFF,1);
-
+    return 0;
 
 }
+

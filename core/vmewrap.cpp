@@ -92,6 +92,23 @@ int vmewrap_deinit_driver(vmewrap_vme_handle_t driver){
 	return err;
 
 }
+int vmewrap_getFD(vmewrap_vme_handle_t  h){
+	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
+	if(h==NULL){
+		return -1;
+	}
+	return handle->fd;
+
+}
+int vmewrap_setFD(vmewrap_vme_handle_t  h,int fd){
+	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
+	if(h==NULL){
+		return -1;
+	}
+	handle->fd=fd;
+	return handle->fd;
+
+}
 int vmewrap_vme_open_master(vmewrap_vme_handle_t  h,uint32_t master_add,uint32_t master_size,vme_addressing master_addressing,vme_access dw,vme_opt vme_opts){
 	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
 
@@ -185,8 +202,16 @@ int vmewrap_write16(vmewrap_vme_handle_t  h,unsigned off,uint16_t* data,int size
 int vmewrap_write8(vmewrap_vme_handle_t  h,unsigned off,uint8_t* data,int sizen){
 	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
 	return handle->vme_write8((vmewrap_int_vme_handle_t)handle,off,data,sizen);
-
 }
+int vmewrap_set_reg(vmewrap_vme_handle_t  h,void* data, unsigned off,int size){
+	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
+	return handle->vme_set_reg((vmewrap_int_vme_handle_t)handle,off,data,size);
+}
+int vmewrap_clr_reg(vmewrap_vme_handle_t  h,void* data, unsigned off,int size){
+	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
+	return handle->vme_clr_reg((vmewrap_int_vme_handle_t)handle,off,data,size);
+}
+
 int vmewrap_read32(vmewrap_vme_handle_t  h,unsigned off,uint32_t* data,int sizen){
 	int ret;
 	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;

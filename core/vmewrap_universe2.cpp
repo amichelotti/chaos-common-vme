@@ -201,8 +201,9 @@ static int vme_read32_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,ui
 		data[cnt] =REG32(handle->mapped_address,off+(cnt*sizeof(uint32_t)));
 
 #endif
-		return  ret;
 	}
+		return  ret;
+
 }
 static int vme_read16_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t *data,int sizen){
 	VMEBridge* vme=(VMEBridge*)handle->bus;
