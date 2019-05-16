@@ -64,8 +64,8 @@ caen513_handle_t caen513_open(vme_driver_t vme_driver,uint32_t address ){
 	PRINT("CAEN513 Version:0x%x\n",VERSION_REG(mapped_address));
 	PRINT("CAEN513 BoardID:0x%x\n",boardid);
 	PRINT("CAEN513 Manufacture:0x%x\n",manufactureid);
-	if(manufactureid!=MANUFACTURE_ID){
-		ERR("device not identified expected ManufactureId=0x%x\n",MANUFACTURE_ID);
+	if(manufactureid!=V513_MANUFACTURE_ID){
+		ERR("device not identified expected ManufactureId=0x%x\n",V513_MANUFACTURE_ID);
 		caen513_close((caen513_handle_t)p);
 		return 0;
 	}

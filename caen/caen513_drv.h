@@ -14,8 +14,7 @@
 #define V513_STROBE_POLARITY_NEG 1
 #define V513_STROBE_ENABLE_INT   2
 #define V513_STROBE_DISABLE_INT  0
-
-#define MANUFACTURE_ID 0x832
+#define V513_MANUFACTURE_ID 0x832
 #define NCHANNELS 16
 
 #ifdef __cplusplus

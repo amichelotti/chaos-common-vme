@@ -8,13 +8,13 @@
 #ifndef CAEN_CAEN775_H_
 #define CAEN_CAEN775_H_
 
-#include "CaenBase.h"
+#include "CaenDaqBase.h"
 
 namespace common {
 namespace vme {
 namespace caen {
 
-class Caen775: public CaenBase {
+class Caen775: public CaenDaqBase {
 public:
 	Caen775();
 	virtual ~Caen775();

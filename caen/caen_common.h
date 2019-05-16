@@ -21,7 +21,12 @@ extern "C" {
 #define STATUS_OFF 0x100E
 #define CTRL_OFF 0x1010
 #define SSRESET_OFF 0x1016
+#define FSR_OFF 0x1060
+/**interrupt*/
+#define IVR_STATUS 0x100C
+#define IVR_LEVEL 0x100A
 #define EVT_TRG_OFF 0x1020
+/***/
 #define STATUS2_OFF 0x1022
 #define EVT_CNT_LOW_OFF 0x1024
 #define EVT_CNT_HI_OFF 0x1026
@@ -33,7 +38,6 @@ extern "C" {
 #define CRATE_SEL_OFF 0x103C
 #define BITSET2_OFF 0x1032
 #define BITCLR2_OFF 0x1034
-
 #define FW_REVISION_REG(base) REG16(base,FW_REVISION_OFF)
 #define BOARD_ID_REG(base) REG16(base,BOARD_ID_OFF)
 #define BOARD_ID_LSB_REG(base) REG16(base,BOARD_ID_LSB_OFF)
