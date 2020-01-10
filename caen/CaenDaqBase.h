@@ -137,6 +137,15 @@ public:
     * Set bitset register
     */
     void setBset(uint16_t mode);
+
+	uint16_t getBset();
+ 	/**
+    * Set IPED register
+    */
+    void setIPED(uint16_t mode);
+
+	uint16_t getIPED();
+
 	/*
 	 * get operational mode
 	 * @return  the operational mode
@@ -147,6 +156,8 @@ public:
     *
     */
     void setFSR(int32_t value);
+
+	uint16_t getFSR();
 
     /*
 	 * Write to a specified offset
