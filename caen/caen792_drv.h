@@ -4,9 +4,6 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include <common/vme/core/vmewrap.h>
 
 typedef void* caen792_handle_t;
@@ -142,10 +139,6 @@ caen792_handle_t caen792_LV_open(uint32_t mapped_address,errorStruct* error);
 */
 int32_t caen792_LV_acquire_channels_poll(caen792_handle_t handle,void *res,int32_t* event_under_run,int timeo_ms,errorStruct* error);
 
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif

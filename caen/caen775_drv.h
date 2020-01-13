@@ -6,9 +6,6 @@
  * Andrea Michelotti
  * */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #define CAEN775_FSR_OFF 0x1060
 /**
  * available modes
@@ -164,10 +161,6 @@ caen775_handle_t caen775_LV_open(uint32_t mapped_address,errorStruct* error);
 */
 int32_t caen775_LV_acquire_channels_poll(caen775_handle_t handle,void *lowres,void*hires,int32_t* event_under_run,int timeo_ms,errorStruct* error);
 
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif

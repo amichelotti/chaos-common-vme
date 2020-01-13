@@ -12,7 +12,7 @@
 #include <sys/time.h>
 
 #define CAEN775 1
-#include "caen_common.c"
+#include "caen_common.cpp"
 
 
 
@@ -22,7 +22,7 @@ caen775_handle_t caen775_open(vme_driver_t vme_driver,uint32_t address ){
 
 
 int32_t caen775_init(caen775_handle_t h,int32_t crate_num,int swreset){
-	_caen_common_handle_t* handle = h;
+	_caen_common_handle_t* handle =(_caen_common_handle_t*) h;
 
 	DPRINT(DEV_BOARD " intialiazing @%p",h);
 	if(swreset){
@@ -44,7 +44,7 @@ int32_t caen775_close(caen775_handle_t h){
 
 
 int32_t caen775_setThreashold(caen775_handle_t h,int16_t value,int kill,int channel){
-	_caen_common_handle_t* handle = h;
+	_caen_common_handle_t* handle = (_caen_common_handle_t*)h;
 
 	if((channel<NCHANNELS) && (channel>=0)){
 	    DPRINT(DEV_BOARD " setting threshold channel %d to x%x ",channel,value);
@@ -59,14 +59,14 @@ int32_t caen775_setThreashold(caen775_handle_t h,int16_t value,int kill,int chan
 
 
 int32_t caen775_enable_mode(caen775_handle_t h,caen775_modes_t modes){
-  	_caen_common_handle_t* handle = h;
+  	_caen_common_handle_t* handle = (_caen_common_handle_t*)h;
 
 	BITSET2_REG(handle->mapped_address)=modes;
 	return 0;
 }
 
 int32_t caen775_disable_mode(caen775_handle_t h,caen775_modes_t modes){
-  _caen_common_handle_t* handle = h;
+  _caen_common_handle_t* handle =(_caen_common_handle_t*) h;
   	BITCLR2_REG(handle->mapped_address)=modes;
 	return 0;
 }

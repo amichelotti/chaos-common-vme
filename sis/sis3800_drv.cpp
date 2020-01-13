@@ -25,7 +25,7 @@ sis3800_handle_t sis3800_open(vme_driver_t vme_driver,uint32_t address){
 
             return NULL;
     }
-    if(vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,0)!=0){
+    if(vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,(vme_opt_t)0)!=0){
     	ERR("cannot map vme");
     	return NULL;
     }
@@ -58,7 +58,7 @@ sis3800_handle_t sis3800_open(vme_driver_t vme_driver,uint32_t address){
 
 
 int32_t sis3800_close(sis3800_handle_t h){
-     _sis_handle_t* handle = h;
+     _sis_handle_t* handle = (_sis_handle_t*)h;
     DPRINT(DEV_BOARD " closing handle @0x%p\n",(void*)h);
     if(handle){
         int ret;
@@ -81,25 +81,25 @@ int32_t sis3800_init(sis3800_handle_t h){
 }
 
 uint32_t sis3800_readnclear(sis3800_handle_t h,int countern){
-    _sis_handle_t* handle = h;
+    _sis_handle_t* handle =  (_sis_handle_t*)h;
 
     return REG32(handle->mapped_address,0x300+(countern<<2));
 }
 
 uint32_t sis3800_readCounter(sis3800_handle_t h,int countern){
-    _sis_handle_t* handle = h;
+    _sis_handle_t* handle =  (_sis_handle_t*)h;
     
     return REG32(handle->mapped_address,0x280+(countern<<2));
 }
 
 void sis3800_disableCounter(sis3800_handle_t h,int32_t counter){
-    _sis_handle_t* handle = h;
+    _sis_handle_t* handle = (_sis_handle_t*) h;
      REG32(handle->mapped_address,0xC)=counter;
 }
 
 uint32_t sis3800_getOverflows(sis3800_handle_t h){
     uint32_t res=0;
-    _sis_handle_t* handle = h;
+    _sis_handle_t* handle = (_sis_handle_t*) h;
     
     res|=(REG32(handle->mapped_address,0x380)>>24);
     res|=(REG32(handle->mapped_address,0x3A0)>>24)<<8;
@@ -110,7 +110,7 @@ uint32_t sis3800_getOverflows(sis3800_handle_t h){
 }
 
 void sis3800_enable(sis3800_handle_t h,int enable){
-      _sis_handle_t* handle = h;
+      _sis_handle_t* handle = (_sis_handle_t*) h;
     if(enable>0){
         REG32(handle->mapped_address,0x28)=1;
     } else{
@@ -121,12 +121,12 @@ void sis3800_enable(sis3800_handle_t h,int enable){
 
 
 void sis3800_clear(sis3800_handle_t h){
-      _sis_handle_t* handle = h;
+      _sis_handle_t* handle =  (_sis_handle_t*)h;
     REG32(handle->mapped_address,0x20)=1;
 
 }
 void sis3800_reset(sis3800_handle_t h){
-      _sis_handle_t* handle = h;
+      _sis_handle_t* handle =  (_sis_handle_t*)h;
     REG32(handle->mapped_address,0x60)=1;
 
 }

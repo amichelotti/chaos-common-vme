@@ -1,9 +1,6 @@
 #ifndef _CAEN_COMMON_H_
 #define  _CAEN_COMMON_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <common/vme/core/vmewrap.h>
 // Register map
@@ -272,8 +269,6 @@ typedef struct __vme_handle__ {
 } _caen_common_handle_t ;
 
 typedef void* caen_handle_t;
-#ifdef __cplusplus
-}
-#endif
+
 
 #endif

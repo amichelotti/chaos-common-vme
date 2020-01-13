@@ -14,7 +14,7 @@
 
 #include <common/debug/core/debug.h>
 static int32_t caen_common_close(void* h){
-    _caen_common_handle_t* handle = h;
+    _caen_common_handle_t* handle = (_caen_common_handle_t*)h;
     DPRINT(DEV_BOARD " closing handle @%p",h);
     if(handle){
         int ret;
@@ -39,7 +39,7 @@ static void* caen_common_open(vme_driver_t vme_driver,uint32_t address ){
 
   		return NULL;
   	}
-  	if(vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,0)!=0){
+  	if(vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,( vme_opt)0)!=0){
   		ERR("cannot map vme");
   		return NULL;
   	}
@@ -51,7 +51,7 @@ static void* caen_common_open(vme_driver_t vme_driver,uint32_t address ){
     return 0;
   }
 
-  _caen_common_handle_t *p = malloc(sizeof(_caen_common_handle_t));
+  _caen_common_handle_t *p =( _caen_common_handle_t *) malloc(sizeof(_caen_common_handle_t));
   if(p==NULL){
     ERR("cannot allocate resources");
     vmewrap_vme_close(vme);
@@ -81,7 +81,7 @@ static void* caen_common_open(vme_driver_t vme_driver,uint32_t address ){
 
 
 static int32_t caen_common_init(void* h,int32_t crate_num,int hwreset){
-  _caen_common_handle_t* handle = h;
+  _caen_common_handle_t* handle =( _caen_common_handle_t*) h;
   DPRINT(DEV_BOARD " intialiazing @%p",h);
   int cnt;
   if(hwreset){
@@ -108,21 +108,21 @@ static int32_t caen_common_init(void* h,int32_t crate_num,int hwreset){
 
   //  BITSET2_REG(handle->mapped_address)=ALLTRG_EN_BIT/*|OVERRANGE_EN_BIT|LOWTHR_EN_BIT*/|EMPTY_EN_BIT|AUTOINCR_BIT;
   BITSET2_REG(handle->mapped_address)=ALLTRG_EN_BIT|EMPTY_EN_BIT|AUTOINCR_BIT|OVERRANGE_EN_BIT|LOWTHR_EN_BIT;
-  msync(handle->mapped_address,0x10000);
+ // msync(handle->mapped_address,0x10000);
   return 0;
 }
 
 static int32_t caen_common_setIped(void* h,int32_t ipedval){
-  _caen_common_handle_t* handle = h;
+  _caen_common_handle_t* handle = (_caen_common_handle_t*)h;
   DPRINT(DEV_BOARD " setting ipedval=x%x",ipedval);
   IPED_REG(handle->mapped_address)=ipedval;
-  msync(handle->mapped_address,0x10000);
+ // msync(handle->mapped_address,0x10000);
   return 0;
 }
 
 
 static int32_t caen_common_setThreashold(void* h,int16_t lowres,int16_t hires,int channel){
-  _caen_common_handle_t* handle = h;
+  _caen_common_handle_t* handle = (_caen_common_handle_t*)h;
   if((channel<NCHANNELS) && (channel>=0)){
     DPRINT(DEV_BOARD " setting threshold channel %d hires=x%x lores=x%x ",channel,lowres,hires);
     BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT|OVERRANGE_EN_BIT|LOWTHR_EN_BIT;
@@ -133,7 +133,7 @@ static int32_t caen_common_setThreashold(void* h,int16_t lowres,int16_t hires,in
 #else
       THRS_CHANNEL_REG(handle->mapped_address,channel,0)= lowres&0xff;
 #endif
-    msync(handle->mapped_address,0x10000);
+    //msync(handle->mapped_address,0x10000);
     return 0;
   }
   return -1;
@@ -141,7 +141,7 @@ static int32_t caen_common_setThreashold(void* h,int16_t lowres,int16_t hires,in
 
 
 static int32_t caen_common_getThreashold(void* h,int16_t* lowres,int16_t* hires,int channel){
-    _caen_common_handle_t* handle = h;
+    _caen_common_handle_t* handle = (_caen_common_handle_t*)h;
     if((channel<NCHANNELS) && (channel>=0)){
 #ifdef CAEN792
         *lowres = THRS_CHANNEL_REG(handle->mapped_address,channel,0)&0xff;
@@ -158,7 +158,7 @@ static int32_t caen_common_getThreashold(void* h,int16_t* lowres,int16_t* hires,
 
 static uint16_t caen_common_getStatus(void* h){
   uint16_t ret;
-  _caen_common_handle_t* handle = h;
+  _caen_common_handle_t* handle = (_caen_common_handle_t*)h;
   ret = STATUS_REG(handle->mapped_address);
   DPRINT(DEV_BOARD " Get Status 0x%x",ret);
   return ret;
@@ -166,14 +166,14 @@ static uint16_t caen_common_getStatus(void* h){
 
 static uint16_t caen_common_getBufferStatus(void* h){
   uint16_t ret;
-  _caen_common_handle_t* handle = h;
+  _caen_common_handle_t* handle = (_caen_common_handle_t*)h;
   ret = STATUS2_REG(handle->mapped_address);
   return ret;
 }
 
 static uint32_t caen_common_getEventCounter(void* h,int reset){
   uint32_t ret;
-  _caen_common_handle_t* handle = h;
+  _caen_common_handle_t* handle = (_caen_common_handle_t*)h;
   //  ret = EVT_CNT_REG(handle->mapped_address);
   ret = EVT_CNT_LOW_REG(handle->mapped_address)|EVT_CNT_HI_REG(handle->mapped_address)<<16;
   if(reset){
@@ -204,7 +204,7 @@ static uint32_t search_eoe(_caen_common_handle_t* handle){
 }
 //return the channels acquired 
 static int acquire_event_channels(void* h,uint32_t *lowres,uint32_t*hires,int start_chan,int max_chan){
-  _caen_common_handle_t* handle = h;
+  _caen_common_handle_t* handle =(_caen_common_handle_t*) h;
   int cnt=0;
   evt_buffer_t a;
   int nchannels_acquired=0;
@@ -257,7 +257,7 @@ static int acquire_event_channels(void* h,uint32_t *lowres,uint32_t*hires,int st
 
 static int32_t caen_common_acquire_channels_poll(void* h,uint32_t *lowres,uint32_t*hires,int start_channel,int nchannels,uint64_t *cycle,int timeo_ms){
   int ret = 0;
-  _caen_common_handle_t* handle = h;
+  _caen_common_handle_t* handle =(_caen_common_handle_t*) h;
   uint16_t status=0;
   uint32_t counter;
   uint32_t events;

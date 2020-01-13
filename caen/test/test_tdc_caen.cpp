@@ -40,7 +40,7 @@ int main(int argc,char**argv){
     printf("* timeout set to %d ms\n",acquire_timeo);
   }
   printf("* opening caen at address @0x%lx\n",address);
-  caen = caen775_open(type,address);
+  caen = caen775_open((vme_driver_t)type,address);
     
   out=fopen("caen_data.out","w");
     if(out){

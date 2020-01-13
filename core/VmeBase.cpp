@@ -36,7 +36,7 @@ int VmeBase::openUnixDev(const char*dev){
 		return fd;
 	}
 	if(vme==NULL){
-		vme = vmewrap_init_driver(VME_LINUX_USER);
+		vme = vmewrap_init_driver(VME_LINUX_USER_DRIVER);
 	}
 	vmewrap_setFD(vme,fd);
 	unixdev=fd;

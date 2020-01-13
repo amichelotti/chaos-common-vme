@@ -5,6 +5,7 @@
  * */
 #ifndef _VMEWRAP_H_
 #define _VMEWRAP_H_
+
 #include <stdint.h>
 
 #define REG32(base,x) *((volatile uint32_t*)(((char*)base)+x))
@@ -25,10 +26,9 @@
 #define VME_WRITE32(handle,off,val) vmewrap_write_reg32(handle,off,val)
 #define VME_WRITE8(handle,off,val) vmewrap_write_reg8(handle,off,val)
 
-#define VME_WRITE_REG16(handle,off,val) vmewrap_write16(handle,off,val)
-#define VME_WRITE_REG32(handle,off,val)  vmewrap_write32(handle,off,val)
-#define VME_WRITE_REG8(handle,off,val) vmewrap_write8(handle,off,val)
-
+#define VME_WRITE_REG16(handle,off,val) {uint16_t tmp=val;vmewrap_write16(handle,off,&tmp,1);}
+#define VME_WRITE_REG32(handle,off,val) {uint32_t tmp=val; vmewrap_write32(handle,off,&tmp,1);}
+#define VME_WRITE_REG8(handle,off,val) {uint8_t tmp=val;vmewrap_write8(handle,off,&tmp,1);}
 
 #define VME_OPT_CTL_EN		0x80000000
 typedef enum vme_opt {
@@ -67,9 +67,7 @@ typedef enum vme_addressing{
 #define VME_SET_DMA    9 //enable DMA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 typedef void* vmewrap_vme_handle_t;
 /**
    @return us time
@@ -81,14 +79,32 @@ typedef enum vme_driver {
 	VME_UNIVERSE_DRIVER,
 	VME_CAEN1718_DRIVER,
 	VME_CAEN2718_DRIVER,
-	VME_LINUX_USER
+	VME_LINUX_USER_DRIVER,
+  VME_SIS3153_ETH_DRIVER
 } vme_driver_t;
+
+#define VME_UNIVERSE2 "vme_universe2"
+#define VME_UNIVERSE "vme_universe"
+#define VME_CAEN1718 "vme_caen1718"
+#define VME_CAEN2718 "vme_caen2718"
+#define VME_LINUX_USER "vme_linux_user"
+#define VME_SIS3153_ETH "vme_sis3153_eth"
+
+/*
+ * Initialize the appropriate driver
+ * @param driver the identifier of the driver
+ * @param params specific parameters
+ * @return a valid handle on success, zero otherwise
+ */
+vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver,void*params=0);
+
+
 /*
  * Initialize the appropriate driver
  * @param driver the identifier of the driver
  * @return a valid handle on success, zero otherwise
  */
-vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver);
+vmewrap_vme_handle_t vmewrap_init_driver(const char* drv_name,void*params=0);
 
 /*
  * DeInitialize the appropriate driver
@@ -181,10 +197,6 @@ int vmewrap_vme_close(vmewrap_vme_handle_t  handle);
    int vmewrap_getFD(vmewrap_vme_handle_t  handle);
    int vmewrap_setFD(vmewrap_vme_handle_t  handle,int fd);
 
-#ifdef __cplusplus
-
-}
-#endif
 #endif
 
 

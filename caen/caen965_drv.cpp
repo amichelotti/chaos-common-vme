@@ -12,7 +12,7 @@
 #include <sys/time.h>
 
 #define CAEN965 1
-#include "caen_common.c"
+#include "caen_common.cpp"
 
 
 

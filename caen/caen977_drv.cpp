@@ -3,12 +3,10 @@
   @release: 0.1
   @author: Andrea Michelotti
  */
-
 #include "caen977_drv.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "vmewrap.h"
 #include <sys/time.h>
 
 #include <common/debug/core/debug.h>
@@ -47,26 +45,26 @@ typedef struct __vme_handle__ {
 uint16_t caen977_getOperationMode(caen977_handle_t h){
 	_caen977_handle_t* handle = (_caen977_handle_t*)h;
 
-	return VME_REG_READ16(handle->vme,REG_CTRL_REG);
+	return VME_READ_REG16(handle->vme,REG_CTRL_REG);
 }
 
 
 void caen977_interruptMask(caen977_handle_t h,uint16_t mask){
 	_caen977_handle_t* handle = (_caen977_handle_t*)h;
 
-	 VME_REG_WRITE16(handle->vme,REG_INTERRUPT_MASK,mask);
+	 VME_WRITE_REG16(handle->vme,REG_INTERRUPT_MASK,mask);
 }
 
 
 void caen977_outputMask(caen977_handle_t h,uint16_t mask){
 	_caen977_handle_t* handle = (_caen977_handle_t*)h;
 
-	VME_REG_WRITE16(handle->vme,REG_OUTPUT_MASK,mask);
+	VME_WRITE_REG16(handle->vme,REG_OUTPUT_MASK,mask);
 }
 
 void caen977_inputMask(caen977_handle_t h,uint16_t mask){
 	_caen977_handle_t* handle = (_caen977_handle_t*)h;
-	VME_REG_WRITE16(handle->vme,REG_INPUT_MASK,mask);
+	VME_WRITE_REG16(handle->vme,REG_INPUT_MASK,mask);
 }
 
 uint16_t caen977_inputRead(caen977_handle_t h,uint16_t level, int readClear){
@@ -76,33 +74,33 @@ uint16_t caen977_inputRead(caen977_handle_t h,uint16_t level, int readClear){
 	switch(level){
 	case 2:
 		if(readClear){
-			ret = VME_REG_READ16(handle->vme,REG_MULTIHIT_READ_CLR);
+			ret = VME_READ_REG16(handle->vme,REG_MULTIHIT_READ_CLR);
 		} else {
-			ret = VME_REG_READ16(handle->vme,REG_MULTIHIT_READ);
+			ret = VME_READ_REG16(handle->vme,REG_MULTIHIT_READ);
 		}
 		break;
 
 	case 1:
 		if(readClear){
-			ret = VME_REG_READ16(handle->vme,REG_SINGLEHIT_READ_CLR);
+			ret = VME_READ_REG16(handle->vme,REG_SINGLEHIT_READ_CLR);
 		} else {
-			ret = VME_REG_READ16(handle->vme,REG_SINGLEHIT_READ);
+			ret = VME_READ_REG16(handle->vme,REG_SINGLEHIT_READ);
 		}
 		break;
 	default:
-		ret = VME_REG_READ16(handle->vme,REG_INPUT_READ);
+		ret = VME_READ_REG16(handle->vme,REG_INPUT_READ);
 	}
 	return ret;
 }
 
 void caen977_outputSet(caen977_handle_t h,uint16_t mask){
 	_caen977_handle_t* handle = (_caen977_handle_t*)h;
-	VME_REG_WRITE16(handle->vme,REG_OUTPUT_SET,mask);
+	VME_WRITE_REG16(handle->vme,REG_OUTPUT_SET,mask);
 }
 
 void caen977_outputClear(caen977_handle_t h){
 	_caen977_handle_t* handle = (_caen977_handle_t*)h;
-	VME_REG_WRITE16(handle->vme,REG_CLEAR_OUTPUT,0x1);
+	VME_WRITE_REG16(handle->vme,REG_CLEAR_OUTPUT,0x1);
 }
 
 /**
@@ -126,7 +124,7 @@ caen977_handle_t caen977_open(vme_driver_t vme_driver,uint32_t address ){
 
 		return NULL;
 	}
-	if(vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D16,0)!=0){
+	if(vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D16,(vme_opt_t)0)!=0){
 		ERR("cannot map vme");
 		return NULL;
 	}

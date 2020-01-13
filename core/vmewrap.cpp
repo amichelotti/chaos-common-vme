@@ -6,11 +6,24 @@
 #include "vmewrap_universe2.h"
 #include "vmewrap_caenvme.h"
 #include "vmewrap_uservme.h"
+#include "vmewrap_sis3153_eth.h"
 
+#define CHECK_DRIVER_NAME(dname,x) \
+if(!strcmp(dname,x))return (x ##_DRIVER)
 
-extern "C" {
+vme_driver_t driverNameToId(const char*name){
+	CHECK_DRIVER_NAME(name,VME_UNIVERSE2);
+	CHECK_DRIVER_NAME(name,VME_UNIVERSE);
+	CHECK_DRIVER_NAME(name,VME_CAEN1718);
+	CHECK_DRIVER_NAME(name,VME_CAEN2718);
+	CHECK_DRIVER_NAME(name,VME_LINUX_USER);
+	CHECK_DRIVER_NAME(name,VME_SIS3153_ETH);
+}
+vmewrap_vme_handle_t vmewrap_init_driver(const char* driver,void *params){
+	return vmewrap_init_driver(driverNameToId(driver),params);
 
-vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
+}
+vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver,void *params){
 	vmewrap_int_vme_handle_t p;
 	p = (vmewrap_int_vme_handle_t)calloc(1,sizeof(struct __vme_handle__ ));
 	if(p==NULL){
@@ -37,9 +50,16 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
 			return 0;
 		}
 		break;
-	case VME_LINUX_USER:
+	case VME_LINUX_USER_DRIVER:
 		if(vme_init_driver_uservme(p)!=0){
 			ERR("cannot initialize uservme");
+			delete p;
+			return 0;
+		}
+		break;
+	case VME_SIS3153_ETH_DRIVER:
+		if(vme_init_driver_sis3153_eth(p,params)!=0){
+			ERR("cannot initialize sis3153_eth");
 			delete p;
 			return 0;
 		}
@@ -312,5 +332,4 @@ int vmewrap_write_reg8(vmewrap_vme_handle_t  handle,uint8_t data,unsigned off){
 	return vmewrap_write8(handle, off,&data,1);
 
 
-}
 }

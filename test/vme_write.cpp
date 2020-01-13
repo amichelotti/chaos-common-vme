@@ -31,23 +31,24 @@ int main(int argc,char**argv){
   data= (unsigned*)malloc(ndati*sizeof(unsigned));
   for(cnt=0;cnt<ndati;cnt++){
 	if(dw==16){
-		uint16_t *ptr=data;
+		uint16_t *ptr=(uint16_t *)data;
 		ptr[cnt]=strtoul(argv[7+cnt],0,0);
 	} else if(dw==32){
 		data[cnt]=strtoul(argv[7+cnt],0,0);
 	} else if(dw==8){
-		uint8_t *ptr=data;
+		uint8_t *ptr=(uint8_t *)data;
 		ptr[cnt]=strtoul(argv[7+cnt],0,0);
 	}
 
   }
-  handle=vmewrap_init_driver(type);
+  handle=vmewrap_init_driver((vme_driver_t)type);
 
    if(handle==NULL){
      printf("## cannot initialize driver type 0x%x\n",type);
      return -1;
    }
-   if(vmewrap_vme_open_master(handle,address,vme_size,addressing,dw,VME_OPT_AM_USER_AM|VME_OPT_AM_DATA_AM)!=0){
+   int am=VME_OPT_AM_USER_AM|VME_OPT_AM_DATA_AM;
+   if(vmewrap_vme_open_master(handle,address,vme_size,(vme_addressing_t)addressing,(vme_access_t)dw,(vme_opt_t)am)!=0){
  	  printf("## cannot map address 0x%lx\n",address);
  	  return -2;
    }

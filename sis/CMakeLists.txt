@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 project(common_vme_sis)
 
-file(GLOB src *.c)
+file(GLOB src *.cpp)
 
 ADD_LIBRARY(${PROJECT_NAME} STATIC ${src})
-ADD_EXECUTABLE(test_sis test/test_sis.c)
+ADD_EXECUTABLE(test_sis test/test_sis.cpp)
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} common_vme common_debug)
 

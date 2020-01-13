@@ -38,7 +38,7 @@ caen513_handle_t caen513_open(vme_driver_t vme_driver,uint32_t address ){
 
 		return NULL;
 	}
-	if(vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,0)!=0){
+	if(vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,VME_OPT_AM_SUPER_AM)!=0){
 		ERR("cannot map vme");
 		return NULL;
 	}

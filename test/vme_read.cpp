@@ -30,14 +30,15 @@ int main(int argc,char**argv){
 	dw=strtoul(argv[5],0,0);
 	off=strtoul(argv[6],0,0);
 	size=strtoul(argv[7],0,0);
-	handle=vmewrap_init_driver(type);
+	handle=vmewrap_init_driver((vme_driver_t)type);
 	char data[size*4];
 
 	if(handle==NULL){
 		printf("## cannot initialize driver type 0x%x\n",type);
 		return -1;
 	}
-	if(vmewrap_vme_open_master(handle,address,vme_size,addressing,dw,VME_OPT_AM_USER_AM|VME_OPT_AM_DATA_AM)!=0){
+	int opt=VME_OPT_AM_USER_AM|VME_OPT_AM_DATA_AM;
+	if(vmewrap_vme_open_master(handle,address,vme_size,(vme_addressing_t)addressing,(vme_access_t)dw,(vme_opt_t)opt)!=0){
 		printf("## cannot map address 0x%lx\n",address);
 		return -2;
 	}

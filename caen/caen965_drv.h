@@ -5,10 +5,6 @@
  * QDC
  * Andrea Michelotti
  * */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include <common/vme/core/vmewrap.h>
 
 typedef void* caen965_handle_t;
@@ -147,10 +143,6 @@ caen965_handle_t caen965_LV_open(uint32_t mapped_address,errorStruct* error);
 */
 int32_t caen965_LV_acquire_channels_poll(caen965_handle_t handle,void *lowres,void*hires,int32_t* event_under_run,int timeo_ms,errorStruct* error);
 
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif
