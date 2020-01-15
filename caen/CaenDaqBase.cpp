@@ -262,13 +262,29 @@ uint16_t CaenDaqBase::acquireChannels(uint16_t* channel,uint32_t *event){
     return 0;
 
 }
+void CaenDaqBase::setIPED(uint16_t mode){
+    write16(IPED_OFF,mode);
 
+}
+
+uint16_t CaenDaqBase::getIPED(){
+    return read16(IPED_OFF);
+
+}
 void CaenDaqBase::setBset(uint16_t mode){
     write16(BITSET2_OFF,mode);
     write16(BITCLR2_OFF,~mode);
 
 
 }
+uint16_t  CaenDaqBase::getBset(){
+    return read16(BITSET2_OFF);
+
+}
+uint16_t  CaenDaqBase::getFSR(){
+    return read16(FSR_OFF);
+}
+
 
 void CaenDaqBase::setMode(caen_modes_t mode){
     write16(BITSET2_OFF,mode);
