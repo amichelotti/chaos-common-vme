@@ -16,7 +16,7 @@
 
 
 
-caen965_handle_t caen965_open(vme_driver_t vme_driver,uint32_t address ){
+caen965_handle_t caen965_open(vmewrap_vme_handle_t vme_driver,uint32_t address ){
    return caen_common_open(vme_driver,address);
 }
 

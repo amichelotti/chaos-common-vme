@@ -258,8 +258,8 @@ typedef struct __evt_buffer {
     private date,
     handle
 */
-typedef struct __vme_handle__ {
- vmewrap_vme_handle_t vme;
+typedef struct __vme_caenhandle__ {
+ vmewrap_window_t vme;
   void* mapped_address;
   uint32_t event_counter;
   uint64_t cycle;

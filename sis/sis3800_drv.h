@@ -2,9 +2,6 @@
 #define __SIS3800_H__
 #include <stdint.h>
 #include <common/vme/core/vmewrap.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef void* sis3800_handle_t;
 
@@ -14,7 +11,7 @@ typedef void* sis3800_handle_t;
  @param address the vme address of the board
  @return an handle or zero if error
  */
-sis3800_handle_t sis3800_open(vme_driver_t vme_driver,uint32_t address);
+sis3800_handle_t sis3800_open(vmewrap_vme_handle_t vme_driver,uint32_t address);
 
 
 /**
@@ -51,6 +48,15 @@ uint32_t sis3800_readnclear(sis3800_handle_t h,int countern);
 uint32_t sis3800_readCounter(sis3800_handle_t h,int countern);
 
 /**
+ read a specific counter
+ @param h handle to the board
+ @param[in] countern, counter to be read
+
+ @return the counter,
+ */
+uint32_t sis3800_readCounter(sis3800_handle_t h,uint32_t* count,int countern);
+
+/**
  disable counters
  @param h handle to the board
  @param[in] counter bit mask of the counters to be disabled
@@ -81,10 +87,8 @@ void sis3800_clear(sis3800_handle_t h);
  @param h handle to the board
  */
 void sis3800_reset(sis3800_handle_t h);
-
-#ifdef __cplusplus
-}
-#endif
+#define SIS3800_COUNTER0_OFF 0x280
+#define SIS3800_COUNTER0_RDCLR_OFF 0x300
 
 #endif
 

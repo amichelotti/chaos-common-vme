@@ -14,6 +14,7 @@
 
 typedef struct sis3153_eth_priv{
 	char ip[64];
+	sis3153eth*vme_crate;
 	vme_addressing_t addressing;
 	vme_access_t access;
 	vme_opt_t opt;
@@ -21,76 +22,184 @@ typedef struct sis3153_eth_priv{
 	uint32_t size;
 } sis3153_eth_priv_t;
 
-static int vme_close_sis3153_eth(vmewrap_int_vme_handle_t handle){
-
+static int vme_close_sis3153_eth(vmewrap_window_t handle){
+	if(handle->priv){
+		free(handle->priv);
+		handle->priv=NULL;
+	}
 	return 0;
 }
-static int vme_init_sis3153_eth(vmewrap_int_vme_handle_t handle){
+static int vme_init_sis3153_eth(vmewrap_vme_handle_t handle){
 
 	return 0;
 
 }
-static int  map_master_sis3153_eth(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw, vme_opt_t vme_options){
-sis3153_eth_priv_t *opt=(sis3153_eth_priv_t*)handle->priv;
-	opt->addressing=addressing;
-	opt->opt=vme_options;
-	opt->access=dw;
-	opt->add=add;
-	opt->size=size;
-	
+static int  map_master_sis3153_eth(vmewrap_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw, vme_opt_t vme_options){	
 	return 0;
 	
 }
 
-static int  map_slave_sis3153_eth(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw,vme_opt_t vme_options){
-	sis3153_eth_priv_t *opt=(sis3153_eth_priv_t*)handle->priv;
-	opt->addressing=addressing;
-	opt->opt=vme_options;
-	opt->access=dw;
-	opt->add=add;
-	opt->size=size;
-	
+static int  map_slave_sis3153_eth(vmewrap_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw,vme_opt_t vme_options){
 	return 0;
 }
-static int vme_write8_sis3153_eth(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t* data,int sizen){
-	int ret=0;
+static int vme_write8_sis3153_eth(vmewrap_window_t  handle,unsigned off,uint8_t* data,int sizen){
+		uint32_t ret=0;
 
+	sis3153eth *vme_crate=(sis3153eth *)handle->parent->bus;
+
+	if(handle->addressing==VME_ADDRESSING_A32){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=vme_crate->vme_A32D8_write(handle->add+off,data[cnt]);
+		}
+	} else if(handle->addressing==VME_ADDRESSING_A24){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=vme_crate->vme_A24D8_write(handle->add+off,data[cnt]);
+		}
+	} else if(handle->addressing==VME_ADDRESSING_A16){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=vme_crate->vme_A16D8_write(handle->add+off,data[cnt]);
+		}
+	} else{
+		DERR("unsupported address space");
+		return -1;
+	}
+	return ret;
+
+
+}
+
+static int vme_write32_sis3153_eth(vmewrap_window_t  handle,unsigned off,uint32_t* data,int sizen){
+	uint32_t ret=0;
+
+	sis3153eth *vme_crate=(sis3153eth *)handle->parent->bus;
+
+	if(handle->addressing==VME_ADDRESSING_A32){
+		if(sizen==1){
+			ret+=vme_crate->vme_A32D32_write(handle->add+off,*data);
+			return ret;
+
+		}
+		if(handle->opt|VME_OPT_BLT_ON){
+			vme_crate->vme_A32BLT32_write(handle->add+off,data,sizen,&ret);
+		} else {
+			vme_crate->vme_A32DMA_D32_write(handle->add+off,data,sizen,&ret);
+
+		}
+	} else if(handle->addressing==VME_ADDRESSING_A24){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=vme_crate->vme_A24D32_write(handle->add+off,data[cnt]);
+		}
+	} else {
+		DERR("unsupported address space");
+		return -1;
+	}
 	return ret;
 
 }
+static int vme_write16_sis3153_eth(vmewrap_window_t  handle,unsigned off,uint16_t* data,int sizen){
+	uint32_t ret=0;
 
-static int vme_write32_sis3153_eth(vmewrap_int_vme_handle_t  handle,unsigned off,uint32_t* data,int sizen){
-	int ret=0;
+	sis3153eth *vme_crate=(sis3153eth *)handle->parent->bus;
 
+	if(handle->addressing==VME_ADDRESSING_A32){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=vme_crate->vme_A32D16_write(handle->add+off,data[cnt]);
+		}
+	} else if(handle->addressing==VME_ADDRESSING_A24){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=vme_crate->vme_A24D16_write(handle->add+off,data[cnt]);
+		}
+	} else if(handle->addressing==VME_ADDRESSING_A16){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=vme_crate->vme_A16D16_write(handle->add+off,data[cnt]);
+		}
+	} else{
+		DERR("unsupported address space");
+		return -1;
+	}
 	return ret;
 
 }
-static int vme_write16_sis3153_eth(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t* data,int sizen){
-	int ret=0;
+static int vme_read32_sis3153_eth(vmewrap_window_t  handle,unsigned off,uint32_t *data,int sizen){
+	uint32_t ret=0;
 
+	sis3153eth *vme_crate=(sis3153eth *)handle->parent->bus;
+
+	if(handle->addressing==VME_ADDRESSING_A32){
+		if(sizen==1){
+			ret+=(vme_crate->vme_A32D32_read(handle->add+off,data)==0)?1:0;
+			return ret;
+		}
+		if(handle->opt|VME_OPT_BLT_ON){
+			vme_crate->vme_A32BLT32_read(handle->add+off,data,sizen,&ret);
+		} else {
+			vme_crate->vme_A32DMA_D32_read(handle->add+off,data,sizen,&ret);
+
+		}
+	} else if(handle->addressing==VME_ADDRESSING_A24){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=(vme_crate->vme_A24D32_read(handle->add+off,&data[cnt])==0)?1:0;
+		}
+	} else {
+		DERR("unsupported address space");
+		return -1;
+	}
 	return ret;
-}
-static int vme_read32_sis3153_eth(vmewrap_int_vme_handle_t  handle,unsigned off,uint32_t *data,int sizen){
-	int ret=0;
 
-	return  ret;
 
 }
-static int vme_read16_sis3153_eth(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t *data,int sizen){
-	int ret=0;
-	
+static int vme_read16_sis3153_eth(vmewrap_window_t  handle,unsigned off,uint16_t *data,int sizen){
+	uint32_t ret=0;
+
+	sis3153eth *vme_crate=(sis3153eth *)handle->parent->bus;
+
+	if(handle->addressing==VME_ADDRESSING_A32){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=(vme_crate->vme_A32D16_read(handle->add+off,&data[cnt])==0)?1:0;
+		}
+	} else if(handle->addressing==VME_ADDRESSING_A24){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=(vme_crate->vme_A24D16_read(handle->add+off,&data[cnt])==0)?1:0;
+		}
+	} else if(handle->addressing==VME_ADDRESSING_A16){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=(vme_crate->vme_A16D16_read(handle->add+off,&data[cnt])==0)?1:0;
+		}
+	} else{
+		DERR("unsupported address space");
+		return -1;
+	}
 	return ret;
-}
-static int vme_read8_sis3153_eth(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t *data,int sizen){
-	int ret=0;
 
-	return  ret;
+}
+static int vme_read8_sis3153_eth(vmewrap_window_t  handle,unsigned off,uint8_t *data,int sizen){
+			uint32_t ret=0;
+
+	sis3153eth *vme_crate=(sis3153eth *)handle->parent->bus;
+
+	if(handle->addressing==VME_ADDRESSING_A32){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=(vme_crate->vme_A32D8_read(handle->add+off,&data[cnt])==0)?1:0;
+		}
+	} else if(handle->addressing==VME_ADDRESSING_A24){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=(vme_crate->vme_A24D8_read(handle->add+off,&data[cnt])==0)?1:0;
+		}
+	} else if(handle->addressing==VME_ADDRESSING_A16){
+		for(int cnt=0;cnt<sizen;cnt++){
+			ret+=(vme_crate->vme_A16D8_read(handle->add+off,&data[cnt])==0)?1:0;
+		}
+	} else{
+		DERR("unsupported address space");
+		return -1;
+	}
+	return ret;
+
 }
 typedef std::map<std::string,sis3153eth *> ip2sis_t;
 static std::map<std::string,sis3153eth *> sisdev;
-int vme_init_driver_sis3153_eth(vmewrap_vme_handle_t handle,void *params){
+int vme_init_driver_sis3153_eth(vmewrap_vme_handle_t p,void *params){
 
-	vmewrap_int_vme_handle_t p=(vmewrap_int_vme_handle_t)handle;
 	sis3153eth *vme_crate;
 	const char*ip_addr_string=(const char*)params;
 	if(ip_addr_string==NULL){
@@ -116,15 +225,13 @@ int vme_init_driver_sis3153_eth(vmewrap_vme_handle_t handle,void *params){
 			DERR("NO DEVICE FOUND");
 			return -9;
 		}
-		p->priv=(void*)calloc(1,sizeof(sis3153_eth_priv_t));
-
 		
 	}else {
 		DPRINT("found a sis controller @%s 0x%p\n",ip_addr_string,*found);
 		vme_crate=found->second;
 	}
-	
-	p->vme_close=vme_close_sis3153_eth;
+	// every init create a difference space for base address and addressing.
+	p->map_close=vme_close_sis3153_eth;
 	p->vme_init=vme_init_sis3153_eth;
 	p->map_master=map_master_sis3153_eth;
 	p->map_slave=map_slave_sis3153_eth;
@@ -136,10 +243,29 @@ int vme_init_driver_sis3153_eth(vmewrap_vme_handle_t handle,void *params){
 	p->vme_read16=vme_read16_sis3153_eth;
 	p->vme_read32=vme_read32_sis3153_eth;
 	p->bus = (void*)vme_crate;
+	
 	return 0;
 }
-int vme_deinit_driver_sis3153_eth(vmewrap_vme_handle_t handle){
+int vme_deinit_driver_sis3153_eth(vmewrap_vme_handle_t p){
+
+	sis3153eth *vme_crate=(sis3153eth *)p->bus;
 	
+	if(vme_crate!=NULL){
+		for(int cnt=0;cnt<p->nwindow;cnt++){
+			if(p->window[cnt]){
+				vme_close_sis3153_eth(p->window[cnt]);
+			}
+		}
+		vme_crate->vmeclose();
+		for(ip2sis_t::iterator i =sisdev.begin();(i!=sisdev.end())&&(i->second!=vme_crate);i++){
+			if(i->second==vme_crate){
+				sisdev.erase(i);
+				break;
+			}
+		}
+		delete vme_crate;
+	}
+
 	return 0;
 }
 

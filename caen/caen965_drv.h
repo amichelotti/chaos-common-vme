@@ -15,7 +15,7 @@ typedef void* caen965_handle_t;
 	@param address the vme address of the board
 	@return an handle or zero if error
 */
-caen965_handle_t caen965_open(vme_driver_t vme_driver,uint32_t address);
+caen965_handle_t caen965_open(vmewrap_vme_handle_t vme_driver,uint32_t address);
 
 
 /**

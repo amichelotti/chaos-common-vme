@@ -19,6 +19,8 @@ namespace vme {
 
 class VmeBase {
 	vmewrap_vme_handle_t vme;
+	vmewrap_window_t window;
+
 	boost::thread m_thread;
 	int run;
 	void sched_task();
@@ -54,13 +56,13 @@ public:
 	int set(uint32_t off,T& data){
 		DPRINT("VMESET off 0x%x data=0x%x fd=%d",off,data,getFD());
 
-		return vmewrap_set_reg(vme,&data, off,sizeof(T));
+		return vmewrap_set_reg(window,&data, off,sizeof(T));
 	}
 	template<typename T>
 	int clr(uint32_t off,T& data){
 		DPRINT("VMECLR off 0x%x data=0x%x fd=%d",off,data,getFD());
 
-		return vmewrap_clr_reg(vme,&data, off,sizeof(T));
+		return vmewrap_clr_reg(window,&data, off,sizeof(T));
 
 	}
 

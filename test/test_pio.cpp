@@ -57,7 +57,8 @@ int main(int argc,char**argv){
   fclose(fconf_file);
 
   write_mask=strtoul(argv[2],0,0);
-  OPENDEV(caen513);
+  vmewrap_vme_handle_t vme= vmewrap_init_driver(VME_UNIVERSE2_DRIVER);
+caen513_handle=caen513_open(vme,caen513_addr);
   caen513_init(caen513_handle,V513_CHANMODE_NEG|V513_CHANMODE_IGLITCHED|V513_CHANMODE_INPUT); 
 
   

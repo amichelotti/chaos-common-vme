@@ -62,8 +62,8 @@ int main(int argc,char**argv){
   fclose(fconf_file);
 
 
-
-  OPENDEV(sis3800);
+vmewrap_vme_handle_t vme= vmewrap_init_driver(VME_UNIVERSE2_DRIVER);
+sis3800_handle= sis3800_open(vme,sis3800_addr);
   if(argc==3){
     printf("* initialising...\n");
     sis3800_init(sis3800_handle);

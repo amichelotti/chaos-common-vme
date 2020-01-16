@@ -14,7 +14,7 @@
 // Register map
 
 typedef struct __vme_handle__ {
-	vmewrap_vme_handle_t vme;
+	vmewrap_window_t vme;
 	void* mapped_address;
 } _caen977_handle_t ;
 
@@ -111,43 +111,33 @@ void caen977_outputClear(caen977_handle_t h){
 void caen977_testCtrlRegister(caen977_handle_t h,uint16_t mode);
 
 
-caen977_handle_t caen977_open(vme_driver_t vme_driver,uint32_t address ){
+caen977_handle_t caen977_open(vmewrap_vme_handle_t vme,uint32_t address ){
 	int am,flags;
 	void* mapped_address;
 	int size = 0x10000;
 	int boardid,manufactureid;
-	vmewrap_vme_handle_t vme;
-	DPRINT("opening vme device at @0x%x\n",address);
-	vme = vmewrap_init_driver(vme_driver);
-	if(vme==NULL){
-		ERR("cannot initialize VME driver %d",vme_driver);
-
-		return NULL;
-	}
-	if(vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D16,(vme_opt_t)0)!=0){
+	vmewrap_window_t window;
+	if((window=vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D16,(vme_opt_t)0))==0){
 		ERR("cannot map vme");
 		return NULL;
 	}
 
-	mapped_address =  vmewrap_get_linux_add(vme);
-	if (0 == mapped_address) {
-		ERR("cannot map VME window\n");
-		perror("vme_master_window_map");
-		return 0;
-	}
-
+	mapped_address =  vmewrap_get_linux_add(window);
+	
 	_caen977_handle_t* p = (_caen977_handle_t* )malloc(sizeof(_caen977_handle_t));
 	if(p==NULL){
 		ERR("cannot allocate resources\n");
-		vmewrap_vme_close(vme);
+		vmewrap_vme_close(window);
 		return 0;
 	}
-	p->vme = vme;
+	p->vme = window;
 	p->mapped_address = mapped_address;
-	boardid=BOARD_ID_REG(mapped_address)&0xFFFF;
-	manufactureid=MANUFACTURE_ID_REG(mapped_address)&0xFFFF;
-	DPRINT("CAEN977 successfully mapped at @0x%p\n",mapped_address);
-	PRINT("CAEN977 Version:0x%x\n",VERSION_REG(mapped_address));
+	boardid=BOARD_ID_REG(window)&0xFFFF;
+	manufactureid=MANUFACTURE_ID_REG(window)&0xFFFF;
+	if(mapped_address){
+		DPRINT("CAEN977 successfully mapped at @0x%p\n",mapped_address);
+	}
+	PRINT("CAEN977 Version:0x%x\n",VERSION_REG(window));
 	PRINT("CAEN977 BoardID:0x%x\n",boardid);
 	PRINT("CAEN977 Manufacture:0x%x\n",manufactureid);
 /*	if(manufactureid!=MANUFACTURE_ID){
@@ -183,22 +173,23 @@ void caen977_setChannelMode(caen977_handle_t h,int channel,int mode){
 
 int32_t caen977_getChannelMode(caen977_handle_t h,int channel){
 	_caen977_handle_t* handle = (_caen977_handle_t*)h;
-	return REG16(handle->mapped_address,0x10 +2 *channel);
+	return REG16(handle->vme,0x10 +2 *channel);
 
 }
 
 void caen977_setStrobe(caen977_handle_t h,int mode){
 	_caen977_handle_t* handle = (_caen977_handle_t*)h;
-	REG16(handle->mapped_address,0x6)=mode;
+	VME_WRITE16(handle->vme,0x6,mode);
+
 }
 int32_t caen977_getStrobe(caen977_handle_t h){
 	_caen977_handle_t* handle = (_caen977_handle_t*)h;
-	return REG16(handle->mapped_address,0x6);
+	return REG16(handle->vme,0x6);
 }
 
 int32_t caen977_get(caen977_handle_t h){
 	_caen977_handle_t* handle = (_caen977_handle_t*)h;
-	return REG16(handle->mapped_address,0x4);
+	return REG16(handle->vme,0x4);
 }
 void caen977_set(caen977_handle_t h,int mask){
 	_caen977_handle_t* handle = (_caen977_handle_t*)h;

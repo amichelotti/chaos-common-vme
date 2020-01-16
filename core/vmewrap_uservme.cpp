@@ -1,6 +1,6 @@
 
 //#define DEBUG 1
-#include "vmewrap_int.h"
+#include "vmewrap.h"
 #include <poll.h>
 #include <common/debug/core/debug.h>
 #include "vme_user.h"
@@ -156,7 +156,7 @@ public:
 };
 
 static BusAllocator bus;
-static int vme_close_uservme(vmewrap_int_vme_handle_t handle){
+static int vme_close_uservme(vmewrap_window_t handle){
     DPRINT("closing vme handle 0x%p fd:%d",handle,handle->fd);
 
     if(handle && (handle->fd>0)){
@@ -170,7 +170,7 @@ static int vme_close_uservme(vmewrap_int_vme_handle_t handle){
 
     return -1;
 }
-static int vme_init_uservme(vmewrap_int_vme_handle_t handle){
+static int vme_init_uservme(vmewrap_vme_handle_t handle){
     DPRINT("init vme library handle 0x%p",handle);
 
     return 0;
@@ -232,7 +232,7 @@ static int configure_vme_params(vme_addressing_t addressing,vme_access_t dw, vme
     return 0;
 }
 
-static int  map_master_uservme(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw, vme_opt_t vme_options){
+static int  map_master_uservme(vmewrap_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw, vme_opt_t vme_options){
     struct vme_master master;
     int retval;
     int myfd;
@@ -265,14 +265,13 @@ static int  map_master_uservme(vmewrap_int_vme_handle_t handle,uint32_t add,uint
         perror("ERROR: Failed to configure window");
         return -10;
     }
-    handle->mapped_address=0;
 
     // DPRINT("Master address mapped at @0x%p size 0x%x, addressing %d (0x%x) dw %d (0x%x)",handle->mapped_address,size,addressing,uni_addressing,dw,uni_dw);
     DPRINT("Master VME address 0x%x size: %d , am =0x%x dw=0x%x mapped on %s device",add,size,vme_options,dw,bus.getDevice(myfd).c_str());
     return 0;
 }
 
-static int  map_slave_uservme(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw,vme_opt_t vme_options){
+static int  map_slave_uservme(vmewrap_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw,vme_opt_t vme_options){
     struct vme_slave slave;
     int retval;
     int myfd;
@@ -305,13 +304,12 @@ static int  map_slave_uservme(vmewrap_int_vme_handle_t handle,uint32_t add,uint3
         perror("ERROR: Failed to configure window");
         return -10;
     }
-    handle->mapped_address=0;
 
     // DPRINT("Master address mapped at @0x%p size 0x%x, addressing %d (0x%x) dw %d (0x%x)",handle->mapped_address,size,addressing,uni_addressing,dw,uni_dw);
     DPRINT("Slave VME address 0x%x size: %d , am =0x%x dw=0x%x mapped on %s device",add,size,vme_options,dw,bus.getDevice(myfd).c_str());
     return 0;
 }
-static int vme_write8_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t* data,int sizen){
+static int vme_write8_uservme(vmewrap_window_t  handle,unsigned off,uint8_t* data,int sizen){
     int fd=handle->fd;
     int ret=0;
     lseek(fd,off,SEEK_SET);
@@ -319,7 +317,7 @@ static int vme_write8_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uint
 
 }
 
-static int vme_write32_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uint32_t* data,int sizen){
+static int vme_write32_uservme(vmewrap_window_t  handle,unsigned off,uint32_t* data,int sizen){
 
     int fd=handle->fd;
 
@@ -335,7 +333,7 @@ static int vme_write32_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uin
 
     return write(fd,data,sizen*sizeof(uint32_t));
 }
-static int vme_write16_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t* data,int sizen){
+static int vme_write16_uservme(vmewrap_window_t  handle,unsigned off,uint16_t* data,int sizen){
     int fd=handle->fd;
 
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
@@ -350,7 +348,7 @@ static int vme_write16_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uin
 
     return write(fd,data,sizen*sizeof(uint16_t));
 }
-static int vme_read32_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uint32_t *data,int sizen){
+static int vme_read32_uservme(vmewrap_window_t  handle,unsigned off,uint32_t *data,int sizen){
     int fd=handle->fd;
     uint32_t tmp=0;
     lseek(fd,off,SEEK_SET);
@@ -366,7 +364,7 @@ static int vme_read32_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uint
     return ret;
 }
 
-static int vme_read16_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t *data,int sizen){
+static int vme_read16_uservme(vmewrap_window_t  handle,unsigned off,uint16_t *data,int sizen){
     int fd=handle->fd;
     uint16_t tmp=0;
     lseek(fd,off,SEEK_SET);
@@ -380,14 +378,14 @@ static int vme_read16_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uint
 #endif
     return ret;
 }
-static int vme_read8_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t *data,int sizen){
+static int vme_read8_uservme(vmewrap_window_t  handle,unsigned off,uint8_t *data,int sizen){
     int fd=handle->fd;
     lseek(fd,off,SEEK_SET);
 
     return read(fd,data,sizen*sizeof(uint8_t));
 }
 
-static int vme_set_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,void *data,int sizeb){
+static int vme_set_uservme(vmewrap_window_t  handle,unsigned off,void *data,int sizeb){
     int fd=handle->fd;
 
     struct pack{
@@ -402,7 +400,7 @@ static int vme_set_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,void *d
 
     return ret;
 }
-static int vme_clr_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,void *data,int sizeb){
+static int vme_clr_uservme(vmewrap_window_t  handle,unsigned off,void *data,int sizeb){
     int fd=handle->fd;
 
     struct pack{
@@ -417,7 +415,7 @@ static int vme_clr_uservme(vmewrap_int_vme_handle_t  handle,unsigned off,void *d
     int  ret=ioctl(fd, VME_CLR_REG, &d);
     return ret;
 }
-int vme_interrupt_enable_uservme(vmewrap_int_vme_handle_t  handle,int level, int signature,int type,void*priv){
+int vme_interrupt_enable_uservme(vmewrap_window_t  handle,int level, int signature,int type,void*priv){
     int fd=handle->fd;
     struct vme_irq_handle irq_req;
     int ret;
@@ -434,7 +432,7 @@ int vme_interrupt_enable_uservme(vmewrap_int_vme_handle_t  handle,int level, int
 
     return ret;
 }
-int vme_interrupt_disable_uservme(vmewrap_int_vme_handle_t  handle){
+int vme_interrupt_disable_uservme(vmewrap_window_t  handle){
     int fd=handle->fd;
     int ret=ioctl(fd,VME_IRQ_REMOVE,0);
     DPRINT("[%d] interrupt disable ret=%d",fd,ret);
@@ -442,7 +440,7 @@ int vme_interrupt_disable_uservme(vmewrap_int_vme_handle_t  handle){
     return ret;
 }
 
-int vme_wait_interrupt_uservme(vmewrap_int_vme_handle_t  handle,int timeo_ms){
+int vme_wait_interrupt_uservme(vmewrap_window_t  handle,int timeo_ms){
     struct pollfd pol;
     int fd=handle->fd;
 
@@ -461,11 +459,9 @@ int vme_wait_interrupt_uservme(vmewrap_int_vme_handle_t  handle,int timeo_ms){
     return ret;
 
 }
-int vme_init_driver_uservme(vmewrap_vme_handle_t handle){
-    vmewrap_int_vme_handle_t p=(vmewrap_int_vme_handle_t)handle;
+int vme_init_driver_uservme(vmewrap_vme_handle_t p){
     DPRINT("Initializing library");
-    p->fd=0;
-    p->vme_close=vme_close_uservme;
+    p->map_close=vme_close_uservme;
     p->vme_init=vme_init_uservme;
     p->map_master=map_master_uservme;
     p->map_slave=map_slave_uservme;
@@ -483,12 +479,13 @@ int vme_init_driver_uservme(vmewrap_vme_handle_t handle){
 
     return 0;
 }
-int vme_deinit_driver_uservme(vmewrap_vme_handle_t handle){
-    vmewrap_int_vme_handle_t p=(vmewrap_int_vme_handle_t)handle;
+int vme_deinit_driver_uservme(vmewrap_vme_handle_t p){
     DPRINT("DeInitializing library");
+    for(int cnt=0;cnt<p->nwindow;cnt++){
+        if(p->window[cnt])vme_close_uservme(p->window[cnt]);
 
-    int ret=vme_close_uservme(p);
-    return ret;
+    }
+    return 0;
 }
 
 
