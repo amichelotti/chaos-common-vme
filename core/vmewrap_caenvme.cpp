@@ -179,7 +179,7 @@ static int caenvme_init(vmewrap_vme_handle_t handle){
 		VMEBoard = cvV2718;
 		break;
 	default:
-		ERR("unsupported %d CAENVME board",handle->type);
+		ERR("unsupported %s CAENVME board",handle->type.c_str());
 		return -1;
 	}
 
