@@ -1,10 +1,8 @@
-#include <common/vme/caen/caen513_drv.h>
+#include <common/vme/sis/sis3800_drv.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define USAGE printf("%s <conffile> <output mask> [write data]\n",argv[0]);
-
-
+#define USAGE printf("%s <conffile> [init]\n",argv[0]);
 
 #define CLOSEDEV(_x) \
   _x ## _close(_x ## _handle);
@@ -17,18 +15,25 @@
     return -2;\
   }
 
-
 int main(int argc,char**argv){
- 
+  unsigned long address=0;
+  void* caen;
   char*conf_file;
   FILE* fconf_file;
- 
+  int ret;
+  uint32_t acquire_cycles=0;
+  uint32_t acquire_timeo=0;
+  int timeo_counter=0;
+  uint32_t low[16],hi[16],ch[32],counters[32];
   uint32_t caen513_addr=0,caen965_addr=0,caen792_addr=0,sis3800_addr=0;
-  caen513_handle_t caen513_handle=NULL;
-  uint32_t write_mask=0x0;
+  uint64_t loop=0,cycle0=0,cycle1=0,loop_time_start=0;
+
+  sis3800_handle_t sis3800_handle=NULL;
   int32_t pio;
+  int is965=1;
   int cnt;
-  if(argc<3){
+    FILE*out;
+  if(argc<2){
     USAGE;
     return 1;
   }
@@ -56,34 +61,19 @@ int main(int argc,char**argv){
   }
   fclose(fconf_file);
 
-  write_mask=strtoul(argv[2],0,0);
-  OPENDEV(caen513);
-  caen513_init(caen513_handle,V513_CHANMODE_NEG|V513_CHANMODE_IGLITCHED|V513_CHANMODE_INPUT); 
 
+vmewrap_vme_handle_t vme= vmewrap_init_driver(VME_UNIVERSE2_DRIVER);
+sis3800_handle= sis3800_open(vme,sis3800_addr);
+  if(argc==3){
+    printf("* initialising...\n");
+    sis3800_init(sis3800_handle);
+  }
+  for(cnt=0;cnt<32;cnt++){
+    uint32_t data=sis3800_readCounter(sis3800_handle,cnt);
+    printf("counter[%d]=%d\n",cnt,data);
+  }
+
+  CLOSEDEV(sis3800);
   
-  for(cnt=0;cnt<16;cnt++){
-    if(write_mask&(1<<cnt)){
-      //configure as output
-      caen513_setChannelMode(caen513_handle,cnt, V513_CHANMODE_NEG|V513_CHANMODE_OUTPUT); 
-    } else {
-      caen513_setChannelMode(caen513_handle,cnt, V513_CHANMODE_NEG|V513_CHANMODE_IGLITCHED|V513_CHANMODE_INPUT); 
-    }
-
-  }
-
-  if(argc==4){
-    // write
-    uint32_t data=strtoul(argv[3],0,0);
-    	caen513_set(caen513_handle,data);
-	
-  } else {
-    //read
-
-    pio=caen513_get(caen513_handle);
-    
-    printf("read=0x%x\n",pio);
-  }
-  CLOSEDEV(caen513);
-    
   return 0;
 }

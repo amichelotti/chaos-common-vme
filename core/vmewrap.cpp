@@ -1,23 +1,48 @@
 #include <stdlib.h>
 #include <common/debug/core/debug.h>
 #include "vmewrap.h"
-#include "vmewrap_int.h"
-
 #include "vmewrap_universe2.h"
 #include "vmewrap_caenvme.h"
 #include "vmewrap_uservme.h"
+#include "vmewrap_sis3153_eth.h"
 
+#define CHECK_DRIVER_NAME(dname,x) \
+if(dname==x)return (x ##_DRIVER)
 
-extern "C" {
+#define CHECK_DRIVER_ID(dname,x) \
+if(dname==(x ##_DRIVER))return std::string(x);
 
-vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
-	vmewrap_int_vme_handle_t p;
-	p = (vmewrap_int_vme_handle_t)calloc(1,sizeof(struct __vme_handle__ ));
+vme_driver_t driverNameToId(const std::string&name){
+	CHECK_DRIVER_NAME(name,VME_UNIVERSE2);
+	CHECK_DRIVER_NAME(name,VME_UNIVERSE);
+	CHECK_DRIVER_NAME(name,VME_CAEN1718);
+	CHECK_DRIVER_NAME(name,VME_CAEN2718);
+	CHECK_DRIVER_NAME(name,VME_LINUX_USER);
+	CHECK_DRIVER_NAME(name,VME_SIS3153_ETH);
+	return VME_UKNOWN_DRIVER;
+}
+std::string idToDriverName(vme_driver_t name){
+	CHECK_DRIVER_ID(name,VME_UNIVERSE2);
+	CHECK_DRIVER_ID(name,VME_UNIVERSE);
+	CHECK_DRIVER_ID(name,VME_CAEN1718);
+	CHECK_DRIVER_ID(name,VME_CAEN2718);
+	CHECK_DRIVER_ID(name,VME_LINUX_USER);
+	CHECK_DRIVER_ID(name,VME_SIS3153_ETH);
+	return std::string(VME_UKNOWN);
+}
+
+vmewrap_vme_handle_t vmewrap_init_driver(const char* driver,void *params){
+	return vmewrap_init_driver(driverNameToId(driver),params);
+
+}
+vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver,void *params){
+	vmewrap_vme_handle_t p;
+	p = new __vmewrap_handle__ ();
 	if(p==NULL){
 		ERR("cannot allocate resources");
 		return 0;
 	}
-	p->type = driver;
+	p->type = idToDriverName(driver);
 	switch(driver){
 	case VME_UNIVERSE2_DRIVER:
 		//case VME_UNIVERSE_DRIVER:
@@ -37,9 +62,16 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
 			return 0;
 		}
 		break;
-	case VME_LINUX_USER:
+	case VME_LINUX_USER_DRIVER:
 		if(vme_init_driver_uservme(p)!=0){
 			ERR("cannot initialize uservme");
+			delete p;
+			return 0;
+		}
+		break;
+	case VME_SIS3153_ETH_DRIVER:
+		if(vme_init_driver_sis3153_eth(p,params)!=0){
+			ERR("cannot initialize sis3153_eth");
 			delete p;
 			return 0;
 		}
@@ -54,16 +86,15 @@ vmewrap_vme_handle_t vmewrap_init_driver(vme_driver_t driver){
 
 }
 
-int vmewrap_deinit_driver(vmewrap_vme_handle_t driver){
-	vmewrap_int_vme_handle_t p;
-	p = (vmewrap_int_vme_handle_t)driver;
+int vmewrap_deinit_driver(vmewrap_vme_handle_t p){
+
 	int err=0;
 	if(p==NULL){
 		ERR("bad handle");
 		return -1;
 	}
 
-	switch(p->type){
+	switch(driverNameToId(p->type.c_str())){
 	case VME_UNIVERSE2_DRIVER:
 	case VME_UNIVERSE_DRIVER:
 
@@ -79,7 +110,22 @@ int vmewrap_deinit_driver(vmewrap_vme_handle_t driver){
 		if(vme_deinit_driver_caenvme(p)!=0){
 			ERR("cannot deinitialize caenvme");
 			delete p;
-			return 0;
+			return -1;
+		}
+
+		break;
+	case VME_SIS3153_ETH_DRIVER:
+		if(vme_deinit_driver_sis3153_eth(p)!=0){
+			ERR("cannot deinitialize sis3153");
+			delete p;
+			return -1;
+		}
+		break;
+	case VME_LINUX_USER_DRIVER:
+		if(vme_deinit_driver_uservme(p)!=0){
+			ERR("cannot deinitialize uservme");
+			delete p;
+			return -1;
 		}
 		break;
 	default:
@@ -92,54 +138,64 @@ int vmewrap_deinit_driver(vmewrap_vme_handle_t driver){
 	return err;
 
 }
-int vmewrap_getFD(vmewrap_vme_handle_t  h){
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
+int vmewrap_getFD(vmewrap_window_t  h){
 	if(h==NULL){
 		return -1;
 	}
-	return handle->fd;
+	return h->fd;
 
 }
-int vmewrap_setFD(vmewrap_vme_handle_t  h,int fd){
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
+int vmewrap_setFD(vmewrap_window_t  h,int fd){
 	if(h==NULL){
 		return -1;
 	}
-	handle->fd=fd;
-	return handle->fd;
+	h->fd=fd;
+	return h->fd;
 
 }
-int vmewrap_vme_open_master(vmewrap_vme_handle_t  h,uint32_t master_add,uint32_t master_size,vme_addressing master_addressing,vme_access dw,vme_opt vme_opts){
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-
+vmewrap_window_t vmewrap_vme_open_master(vmewrap_vme_handle_t  handle,uint32_t master_add,uint32_t master_size,vme_addressing master_addressing,vme_access dw,vme_opt vme_opts){
+	vmewrap_window_t ret;
 	if(master_size==0){
-		return -1;
+		ERR("size must be greater than 0");
+		return 0;
 	}
 
 	if (  handle->vme_init(handle)) {
 		ERR("cannot initialize vme");
 		perror("vme_init");
-		return -2;
+		return 0;
 	}
 
-	DPRINT("vme init vme handle %p, vme wrap handle %p",handle->bus,h);
+	if(handle->nwindow>=VMEMAXWIN){
+		ERR("too many open vme windows %d",handle->nwindow);
+		return 0;
+	}
+		ret=new __vme_window__();
+		ret->parent=handle;
+		ret->add=master_add;
+		ret->addressing=master_addressing;
+		ret->master=1;
+		ret->access=dw;
+		ret->size=master_size;
+		ret->master=1;
+		ret->opt=vme_opts;
+		ret->index=handle->nwindow;
+		ret->fd=ret->index; // initialize to index... can be changed
+		handle->window[ret->index]=ret;
+	DPRINT("Creating new master window id:%d (0x%p) vme addr:0x%x-0x%x vme bus %p, vme wrap handle %p",ret->index,ret,master_add,master_add+master_size,handle->bus,handle);
 
-	handle->master=1;
-	handle->phys_add=(uint64_t)master_add;
-	handle->size = master_size;
-	if(handle->map_master(handle,master_add,master_size,master_addressing,dw,vme_opts)< 0){
+	if((handle->map_master(handle,master_add,master_size,master_addressing,dw,vme_opts))<0){
 		ERR("failed mapping as master");
-		return -3;
+		delete(ret);
+		handle->window[ret->index]=0;
+		return 0;
 	}
-
-
-	return 0;
+	handle->nwindow++;
+	return ret;
 }
 
-int vmewrap_vme_open_slave(vmewrap_vme_handle_t  h,uint32_t slave_add,uint32_t slave_size,vme_addressing slave_addressing,vme_access dw,vme_opt vme_opts){
-
-
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
+vmewrap_window_t vmewrap_vme_open_slave(vmewrap_vme_handle_t  handle,uint32_t slave_add,uint32_t slave_size,vme_addressing slave_addressing,vme_access dw,vme_opt vme_opts){
+	vmewrap_window_t ret;
 	if(slave_size==0){
 		return 0;
 	}
@@ -147,39 +203,52 @@ int vmewrap_vme_open_slave(vmewrap_vme_handle_t  h,uint32_t slave_add,uint32_t s
 	if (  handle->vme_init(handle)) {
 		ERR("cannot initialize vme");
 		perror("vme_init");
-		return -2;
+		return 0;
 	}
 
-	DPRINT("vme init vme handle %p, vme wrap handle %p",handle->bus,h);
+	DPRINT("vme init vme handle %p, vme wrap handle %p",handle->bus,handle);
+	if(handle->nwindow>=VMEMAXWIN){
+		ERR("too many open vme windows %d",handle->nwindow);
+		return 0;
+	}
+	ret=new __vme_window__();
+	ret->parent=handle;
+	ret->add=slave_add;
+	ret->addressing=slave_addressing;
+	ret->access=dw;
+	ret->size=slave_size;
+	ret->master=0;
+	ret->opt=vme_opts;
+	ret->index=handle->nwindow;
+	ret->fd=ret->index; // initialize to index... can be changed
+	handle->window[ret->index]=ret;
+	DPRINT("Creating new slave window id:%d (0x%p) vme addr:0x%x-0x%x vme bus %p, vme wrap handle %p",ret->index,ret,slave_add,slave_add+slave_size,handle->bus,handle);
 
-	handle->master=0;
-	handle->phys_add=(uint64_t)slave_add;
-	handle->size = slave_size;
 	if(handle->map_slave(handle,slave_add,slave_size,slave_addressing,dw,vme_opts)< 0){
 		ERR("failed mapping as slave");
-		return -3;
+		delete (ret);
+		handle->window[ret->index]=0;
+		return 0;
 	}
-
-
-	return 0;
+	
+	handle->nwindow++;
+	return ret;
 }
 
-
-
-int vmewrap_vme_close(vmewrap_vme_handle_t  h){
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-    DPRINT("closing handle 0x%p",h);
+int vmewrap_vme_close(vmewrap_window_t  handle){
+    DPRINT("closing handle 0x%p",handle);
 	if(handle){
-        handle->vme_close(handle);
-		free(handle);
+        handle->parent->map_close(handle);
+		handle->parent->window[handle->index]=0;
+		if(handle->parent->nwindow>0)handle->parent->nwindow--;
+		delete(handle);
 		return 0;
 	}
 	return -4;
 }
 
 
-void* vmewrap_get_linux_add(vmewrap_vme_handle_t  h){
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
+void* vmewrap_get_linux_add(vmewrap_window_t  handle){
 	if(handle){
 		DPRINT("returning mapped linux address %p, if zero driver unable to map",handle->mapped_address);
 		return handle->mapped_address;
@@ -188,62 +257,61 @@ void* vmewrap_get_linux_add(vmewrap_vme_handle_t  h){
 }
 
 
-int vmewrap_write32(vmewrap_vme_handle_t  h,unsigned off,uint32_t* data,int sizen){
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-	return handle->vme_write32((vmewrap_int_vme_handle_t)handle,off,data,sizen);
+int vmewrap_write32(vmewrap_window_t handle,unsigned off,uint32_t* data,int sizen){
+	DPRINT("[%s]write32  0x%X+0x%x data0=0x%x size:%d, am:%d opt:%d",handle->parent->type.c_str(),handle->add,off,*data,sizen,handle->access,handle->opt);
+
+	return handle->parent->vme_write32(handle,off,data,sizen);
 
 }
-int vmewrap_write16(vmewrap_vme_handle_t  h,unsigned off,uint16_t* data,int sizen){
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-	return handle->vme_write16((vmewrap_int_vme_handle_t)handle,off,data,sizen);
+int vmewrap_write16(vmewrap_window_t handle,unsigned off,uint16_t* data,int sizen){
+	DPRINT("[%s]write16  0x%X+0x%x data0=0x%x size:%d, am:%d opt:%d",handle->parent->type.c_str(),handle->add,off,*data,sizen,handle->access,handle->opt);
+
+	return handle->parent->vme_write16(handle,off,data,sizen);
 
 }
 
-int vmewrap_write8(vmewrap_vme_handle_t  h,unsigned off,uint8_t* data,int sizen){
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-	return handle->vme_write8((vmewrap_int_vme_handle_t)handle,off,data,sizen);
+int vmewrap_write8(vmewrap_window_t handle,unsigned off,uint8_t* data,int sizen){
+	DPRINT("[%s]write8  0x%X+0x%x data0=0x%x size:%d, am:%d opt:%d",handle->parent->type.c_str(),handle->add,off,*data,sizen,handle->access,handle->opt);
+
+	return handle->parent->vme_write8(handle,off,data,sizen);
 }
-int vmewrap_set_reg(vmewrap_vme_handle_t  h,void* data, unsigned off,int size){
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-	return handle->vme_set_reg((vmewrap_int_vme_handle_t)handle,off,data,size);
+int vmewrap_set_reg(vmewrap_window_t handle,void* data, unsigned off,int size){
+	return handle->parent->vme_set_reg(handle,off,data,size);
 }
-int vmewrap_clr_reg(vmewrap_vme_handle_t  h,void* data, unsigned off,int size){
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-	return handle->vme_clr_reg((vmewrap_int_vme_handle_t)handle,off,data,size);
+int vmewrap_clr_reg(vmewrap_window_t handle,void* data, unsigned off,int size){
+	return handle->parent->vme_clr_reg(handle,off,data,size);
 }
 
-int vmewrap_read32(vmewrap_vme_handle_t  h,unsigned off,uint32_t* data,int sizen){
+int vmewrap_read32(vmewrap_window_t handle,unsigned off,uint32_t* data,int sizen){
 	int ret;
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-	ret =handle->vme_read32((vmewrap_int_vme_handle_t)handle,off,data,sizen);
-	DPRINT("read32 off 0x%x data=0x%x, ret=%d",off,*data,ret);
+	DPRINT("[%s]read32  0x%X+0x%x data0=0x%x size:%d, am:%d opt:%d",handle->parent->type.c_str(),handle->add,off,*data,sizen,handle->access,handle->opt);
+
+	ret =handle->parent->vme_read32(handle,off,data,sizen);
+	//DPRINT("read32 off 0x%x data=0x%x, ret=%d",off,*data,ret);
 
 	return ret;
 }
-int vmewrap_read16(vmewrap_vme_handle_t  h,unsigned off,uint16_t* data,int sizen){
+int vmewrap_read16(vmewrap_window_t handle,unsigned off,uint16_t* data,int sizen){
 	int ret;
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-	ret =handle->vme_read16((vmewrap_int_vme_handle_t)handle,off,data,sizen);
-	DPRINT("read16 off 0x%x data=0x%x, ret=%d",off,*data,ret);
+	ret =handle->parent->vme_read16(handle,off,data,sizen);
+	//DPRINT("read16 off 0x%x data=0x%x, ret=%d",off,*data,ret);
 	return ret;
 }
-int vmewrap_read8(vmewrap_vme_handle_t  h,unsigned off,uint8_t* data,int sizen){
+int vmewrap_read8(vmewrap_window_t handle,unsigned off,uint8_t* data,int sizen){
 	int ret;
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
-	ret = handle->vme_read8((vmewrap_int_vme_handle_t)handle,off,data,sizen);
-	DPRINT("read8 off 0x%x data=0x%x, ret=%d",off,*data,ret);
+	ret = handle->parent->vme_read8(handle,off,data,sizen);
+	//DPRINT("read8 off 0x%x data=0x%x, ret=%d",off,*data,ret);
 	return ret;
 }
 
 
-int vmewrap_interrupt_enable(vmewrap_vme_handle_t  h,int level, int signature,int type,void*priv){
+int vmewrap_interrupt_enable(vmewrap_window_t handle,int level, int signature,int type,void*priv){
 	int ret;
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
 	if(handle == NULL){
 		DERR("not implemented")
 					return -1;
 	}
-    ret = handle->vme_interrupt_enable((vmewrap_int_vme_handle_t)handle,level,signature,type,priv);
+    ret = handle->parent->vme_interrupt_enable(handle,level,signature,type,priv);
 	return ret;
 }
 
@@ -252,14 +320,13 @@ int vmewrap_interrupt_enable(vmewrap_vme_handle_t  h,int level, int signature,in
    		@return 0 on success
  */
 
-int vmewrap_interrupt_disable(vmewrap_vme_handle_t  h){
+int vmewrap_interrupt_disable(vmewrap_window_t handle){
 	int ret;
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
 	if(handle == NULL){
 		DERR("not implemented")
 				return -1;
 	}
-	ret = handle->vme_interrupt_disable((vmewrap_int_vme_handle_t)handle);
+	ret = handle->parent->vme_interrupt_disable(handle);
 	DPRINT("interrupt disable, ret=%d",ret);
 	return ret;
 }
@@ -268,49 +335,41 @@ int vmewrap_interrupt_disable(vmewrap_vme_handle_t  h){
  * @param timeo_ms timeout in ms (0 indefinite wait)
  * @return 0 on success
  */
-int vmewrap_wait_interrupt(vmewrap_vme_handle_t  h,int timeo_ms){
+int vmewrap_wait_interrupt(vmewrap_window_t handle,int timeo_ms){
 	int ret;
-	vmewrap_int_vme_handle_t handle = (vmewrap_int_vme_handle_t)h;
 	if(handle == NULL){
 		DERR("not implemented")
 					return -1;
 	}
-	ret = handle->vme_wait_interrupt((vmewrap_int_vme_handle_t)handle,timeo_ms);
+	ret = handle->parent->vme_wait_interrupt(handle,timeo_ms);
 
 	return ret;
 }
-uint32_t vmewrap_read_reg32(vmewrap_vme_handle_t  handle,unsigned off){
+uint32_t vmewrap_read_reg32(vmewrap_window_t handle,unsigned off){
 	uint32_t ret;
 	vmewrap_read32(handle,off,&ret,1);
 	return ret;
 }
-uint16_t vmewrap_read_reg16(vmewrap_vme_handle_t  handle,unsigned off){
+uint16_t vmewrap_read_reg16(vmewrap_window_t handle,unsigned off){
 	uint16_t ret;
 	vmewrap_read16(handle,off,&ret,1);
 	return ret;
 }
-uint8_t vmewrap_read_reg8(vmewrap_vme_handle_t  handle,unsigned off){
+uint8_t vmewrap_read_reg8(vmewrap_window_t handle,unsigned off){
 	uint8_t ret;
 	vmewrap_read8(handle,off,&ret,1);
 	return ret;
 }
 
-int vmewrap_write_reg32(vmewrap_vme_handle_t  handle,uint32_t data,unsigned off){
-	DPRINT("write32 off 0x%x data=0x%x",off,data);
-
+int vmewrap_write_reg32(vmewrap_window_t handle,uint32_t data,unsigned off){
 	return vmewrap_write32(handle, off,&data,1);
 }
-int vmewrap_write_reg16(vmewrap_vme_handle_t  handle,uint16_t data,unsigned off){
-	DPRINT("write16 off 0x%x data=0x%x",off,data);
-
+int vmewrap_write_reg16(vmewrap_window_t handle,uint16_t data,unsigned off){
 	return vmewrap_write16(handle, off,&data,1);
 
 }
-int vmewrap_write_reg8(vmewrap_vme_handle_t  handle,uint8_t data,unsigned off){
-	DPRINT("write8 off 0x%x data=0x%x",off,data);
-
+int vmewrap_write_reg8(vmewrap_window_t handle,uint8_t data,unsigned off){
 	return vmewrap_write8(handle, off,&data,1);
 
 
-}
 }

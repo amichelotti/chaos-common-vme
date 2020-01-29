@@ -1,9 +1,6 @@
 #ifndef _CAEN_COMMON_H_
 #define  _CAEN_COMMON_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <common/vme/core/vmewrap.h>
 // Register map
@@ -261,8 +258,8 @@ typedef struct __evt_buffer {
     private date,
     handle
 */
-typedef struct __vme_handle__ {
- vmewrap_vme_handle_t vme;
+typedef struct __vme_caenhandle__ {
+ vmewrap_window_t vme;
   void* mapped_address;
   uint32_t event_counter;
   uint64_t cycle;
@@ -272,8 +269,6 @@ typedef struct __vme_handle__ {
 } _caen_common_handle_t ;
 
 typedef void* caen_handle_t;
-#ifdef __cplusplus
-}
-#endif
+
 
 #endif

@@ -19,37 +19,27 @@
 #define BOARD_ID_REG(base) REG16(base,0xFA)
 #define MANUFACTURE_ID_REG(base) REG16(base,0xFC)
 typedef struct __vme_handle__ {
-	vmewrap_vme_handle_t vme;
+	vmewrap_window_t vme;
 	void* mapped_address;
 } _caen513_handle_t ;
 
 
 
 
-caen513_handle_t caen513_open(vme_driver_t vme_driver,uint32_t address ){
+caen513_handle_t caen513_open(vmewrap_vme_handle_t v,uint32_t address ){
 	void* mapped_address;
 	int size = 0x10000;
 	int boardid,manufactureid;
-	vmewrap_vme_handle_t vme;
-	DPRINT("opening vme device at @0x%x\n",address);
-	vme = vmewrap_init_driver(vme_driver);
-	if(vme==NULL){
-		ERR("cannot initialize VME driver %d",vme_driver);
+	vmewrap_window_t vme;
 
-		return NULL;
-	}
-	if(vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,0)!=0){
+	
+	if((vme=vmewrap_vme_open_master(v,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,VME_OPT_AM_SUPER_AM))==0){
 		ERR("cannot map vme");
 		return NULL;
 	}
 
 	mapped_address =  vmewrap_get_linux_add(vme);
-	if (0 == mapped_address) {
-		ERR("cannot map VME window\n");
-		perror("vme_master_window_map");
-		return 0;
-	}
-
+	
 	_caen513_handle_t* p = (_caen513_handle_t* )malloc(sizeof(_caen513_handle_t));
 	if(p==NULL){
 		ERR("cannot allocate resources\n");
@@ -58,10 +48,12 @@ caen513_handle_t caen513_open(vme_driver_t vme_driver,uint32_t address ){
 	}
 	p->vme = vme;
 	p->mapped_address = mapped_address;
-	boardid=BOARD_ID_REG(mapped_address)&0xFFFF;
-	manufactureid=MANUFACTURE_ID_REG(mapped_address)&0xFFFF;
-	DPRINT("CAEN513 successfully mapped at @%p\n",mapped_address);
-	PRINT("CAEN513 Version:0x%x\n",VERSION_REG(mapped_address));
+	boardid=BOARD_ID_REG(vme)&0xFFFF;
+	manufactureid=MANUFACTURE_ID_REG(vme)&0xFFFF;
+	if(mapped_address){
+		DPRINT("CAEN513 successfully mapped at @%p\n",mapped_address);
+	}
+	PRINT("CAEN513 Version:0x%x\n",VERSION_REG(vme));
 	PRINT("CAEN513 BoardID:0x%x\n",boardid);
 	PRINT("CAEN513 Manufacture:0x%x\n",manufactureid);
 	if(manufactureid!=V513_MANUFACTURE_ID){
@@ -97,7 +89,7 @@ void caen513_setChannelMode(caen513_handle_t h,int channel,int mode){
 
 int32_t caen513_getChannelMode(caen513_handle_t h,int channel){
 	_caen513_handle_t* handle = (_caen513_handle_t*)h;
-	return REG16(handle->mapped_address,0x10 +2 *channel);
+	return REG16(handle->vme,0x10 +2 *channel);
 
 }
 void caen513_interruptMask(caen513_handle_t h,int mask){
@@ -108,16 +100,16 @@ void caen513_interruptMask(caen513_handle_t h,int mask){
 
 void caen513_setStrobe(caen513_handle_t h,int mode){
 	_caen513_handle_t* handle = (_caen513_handle_t*)h;
-	REG16(handle->mapped_address,0x6)=mode;
+	VME_WRITE16(handle->vme,0x6,mode);
 }
 int32_t caen513_getStrobe(caen513_handle_t h){
 	_caen513_handle_t* handle = (_caen513_handle_t*)h;
-	return REG16(handle->mapped_address,0x6);
+	return REG16(handle->vme,0x6);
 }
 
 int32_t caen513_get(caen513_handle_t h){
 	_caen513_handle_t* handle = (_caen513_handle_t*)h;
-	return REG16(handle->mapped_address,0x4);
+	return REG16(handle->vme,0x4);
 }
 void caen513_set(caen513_handle_t h,int mask){
 	_caen513_handle_t* handle = (_caen513_handle_t*)h;

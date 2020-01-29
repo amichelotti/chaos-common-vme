@@ -12,11 +12,11 @@
 #include <sys/time.h>
 
 #define CAEN792 1
-#include "caen_common.c"
+#include "caen_common.cpp"
 
 
 
-caen792_handle_t caen792_open(vme_driver_t vme_driver,uint32_t address ){
+caen792_handle_t caen792_open(vmewrap_vme_handle_t vme_driver,uint32_t address ){
 	   return caen_common_open(vme_driver,address);
 	}
 int32_t caen792_close(caen792_handle_t h){
