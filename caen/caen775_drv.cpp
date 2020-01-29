@@ -12,29 +12,28 @@
 #include <sys/time.h>
 
 #define CAEN775 1
-#include "caen_common.c"
+#include "caen_common.cpp"
 
 
 
-caen775_handle_t caen775_open(vme_driver_t vme_driver,uint32_t address ){
+caen775_handle_t caen775_open(vmewrap_vme_handle_t vme_driver,uint32_t address ){
 	   return caen_common_open(vme_driver,address);
 	}
 
 
 int32_t caen775_init(caen775_handle_t h,int32_t crate_num,int swreset){
-	_caen_common_handle_t* handle = h;
+	_caen_common_handle_t* handle =(_caen_common_handle_t*) h;
 
 	DPRINT(DEV_BOARD " intialiazing @%p",h);
 	if(swreset){
-	  BITSET_REG(handle->mapped_address) = SOFTRESET_BIT;
+	  VME_WRITE_REG16(handle->vme,BITSET_OFF,SOFTRESET_BIT);
 	}
-	CRATE_SEL_REG(handle->mapped_address)=crate_num;
-
-
-	BITCLR_REG(handle->mapped_address) = 0xff; // clear soft reset, berr and sel addr
+	VME_WRITE_REG16(handle->vme,CRATE_SEL_OFF,crate_num);
+	VME_WRITE_REG16(handle->vme,BITCLR_OFF,0xff);// clear soft reset, berr and sel addr
 	//  BITSET2_REG(handle->mapped_address)=ALLTRG_EN_BIT/*|OVERRANGE_EN_BIT|LOWTHR_EN_BIT*/|EMPTY_EN_BIT|AUTOINCR_BIT;
-	BITSET2_REG(handle->mapped_address)=CAEN775_ALL_TRIGGER|CAEN775_AUTO_INCR|CAEN775_ACCEPT_OVER_RANGE|CAEN775_CLEAR_DATA; // clear data reset;
-	BITCLR2_REG(handle->mapped_address)=CAEN775_MEMORY_TEST|CAEN775_ADC_OFFLINE|CAEN775_TEST_ACQ|CAEN775_CLEAR_DATA; // clear data reset;;
+	VME_WRITE_REG16(handle->vme,BITSET2_OFF,CAEN775_ALL_TRIGGER|CAEN775_AUTO_INCR|CAEN775_ACCEPT_OVER_RANGE|CAEN775_CLEAR_DATA);
+	VME_WRITE_REG16(handle->vme,BITCLR2_OFF,CAEN775_MEMORY_TEST|CAEN775_ADC_OFFLINE|CAEN775_TEST_ACQ|CAEN775_CLEAR_DATA);
+
 	return 0;
 }
 
@@ -44,13 +43,12 @@ int32_t caen775_close(caen775_handle_t h){
 
 
 int32_t caen775_setThreashold(caen775_handle_t h,int16_t value,int kill,int channel){
-	_caen_common_handle_t* handle = h;
+	_caen_common_handle_t* handle = (_caen_common_handle_t*)h;
 
 	if((channel<NCHANNELS) && (channel>=0)){
 	    DPRINT(DEV_BOARD " setting threshold channel %d to x%x ",channel,value);
-	    BITSET2_REG(handle->mapped_address)=CAEN775_CLEAR_DATA|CAEN775_THRESHOLD;
-
-	      THRS_CHANNEL_REG(handle->mapped_address,channel,0)= (value&0xff)| ((kill)?0x100:0);
+		VME_WRITE_REG16(handle->vme,BITSET2_OFF,CAEN775_CLEAR_DATA|CAEN775_THRESHOLD);
+		VME_WRITE_REG16(handle->vme,THRS_CHANNEL_OFF+4*channel,(value&0xff)| ((kill)?0x100:0));
 	}
 	return 0;
 }
@@ -59,15 +57,16 @@ int32_t caen775_setThreashold(caen775_handle_t h,int16_t value,int kill,int chan
 
 
 int32_t caen775_enable_mode(caen775_handle_t h,caen775_modes_t modes){
-  	_caen_common_handle_t* handle = h;
+  	_caen_common_handle_t* handle = (_caen_common_handle_t*)h;
+	VME_WRITE_REG16(handle->vme,BITSET2_OFF,modes);
 
-	BITSET2_REG(handle->mapped_address)=modes;
 	return 0;
 }
 
 int32_t caen775_disable_mode(caen775_handle_t h,caen775_modes_t modes){
-  _caen_common_handle_t* handle = h;
-  	BITCLR2_REG(handle->mapped_address)=modes;
+  _caen_common_handle_t* handle =(_caen_common_handle_t*) h;
+  	VME_WRITE_REG16(handle->vme,BITCLR2_OFF,modes);
+
 	return 0;
 }
 

@@ -45,10 +45,12 @@ int main(int argc,char**argv){
     printf("* timeout set to %d ms\n",acquire_timeo);
   }
   printf("* opening caen at address @0x%lx\n",address);
+  vmewrap_vme_handle_t vme= vmewrap_init_driver(VME_UNIVERSE2_DRIVER);
+
     if(is965){
-        caen = caen965_open(VME_UNIVERSE2_DRIVER,address);
+        caen = caen965_open(vme,address);
     } else {
-        caen = caen792_open(VME_UNIVERSE2_DRIVER,address);
+        caen = caen792_open(vme,address);
     }
     
     out=fopen("caen_data.out","w");

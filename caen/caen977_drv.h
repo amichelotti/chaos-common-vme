@@ -22,11 +22,8 @@
 #define V977_TSTCTRL_REGISTER_STATUS    0x10
 
 #define NCHANNELS 16
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include <common/vme/core/vmewrap.h>
+
 typedef void* caen977_handle_t;
 
 /**
@@ -36,7 +33,7 @@ typedef void* caen977_handle_t;
 	@param address the vme address of the board
 	@return an handle or zero if error
 */
-caen977_handle_t caen977_open(vme_driver_t vme_driver,uint32_t address);
+caen977_handle_t caen977_open(vmewrap_vme_handle_t vme_driver,uint32_t address);
 
 
 /**
@@ -129,9 +126,5 @@ void caen977_testCtrlRegister(caen977_handle_t h,uint16_t mode);
 */
 void caen977_reset(caen977_handle_t h);
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

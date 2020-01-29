@@ -3,13 +3,13 @@
 
 #define _VMEWRAPUNIVERSE2_H_
 #include <vmedrv/universe2/vmelib.h>
-#include "vmewrap_int.h"
+#include "vmewrap.h"
 #include <common/debug/core/debug.h>
 static VMEBridge* vmeb=NULL;
 static int initialized=0;
-static int vme_close_universe2(vmewrap_int_vme_handle_t handle){
-	if(handle && handle->bus){
-		VMEBridge* vme=(VMEBridge*)handle->bus;
+static int vme_close_universe2(vmewrap_window_t handle){
+	if(handle && handle->parent->bus){
+		VMEBridge* vme=(VMEBridge*)handle->parent->bus;
 		if(handle->fd>0){
 			vme->releaseImage(handle->fd);
 		}
@@ -19,13 +19,12 @@ static int vme_close_universe2(vmewrap_int_vme_handle_t handle){
 	}
 	return 0;
 }
-static int vme_init_universe2(vmewrap_int_vme_handle_t handle){
+static int vme_init_universe2(vmewrap_vme_handle_t handle){
 	if(vmeb==NULL){
 		ERR("init driver must be done before");
 		return -1;
 	}
 	handle->bus = ( void*)vmeb;
-	handle->fd=-1;
 	if(initialized==0){
 		initialized=1;
 		DPRINT("initialized driver bus:0x%p",handle->bus);
@@ -35,7 +34,7 @@ static int vme_init_universe2(vmewrap_int_vme_handle_t handle){
 	return 0;
 
 }
-static int  map_master_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw, vme_opt_t vme_options){
+static int  map_master_universe2(vmewrap_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw, vme_opt_t vme_options){
 
 	VMEBridge* vme=(VMEBridge*)handle->bus;
 	int image;
@@ -77,22 +76,25 @@ static int  map_master_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,ui
 	if(vme_options){
 		vme->setOption(image,vme_options);
 	}
-	handle->fd=image;
 	if (image < 0) {
 		ERR("Can't allocate master image vmeadd:0x%x, size:0x%x",add,size);
 		return -3;
 	}
-	handle->mapped_address=  vme->getPciBaseAddr(image);
-	if( (int64_t)handle->mapped_address == -1){
+	handle->window[handle->nwindow]->fd=image;
+
+	void*m= vme->getPciBaseAddr(image);
+	
+	if( (int64_t)m == -1){
 		ERR("cannot map vme master address");
 		return -4;
 	}
+	handle->window[handle->nwindow]->mapped_address= m;
 
-	DPRINT("Master address mapped at @0x%p size 0x%x, addressing %d (0x%x) dw %d (0x%x)",handle->mapped_address,size,addressing,uni_addressing,dw,uni_dw);
+	DPRINT("Master address mapped at @0x%p size 0x%x, addressing %d (0x%x) dw %d (0x%x)",m,size,addressing,uni_addressing,dw,uni_dw);
 	return 0;
 }
 
-static int  map_slave_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw,vme_opt_t vme_options){
+static int  map_slave_universe2(vmewrap_vme_handle_t handle,uint32_t add,uint32_t size,vme_addressing_t addressing,vme_access_t dw,vme_opt_t vme_options){
 	VMEBridge* vme=(VMEBridge*)handle->bus;
 	int image=0; //TODO CHECK THIS
 	int uni_addressing,uni_dw;
@@ -138,32 +140,32 @@ static int  map_slave_universe2(vmewrap_int_vme_handle_t handle,uint32_t add,uin
 		ERR("Can't allocate slave image vmeadd:0x%x, size:0x%x",add,size);
 		return -3;
 	}
-	handle->fd=image;
-	handle->mapped_address=  vme->getPciBaseAddr(image);
-	if( (int64_t)handle->mapped_address == -1){
+	handle->window[handle->nwindow]->fd=image;
+	void*m= vme->getPciBaseAddr(image);
+	if( (int64_t)m == -1){
 		ERR("cannot map vme slave address");
 		return -4;
 	}
-
-	DPRINT("slave address mapped at @0x%p size 0x%x",handle->mapped_address,size);
+	handle->window[handle->nwindow]->mapped_address= m;
+	DPRINT("slave address mapped at @0x%p size 0x%x",m,size);
 	return 0;
 }
-static int vme_write8_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t* data,int sizen){
-	VMEBridge* vme=(VMEBridge*)handle->bus;
+static int vme_write8_universe2(vmewrap_window_t  handle,unsigned off,uint8_t* data,int sizen){
+	VMEBridge* vme=(VMEBridge*)handle->parent->bus;
 	int ret=0;
 	for(int cnt=0;cnt<sizen;cnt++){
 #ifdef DONT_USE_MAP
 		ret+=vme->wb(handle->fd,(uint32_t)handle->phys_add + off +cnt,data[cnt]);
 #else
-		REG8(handle->mapped_address,off+cnt)=data[cnt];
+		MM_REG8(handle->mapped_address,off+cnt)=data[cnt];
 #endif
 	}
 	return ret;
 
 }
 
-static int vme_write32_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint32_t* data,int sizen){
-	VMEBridge* vme=(VMEBridge*)handle->bus;
+static int vme_write32_universe2(vmewrap_window_t  handle,unsigned off,uint32_t* data,int sizen){
+	VMEBridge* vme=(VMEBridge*)handle->parent->bus;
 	int ret=0;
 
 	for(int cnt=0;cnt<sizen;cnt++){
@@ -171,67 +173,66 @@ static int vme_write32_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,u
 #ifdef DONT_USE_MAP
 		ret+= vme->wl(handle->fd,(uint32_t)handle->phys_add + off+(cnt*sizeof(uint32_t)),data[cnt]);
 #else
-		REG32(handle->mapped_address,off+(cnt*sizeof(uint32_t)))=data[cnt];
+		MM_REG32(handle->mapped_address,off+(cnt*sizeof(uint32_t)))=data[cnt];
 #endif
 	}
 	return ret;
 
 }
-static int vme_write16_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t* data,int sizen){
-	VMEBridge* vme=(VMEBridge*)handle->bus;
+static int vme_write16_universe2(vmewrap_window_t  handle,unsigned off,uint16_t* data,int sizen){
+	VMEBridge* vme=(VMEBridge*)handle->parent->bus;
 	int ret=0;
 	for(int cnt=0;cnt<sizen;cnt++){
 
 #ifdef DONT_USE_MAP
 		ret+= vme->ww(handle->fd,(uint32_t)handle->phys_add + off+(cnt*sizeof(uint16_t)),data[cnt]);
 #else
-		REG16(handle->mapped_address,off+(cnt*sizeof(uint16_t)))=data[cnt];
+		MM_REG16(handle->mapped_address,off+(cnt*sizeof(uint16_t)))=data[cnt];
 
 #endif
 	}
 	return ret;
 }
-static int vme_read32_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint32_t *data,int sizen){
-	VMEBridge* vme=(VMEBridge*)handle->bus;
+static int vme_read32_universe2(vmewrap_window_t  handle,unsigned off,uint32_t *data,int sizen){
+	VMEBridge* vme=(VMEBridge*)handle->parent->bus;
 	int ret=0;
 	for(int cnt=0;cnt<sizen;cnt++){
 #ifdef DONT_USE_MAP
 		ret+= vme->rl(handle->fd,(uint32_t)handle->phys_add + off+(cnt*sizeof(uint32_t)),&data[cnt]);
 #else
-		data[cnt] =REG32(handle->mapped_address,off+(cnt*sizeof(uint32_t)));
+		data[cnt] =MM_REG32(handle->mapped_address,off+(cnt*sizeof(uint32_t)));
 
 #endif
 	}
 		return  ret;
 
 }
-static int vme_read16_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint16_t *data,int sizen){
-	VMEBridge* vme=(VMEBridge*)handle->bus;
+static int vme_read16_universe2(vmewrap_window_t  handle,unsigned off,uint16_t *data,int sizen){
+	VMEBridge* vme=(VMEBridge*)handle->parent->bus;
 	int ret=0;
 	for(int cnt=0;cnt<sizen;cnt++){
 #ifdef DONT_USE_MAP
 		ret+= vme->rw(handle->fd,(uint32_t)handle->phys_add + off+(cnt*sizeof(uint16_t)),&data[cnt]);
 #else
-		data[cnt] =REG16(handle->mapped_address,off+(cnt*sizeof(uint16_t)));
+		data[cnt] =MM_REG16(handle->mapped_address,off+(cnt*sizeof(uint16_t)));
 #endif
 	}
 	return ret;
 }
-static int vme_read8_universe2(vmewrap_int_vme_handle_t  handle,unsigned off,uint8_t *data,int sizen){
-	VMEBridge* vme=(VMEBridge*)handle->bus;
+static int vme_read8_universe2(vmewrap_window_t  handle,unsigned off,uint8_t *data,int sizen){
+	VMEBridge* vme=(VMEBridge*)handle->parent->bus;
 	int ret=0;
 	for(int cnt=0;cnt<sizen;cnt++){
 #ifdef DONT_USE_MAP
 		ret+= vme->rb(handle->fd,(uint32_t)handle->phys_add + off+cnt,&data[cnt]);
 #else
-		data[cnt] = REG8(handle->mapped_address,off+cnt);
+		data[cnt] = MM_REG8(handle->mapped_address,off+cnt);
 #endif
 	}
 	return  ret;
 }
 
-int vme_init_driver_universe2(vmewrap_vme_handle_t handle){
-	vmewrap_int_vme_handle_t p=(vmewrap_int_vme_handle_t)handle;
+int vme_init_driver_universe2(vmewrap_vme_handle_t p){
 	if(vmeb==NULL){
         int err;
 		vmeb = new VMEBridge();
@@ -247,7 +248,7 @@ int vme_init_driver_universe2(vmewrap_vme_handle_t handle){
 	} else {
 		DPRINT("reusing vme universe2 bridge 0x%p",(void*)vmeb);
 	}
-	p->vme_close=vme_close_universe2;
+	p->map_close=vme_close_universe2;
 	p->vme_init=vme_init_universe2;
 	p->map_master=map_master_universe2;
 	p->map_slave=map_slave_universe2;
@@ -261,15 +262,19 @@ int vme_init_driver_universe2(vmewrap_vme_handle_t handle){
 	p->bus = vmeb;
 	return 0;
 }
-int vme_deinit_driver_universe2(vmewrap_vme_handle_t handle){
-	vmewrap_int_vme_handle_t p=(vmewrap_int_vme_handle_t)handle;
+int vme_deinit_driver_universe2(vmewrap_vme_handle_t p){
 	DPRINT("deallocating universe2 driver 0x%p",(void*)vmeb);
-	int ret=vme_close_universe2(p);
+	for(int cnt=0;cnt<p->nwindow;cnt++){
+		if(p->window[cnt]){
+			vme_close_universe2(p->window[cnt]);
+		}
+	}
+	
 	if(vmeb){
 		delete vmeb;
 		vmeb=NULL;
 	}
-	return ret;
+	return 0;
 }
 #endif
 
