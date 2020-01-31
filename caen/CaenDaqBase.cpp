@@ -37,9 +37,14 @@ int CaenDaqBase::open(vme_driver_t vme_driver,uint64_t address ){
     }
 
     cycle = 0;
+    DPRINT(" reading board ID ");
+
     boardid =((read16(BOARD_ID_OFF)&0xFF)<<8) | (read16(BOARD_ID_LSB_OFF)&0xFF);
+    DPRINT("  board ID 0x%x",boardid);
 
     manufactureid=read16(OUI_OFF)&0xFF;
+    DPRINT(" manufactured ID 0x%x",manufactureid);
+
     boardid=boardid;
     manufactureid=manufactureid;
     version=read16(BOARD_VERSION_OFF);
