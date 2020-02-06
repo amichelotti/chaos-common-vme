@@ -55,7 +55,7 @@ public:
 	template<typename T>
 	int set(uint32_t off,T& data){
 		DPRINT("VMESET off 0x%x data=0x%x fd=%d",off,data,getFD());
-
+		
 		return vmewrap_set_reg(window,&data, off,sizeof(T));
 	}
 	template<typename T>
