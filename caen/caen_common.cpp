@@ -279,10 +279,12 @@ static int32_t caen_common_acquire_channels_poll(void* h,uint32_t *lowres,uint32
 
     }
   } while(((status&CAEN_QDC_STATUS_DREADY)==0)&&((diff)<=(timeo_ms*1000)));
-
+if((timeo_ms>0) && (diff>(timeo_ms*1000))){
+    return -100;
+  }
   counter = EVT_CNT_LOW_REG(handle->vme)|(EVT_CNT_HI_REG(handle->vme)<<16);
-    events = (counter > handle->event_counter)?(counter - handle->event_counter):0;
-
+  events = (counter > handle->event_counter)?(counter - handle->event_counter):0;
+  
   handle->cycle+= events;
   handle->event_counter =counter;
   DPRINT(DEV_BOARD " counter events %u, events %d, totcycle %lld",counter,events,handle->cycle);
