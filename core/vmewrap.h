@@ -22,9 +22,9 @@
 #define VME_READ_REG32(handle,off) vmewrap_read_reg32(handle,(off))
 #define VME_READ_REG8(handle,off) vmewrap_read_reg8(handle,(off))
 
-#define VME_WRITE16(handle,off,val) vmewrap_write_reg16(handle,off,val)
-#define VME_WRITE32(handle,off,val) vmewrap_write_reg32(handle,off,val)
-#define VME_WRITE8(handle,off,val) vmewrap_write_reg8(handle,off,val)
+#define VME_WRITE16(handle,off,val) vmewrap_write_reg16(handle,val,off)
+#define VME_WRITE32(handle,off,val) vmewrap_write_reg32(handle,val,off)
+#define VME_WRITE8(handle,off,val) vmewrap_write_reg8(handle,val,off)
 
 #define VME_WRITE_REG16(handle,off,val) {uint16_t tmp=val;vmewrap_write16(handle,off,&tmp,1);}
 #define VME_WRITE_REG32(handle,off,val) {uint32_t tmp=val; vmewrap_write32(handle,off,&tmp,1);}

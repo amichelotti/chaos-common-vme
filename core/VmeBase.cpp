@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
-
+#include "vmewrap.h"
 namespace common {
 namespace vme {
 int VmeBase::nboard=0;
@@ -39,6 +39,16 @@ int VmeBase::openUnixDev(const char*dev){
 		vme = vmewrap_init_driver(VME_LINUX_USER_DRIVER);
 	}
 	unixdev=fd;
+	window =new struct __vme_window__ ();
+	window->parent=vme;
+	window->add=0;
+	window->size=0;
+	window->master=0;
+	window->index=vme->nwindow;
+	window->fd=fd; // initialize to index... can be changed
+	vme->window[vme->nwindow++]=window;
+	
+
 	DPRINT("Opening unix dev \"%s\" fd=%d",dev,unixdev);
 
 	return 0;
@@ -67,9 +77,10 @@ int VmeBase::open(vme_driver_t vme_driver,uint64_t address_,uint32_t size_,vme_a
     master_addressing=master_addressing_;
     dw=dw_;
     vme_options=vme_options_;
-	if(unixdev>0){
-		vmewrap_setFD(window,unixdev);
-	}
+	
+	DPRINT("Opening VME wrap window[%d][index:%d] 0x%p FD:%d mapped address:0x%p phys add:0x%x, priv:0x%p",vme->nwindow,window->index,window,window->fd,window->mapped_address,window->phys_add,window->priv);
+	DPRINT("Base Address 0x%x size:%d, addressing:%d, access:%d, opt:0x%x",window->add,window->size,window->addressing,window->access,window->opt);
+  
 	return 0;
 }
 
