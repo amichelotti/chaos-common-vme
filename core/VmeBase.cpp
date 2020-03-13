@@ -78,7 +78,7 @@ int VmeBase::open(vme_driver_t vme_driver,uint64_t address_,uint32_t size_,vme_a
     dw=dw_;
     vme_options=vme_options_;
 	
-	DPRINT("Opening VME wrap window[%d][index:%d] 0x%p FD:%d mapped address:0x%p phys add:0x%x, priv:0x%p",vme->nwindow,window->index,window,window->fd,window->mapped_address,window->phys_add,window->priv);
+	DPRINT("Opening VME wrap window[%d][index:%d] 0x%p FD:%d mapped address:0x%p phys add:0x%lx, priv:0x%p",vme->nwindow,window->index,window,window->fd,window->mapped_address,window->phys_add,window->priv);
 	DPRINT("Base Address 0x%x size:%d, addressing:%d, access:%d, opt:0x%x",window->add,window->size,window->addressing,window->access,window->opt);
   
 	return 0;
