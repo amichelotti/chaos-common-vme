@@ -397,7 +397,7 @@ static int vme_set_uservme(vmewrap_window_t  handle,unsigned off,void *data,int 
     memcpy(&d.data,data,sizeb);
 
     int  ret=ioctl(fd, VME_SET_REG, &d);
-        DPRINT("vme set off %d data:0x%Lx fd:%d, ret=0x%x cmd=0x%x",d.off,d.data,handle->fd,ret,VME_SET_REG);
+        DPRINT("vme set off %d data:0x%x fd:%d, ret=0x%x cmd=0x%lx",d.off,d.data,handle->fd,ret,VME_SET_REG);
 
     return ret;
 }
