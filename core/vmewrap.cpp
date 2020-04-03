@@ -258,20 +258,20 @@ void* vmewrap_get_linux_add(vmewrap_window_t  handle){
 
 
 int vmewrap_write32(vmewrap_window_t handle,unsigned off,uint32_t* data,int sizen){
-	DPRINT("[%s]write32  0x%X+0x%x data0=0x%x size:%d, am:%d opt:%d",handle->parent->type.c_str(),handle->add,off,*data,sizen,handle->access,handle->opt);
+	DPRINT("[%s]write32  0x%X+0x%x data0=0x%x ndata:%d, am:%d opt:%d",handle->parent->type.c_str(),handle->add,off,*data,sizen,handle->access,handle->opt);
 
 	return handle->parent->vme_write32(handle,off,data,sizen);
 
 }
 int vmewrap_write16(vmewrap_window_t handle,unsigned off,uint16_t* data,int sizen){
-	DPRINT("[%s]write16  0x%X+0x%x data0=0x%x size:%d, am:%d opt:%d",handle->parent->type.c_str(),handle->add,off,*data,sizen,handle->access,handle->opt);
+	DPRINT("[%s]write16  0x%X+0x%x data0=0x%x ndata:%d, am:%d opt:%d",handle->parent->type.c_str(),handle->add,off,*data,sizen,handle->access,handle->opt);
 
 	return handle->parent->vme_write16(handle,off,data,sizen);
 
 }
 
 int vmewrap_write8(vmewrap_window_t handle,unsigned off,uint8_t* data,int sizen){
-	DPRINT("[%s]write8  0x%X+0x%x data0=0x%x size:%d, am:%d opt:%d",handle->parent->type.c_str(),handle->add,off,*data,sizen,handle->access,handle->opt);
+	DPRINT("[%s]write8  0x%X+0x%x data0=0x%x ndata:%d, am:%d opt:%d",handle->parent->type.c_str(),handle->add,off,*data,sizen,handle->access,handle->opt);
 
 	return handle->parent->vme_write8(handle,off,data,sizen);
 }

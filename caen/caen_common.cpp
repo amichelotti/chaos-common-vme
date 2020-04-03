@@ -190,7 +190,7 @@ static uint32_t search_eoe(_caen_common_handle_t* handle){
   return ret;
 }
 //return the channels acquired 
-static int acquire_event_channels(void* h,uint32_t *lowres,uint32_t*hires,int start_chan,int max_chan){
+static int acquire_event_channels(void* h,uint32_t *lowres,uint32_t*hires,int start_chan,int max_chan,uint32_t*counter){
   _caen_common_handle_t* handle =(_caen_common_handle_t*) h;
   int cnt=0;
   evt_buffer_t a;
@@ -232,6 +232,7 @@ static int acquire_event_channels(void* h,uint32_t *lowres,uint32_t*hires,int st
     } else if(a.d.signature==4){
     
       DPRINT(DEV_BOARD " [%d] EOE found event counter = %d",cnt,a.e.ev_counter);
+      *counter=a.e.ev_counter;
       break;
     } else if(a.d.signature==6){
       DPRINT(DEV_BOARD " [%d] Not valid Data found event counter",cnt);
@@ -279,15 +280,18 @@ static int32_t caen_common_acquire_channels_poll(void* h,uint32_t *lowres,uint32
 
     }
   } while(((status&CAEN_QDC_STATUS_DREADY)==0)&&((diff)<=(timeo_ms*1000)));
-
-  counter = EVT_CNT_LOW_REG(handle->vme)|(EVT_CNT_HI_REG(handle->vme)<<16);
-    events = (counter > handle->event_counter)?(counter - handle->event_counter):0;
-
-  handle->cycle+= events;
-  handle->event_counter =counter;
-  DPRINT(DEV_BOARD " counter events %u, events %d, totcycle %lld",counter,events,handle->cycle);
+if((timeo_ms>0) && (diff>(timeo_ms*1000))){
+    return -100;
+  }
+//  counter = EVT_CNT_LOW_REG(handle->vme)|(EVT_CNT_HI_REG(handle->vme)<<16);
+  DPRINT(DEV_BOARD " counter events %u, events %d, totcycle %ld",counter,events,handle->cycle);
   if(status&CAEN_QDC_STATUS_DREADY){
-    ret = acquire_event_channels(handle,lowres,hires,start_channel,nchannels);
+    ret = acquire_event_channels(handle,lowres,hires,start_channel,nchannels,&counter);
+    events = (counter > handle->event_counter)?(counter - handle->event_counter):0;
+  
+    handle->cycle+= events;
+    handle->event_counter =counter;
+  
   }
   *cycle = handle->cycle;
   //BITSET2_REG(handle->mapped_address)=CLEARDATA_BIT;//clear data buffer AMI 28/10/13

@@ -227,7 +227,7 @@ int vme_init_driver_sis3153_eth(vmewrap_vme_handle_t p,void *params){
 		}
 		
 	}else {
-		DPRINT("found a sis controller @%s 0x%p\n",ip_addr_string,*found);
+		DPRINT("found a sis controller @%s 0x%p\n",ip_addr_string,found->second);
 		vme_crate=found->second;
 	}
 	// every init create a difference space for base address and addressing.

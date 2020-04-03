@@ -243,6 +243,7 @@ static int  map_master_uservme(vmewrap_vme_handle_t handle,uint32_t add,uint32_t
     }
     myfd=bus.allocateMaster();
     handle->fd=myfd;
+    handle->window[handle->nwindow]->fd=myfd;
     if(myfd<0){
         ERR("cannot open a new master %d handle 0x%p fd:%d",myfd,handle,handle->fd);
         return -2;
@@ -261,13 +262,13 @@ static int  map_master_uservme(vmewrap_vme_handle_t handle,uint32_t add,uint32_t
     retval = ioctl(myfd, VME_SET_MASTER, &master);
 
     if (retval != 0) {
-        DERR("[%s] vme add= 0x%x, size 0x%x , addressing 0x%x, cycle 0x%x, data width 0x%x, retval=%d\n",bus.getDevice(myfd).c_str(),add,size, uni_addressing,uni_access,uni_dw,retval);
+        DERR("[%s] vme add= 0x%x, size 0x%x , addressing 0x%x, cycle 0x%x, data width 0x%x,FD:%d retval=%d\n",bus.getDevice(myfd).c_str(),add,size, uni_addressing,uni_access,uni_dw,myfd,retval);
         perror("ERROR: Failed to configure window");
         return -10;
     }
 
     // DPRINT("Master address mapped at @0x%p size 0x%x, addressing %d (0x%x) dw %d (0x%x)",handle->mapped_address,size,addressing,uni_addressing,dw,uni_dw);
-    DPRINT("Master VME address 0x%x size: %d , am =0x%x dw=0x%x mapped on %s device",add,size,vme_options,dw,bus.getDevice(myfd).c_str());
+    DPRINT("Master VME address 0x%x size: %d , am =0x%x dw=0x%x mapped on %s device.",add,size,vme_options,dw,bus.getDevice(myfd).c_str());
     return 0;
 }
 
@@ -396,7 +397,7 @@ static int vme_set_uservme(vmewrap_window_t  handle,unsigned off,void *data,int 
     memcpy(&d.data,data,sizeb);
 
     int  ret=ioctl(fd, VME_SET_REG, &d);
-        DPRINT("vme set off %d data:0x%Lx fd:%d, ret=0x%x cmd=0x%x",d.off,d.data,handle->fd,ret,VME_SET_REG);
+        DPRINT("vme set off %d data:0x%x fd:%d, ret=0x%x cmd=0x%lx",d.off,d.data,handle->fd,ret,VME_SET_REG);
 
     return ret;
 }
