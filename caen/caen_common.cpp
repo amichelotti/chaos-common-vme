@@ -284,7 +284,7 @@ if((timeo_ms>0) && (diff>(timeo_ms*1000))){
     return -100;
   }
 //  counter = EVT_CNT_LOW_REG(handle->vme)|(EVT_CNT_HI_REG(handle->vme)<<16);
-  DPRINT(DEV_BOARD " counter events %u, events %d, totcycle %ld",counter,events,handle->cycle);
+  DPRINT(DEV_BOARD " counter events %u, events %d, totcycle %llu",counter,events,handle->cycle);
   if(status&CAEN_QDC_STATUS_DREADY){
     ret = acquire_event_channels(handle,lowres,hires,start_channel,nchannels,&counter);
     events = (counter > handle->event_counter)?(counter - handle->event_counter):0;
