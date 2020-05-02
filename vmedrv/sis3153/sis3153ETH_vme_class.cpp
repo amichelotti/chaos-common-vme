@@ -210,7 +210,7 @@ int sis3153eth::set_UdpSocketOptionBufSize( int sockbufsize ){
 int sis3153eth::set_UdpSocketBindToDevice( char* eth_device){
 	int return_code=0;
 #ifdef LINUX
-#ifndef MAC_OSX
+#ifndef __APPLE__
 	return_code = setsockopt(this->udp_socket, SOL_SOCKET, SO_BINDTODEVICE, eth_device, sizeof(eth_device)) ;
 #endif
 #endif
