@@ -812,88 +812,98 @@ void VMEBridge::setOption(int image, unsigned int opt)
 
     par = 0;
 
-    if (opt & 0x1)  // program AM
+    if (opt & 0x1) { // program AM
         if (image < 10){
             par |= 0x00004000;
         } else {
             par |= 0x00800000;
         }
-    if ((image > 9) && (opt & 0x2)) // data AM for slave images
+    }
+    if ((image > 9) && (opt & 0x2)){ // data AM for slave images
         par |= 0x00400000;
-
-    if (opt & 0x4)  // super AM
+    }
+    if (opt & 0x4) { // super AM
         if (image < 10){
             par |= 0x00001000;
         } else {
             par |= 0x00200000;
         }
-    if ((image > 9) && (opt & 0x8)) // non-priv AM for slave images
+    }
+    if ((image > 9) && (opt & 0x8)) {// non-priv AM for slave images
         par |= 0x00100000;
-
-    if (opt & 0x10) // block transfer on
+    }
+    if (opt & 0x10) {// block transfer on
         if (image < 10){
             par |= 0x00000100;
         } else{
             *Err << "BLT_ON is no valid option for slave images!\n";
         }
-    if (opt & 0x40) // posted write enable
+    }
+    if (opt & 0x40) {// posted write enable
         par |= 0x40000000;
-
-    if (opt & 0x100)    // enable prefetched read
+    }
+    if (opt & 0x100){    // enable prefetched read
         if (image < 10){ // slave images only!!!
             *Err << "PREF_READ_EN is no valid option for master images!\n";
         } else{
             par |= 0x20000000;
         }
-    if (opt & 0x400)    // enable PCI bus lock for RMW cycles
+    }
+    if (opt & 0x400){    // enable PCI bus lock for RMW cycles
         if (image < 10){
             *Err << "PCI_LCK_RMW_EN is no valid option for master images!\n";
         }else{
             par |= 0x00000040;
         }
-    if (par)
+    }
+    if (par){
         if (image == DMA)
             dma_ctl |= par & 0x0000F100;
         else{
             ioctl(vme_handle[image], IOCTL_SET_OPT, par);
         }
+    }
     par = 0;
 
-    if (opt & 0x2)  // data AM for master images
+    if (opt & 0x2) { // data AM for master images
         if (image < 10)
             par |= 0x10004000;
-
-    if (opt & 0x8)  // non privileged AM
+    }
+    if (opt & 0x8){  // non privileged AM
         if (image < 10)
             par |= 0x10001000;
-
-    if (opt & 0x20) // block transfer off
+    }
+    if (opt & 0x20){ // block transfer off
         if (image < 10)
             par |= 0x10000100;
         else{
             *Err << "BLT_OFF is no valid option for slave images!\n";
         }
-    if (opt & 0x80) // disable posted write
+    }
+    if (opt & 0x80) {// disable posted write
         par |= 0x50000000;
-
-    if (opt & 0x200)    // disable prefetched read
+    }
+    if (opt & 0x200){    // disable prefetched read
         if (image < 10) // slave images only!!!
             *Err << "PREF_READ_DIS is no valid option for master images!\n";
         else{
             par |= 0x30000000;
         }
-    if (opt & 0x800)    // enable PCI bus lock for RMW cycles
+    }
+    if (opt & 0x800) {   // enable PCI bus lock for RMW cycles
         if (image < 10)
             *Err << "PCI_LCK_RMW_DIS is no valid option for master images!\n";
         else{
             par |= 0x10000040;
         }
-    if (par)
+    }
+    if (par){
         if (image == DMA)
             dma_ctl &= ~(par & 0x0000F100);
         else{
             ioctl(vme_handle[image], IOCTL_SET_OPT, par);
         }
+    }
 }
 
 

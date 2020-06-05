@@ -510,7 +510,7 @@ void sis3153eth::reorderLutInit(reorder_lut_t *lut, size_t len, size_t packetLen
 	if (lut != NULL) {
 		// clear
 		for (int i = 0; i < 32; i++) {
-			lut[i].offs = NULL;
+			lut[i].offs = 0;
 			lut[i].outstanding = false;
 		}
 		// fill offsets
