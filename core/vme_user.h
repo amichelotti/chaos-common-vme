@@ -6,7 +6,7 @@
 #include <stdint.h>
 #define __packed __attribute__((packed))
 typedef uint32_t __u32;
-typedef uint64_t __u64;
+typedef unsigned long long __u64;
 typedef uint8_t __u8;
 
 #endif
