@@ -10,7 +10,7 @@ ADD_DEFINITIONS(-DUNIVERSE2)
 # ADD_SUBDIRECTORY(vmedrv/universe2)
 
 
-SET(src core/VmeBase.cpp core/vmewrap.cpp core/vmewrap_universe2.cpp core/vmewrap_caenvme.cpp core/vmewrap_uservme.cpp vmedrv/universe2/vmelib.cpp core/vmewrap_sis3153_eth.cpp vmedrv/sis3153/sis3153ETH_vme_class.cpp) 
+SET(src core/VmeBase.cpp core/vmewrap.cpp core/ core/RTVme.cpp core/vmewrap_universe2.cpp core/vmewrap_caenvme.cpp core/vmewrap_uservme.cpp vmedrv/universe2/vmelib.cpp core/vmewrap_sis3153_eth.cpp vmedrv/sis3153/sis3153ETH_vme_class.cpp) 
 ADD_LIBRARY(${PROJECT_NAME} ${src})
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} common_debug boost_log boost_system boost_thread pthread ${FrameworkLib} dl)
 ADD_SUBDIRECTORY(caen)
