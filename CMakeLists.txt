@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
 project(common_vme)
 option(UNIVERSE2 "open source universe2 driver" ON)
 find_package(Boost MODULE REQUIRED REQUIRED COMPONENTS program_options system thread log)
