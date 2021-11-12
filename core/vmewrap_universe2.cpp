@@ -4,7 +4,6 @@
 #define _VMEWRAPUNIVERSE2_H_
 #include <vmedrv/universe2/vmelib.h>
 #include "vmewrap.h"
-#include <common/debug/core/debug.h>
 static VMEBridge* vmeb=NULL;
 static int initialized=0;
 static int vme_close_universe2(vmewrap_window_t handle){

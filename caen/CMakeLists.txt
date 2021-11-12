@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
 project(common_vme_caen)
 
 SET(src CaenDaqBase.cpp CaenPioBase.cpp Caen775.cpp caen513_drv.cpp caen775_drv.cpp caen792_drv.cpp caen965_drv.cpp caen977_drv.cpp)

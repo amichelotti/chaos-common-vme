@@ -8,9 +8,8 @@
 #ifndef CORE_VMEBASE_H_
 #define CORE_VMEBASE_H_
 //#define DEBUG 1
-#include <common/debug/core/debug.h>
 
-#include <common/vme/core/vmewrap.h>
+#include "vmewrap.h"
 #include <boost/thread.hpp>
 #include <sys/ioctl.h>
 

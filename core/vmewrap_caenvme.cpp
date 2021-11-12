@@ -4,7 +4,6 @@
 @date Mar 11, 2016
  */
 #include "vmewrap.h"
-#include <common/debug/core/debug.h>
 #include <unistd.h>
 
 #define LINUX
@@ -151,7 +150,7 @@ static int  map_master_caenvme(vmewrap_vme_handle_t handle,uint32_t add,uint32_t
 				break;
 
 				default:
-					ERR("addressing not implemented %d",addressing);
+					DERR("addressing not implemented %d",addressing);
 					return -1;
 	}
 
@@ -179,7 +178,7 @@ static int caenvme_init(vmewrap_vme_handle_t handle){
 		VMEBoard = cvV2718;
 		break;
 	default:
-		ERR("unsupported %s CAENVME board",handle->type.c_str());
+		DERR("unsupported %s CAENVME board",handle->type.c_str());
 		return -1;
 	}
 
@@ -188,7 +187,7 @@ static int caenvme_init(vmewrap_vme_handle_t handle){
 
 
 	if( caen_handle->CAENVME_Init(VMEBoard, Link, Device, &BHandle) != cvSuccess ){
-		ERR("Error opening the device");
+		DERR("Error opening the device");
 		return -2;
 	} else{
 		DPRINT("CAENVME initialized");

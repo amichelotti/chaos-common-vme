@@ -1,6 +1,6 @@
 #ifndef CAENPIOBASE_H
 #define CAENPIOBASE_H
-#include <common/vme/core/VmeBase.h>
+#include "../core/VmeBase.h"
 
 namespace common{
 namespace vme {

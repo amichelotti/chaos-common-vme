@@ -5,7 +5,6 @@
  *      Author: michelo
  */
 
-#include <common/debug/core/debug.h>
 #include "CaenDaqBase.h"
 #include <sys/mman.h>
 using namespace common::vme::caen;

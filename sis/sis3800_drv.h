@@ -1,7 +1,7 @@
 #ifndef __SIS3800_H__
 #define __SIS3800_H__
 #include <stdint.h>
-#include <common/vme/core/vmewrap.h>
+#include "../core/vmewrap.h"
 
 typedef void* sis3800_handle_t;
 
