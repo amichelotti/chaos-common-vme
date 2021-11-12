@@ -17,16 +17,20 @@ SET(src ${src} core/VmeBase.cpp core/RTVme.cpp)
 ADD_SUBDIRECTORY(caen)
 ADD_SUBDIRECTORY(sis)
 ADD_EXECUTABLE(test_pio test/test_pio.cpp)
-TARGET_LINK_LIBRARIES(test_pio ${PROJECT_NAME} ${vmelibs} common_debug ${FrameworkLib} )
 INSTALL(TARGETS test_pio
         DESTINATION "bin"
         PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 SET(ADDLIB common_debug boost_log boost_system boost_thread pthread ${FrameworkLib})
+
+TARGET_LINK_LIBRARIES(test_pio ${PROJECT_NAME} ${vmelibs} common_vme_caen ${ADDLIB} )
+
 ELSE()
+ADD_LIBRARY(${PROJECT_NAME}_s.a STATIC ${src})
+
 SET(ADDLIB)
 ENDIF()
-
 ADD_LIBRARY(${PROJECT_NAME} ${src})
+
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}  ${ADDLIB} dl)
 SET(test_btf_daq_src test/test_btf_daq.cpp )
 
