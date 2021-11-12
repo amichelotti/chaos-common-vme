@@ -25,7 +25,7 @@ SET(ADDLIB common_debug boost_log boost_system boost_thread pthread ${FrameworkL
 TARGET_LINK_LIBRARIES(test_pio ${PROJECT_NAME} ${vmelibs} common_vme_caen ${ADDLIB} )
 
 ELSE()
-ADD_LIBRARY(${PROJECT_NAME}_s.a STATIC ${src})
+ADD_LIBRARY(${PROJECT_NAME}_s STATIC ${src})
 
 SET(ADDLIB)
 ENDIF()
