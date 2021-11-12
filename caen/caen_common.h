@@ -2,7 +2,7 @@
 #define  _CAEN_COMMON_H_
 
 
-#include <common/vme/core/vmewrap.h>
+#include "../core/vmewrap.h"
 // Register map
 #define MANUFACTURE_ID 0x40
 #define FW_REVISION_OFF 0x1000

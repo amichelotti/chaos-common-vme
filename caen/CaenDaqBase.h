@@ -12,8 +12,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string>
-#include <common/vme/core/VmeBase.h>
-#include <common/vme/core/vme_user.h>
+#include "../core/VmeBase.h"
+#include "../core/vme_user.h"
 
 namespace common{
 namespace vme {

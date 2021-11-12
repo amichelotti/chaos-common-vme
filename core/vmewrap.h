@@ -31,6 +31,16 @@
 #define VME_WRITE_REG8(handle,off,val) {uint8_t tmp=val;vmewrap_write8(handle,off,&tmp,1);}
 
 #define VME_OPT_CTL_EN		0x80000000
+
+#ifdef CHAOS
+#include <common/debug/core/debug.h>
+#else
+
+#define DPRINT(str,...) printf("\033[38;5;148m%s\033[39m :" str "\n", __PRETTY_FUNCTION__, ##__VA_ARGS__)
+#define DERR(str,...) printf("# \033[38;5;148m%s\033[39m :" str "\n",__PRETTY_FUNCTION__,##__VA_ARGS__)
+#define ERR DERR
+#define PRINT DPRINT
+#endif
 /*
 #define VME_SET_MASTER 0 // enable master
 #define VME_SET_SLAVE  1 // enable slave

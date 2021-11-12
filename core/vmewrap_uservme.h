@@ -7,7 +7,6 @@
  */
 #ifndef _VMEWRAPUSERVME_H_
 #define _VMEWRAPUSERVME_H_
-#include <common/vme/core/vmewrap.h>
 /*
  * initialize the driver structure
  * @return 0 on success
