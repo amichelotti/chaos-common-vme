@@ -1,7 +1,6 @@
 #include "sis3800_drv.h"
 #include "vmewrap.h"
 #include <stdlib.h>
-#include <common/debug/core/debug.h>
 #define DEV_BOARD "SIS3800"
 #define BOARD_IDENTIFICATION_REG(base) REG32(base,0x4)
 

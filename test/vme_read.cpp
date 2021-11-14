@@ -65,13 +65,13 @@ int main(int argc,char**argv){
 		if(dw==16){
 			uint16_t dat=*((uint16_t*)data +cnt);
 
-			printf("READ16[0x%x]=0x%x\n",off,dat);
+			printf("READ16[0x%x]=0x%x\n",address+((off+cnt)*sizeof(uint16_t)),dat);
 		} else if(dw==8){
 			uint8_t dat=*((uint8_t*)data +cnt);
-			printf("READ8[0x%x]=0x%x\n",off,dat);
+			printf("READ8[0x%x]=0x%x\n",address+((off+cnt)*sizeof(uint8_t)),dat);
 		} else {
 			uint32_t dat=*((uint32_t*)data +cnt);;
-			printf("READ32[0x%x]=0x%x\n",off,dat);
+			printf("READ32[0x%x]=0x%x\n",address+((off+cnt)*sizeof(uint32_t)),dat);
 		}
 	}
 	vmewrap_vme_close(window);

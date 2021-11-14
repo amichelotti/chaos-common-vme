@@ -5,12 +5,12 @@
 #include  <vmedrv/sis3153/sis3153ETH_vme_class.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-
+#include <map>
+#include "vmewrap.h"
 
 
 
 #include "vmewrap_int.h"
-#include <common/debug/core/debug.h>
 
 typedef struct sis3153_eth_priv{
 	char ip[64];

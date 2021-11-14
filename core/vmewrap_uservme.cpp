@@ -2,7 +2,6 @@
 //#define DEBUG 1
 #include "vmewrap.h"
 #include <poll.h>
-#include <common/debug/core/debug.h>
 #include "vme_user.h"
 #include <map>
 #include <string>
