@@ -318,11 +318,11 @@ int vme_deinit_driver_sis3153_eth(vmewrap_vme_handle_t p)
 	DPRINT("DEINIT handle %p crate %p\n", p, vme_crate);
 	for (ip2sis_t::iterator i = sisdev.begin(); i != sisdev.end(); i++)
 	{
-		PRINT("looking %s crate %p\n", i->first, i->second);
+		PRINT("looking %s crate %p\n", i->first.c_str(), i->second);
 
 		if (i->second == vme_crate)
 		{
-			PRINT("erasing %s crate\n", i->first);
+			PRINT("erasing %s crate\n", i->first.c_str());
 
 			sisdev.erase(i);
 			break;
