@@ -35,7 +35,7 @@
 #ifdef CHAOS
 #include <common/debug/core/debug.h>
 #else
-
+#include <stdio.h>
 #define DPRINT(str,...) printf("\033[38;5;148m%s\033[39m :" str "\n", __PRETTY_FUNCTION__, ##__VA_ARGS__)
 #define DERR(str,...) printf("# \033[38;5;148m%s\033[39m :" str "\n",__PRETTY_FUNCTION__,##__VA_ARGS__)
 #define ERR DERR

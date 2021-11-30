@@ -321,7 +321,7 @@ static int vme_write32_uservme(vmewrap_window_t  handle,unsigned off,uint32_t* d
     int fd=handle->fd;
 
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    uint32_t tmp=data;
+//    uint32_t tmp=data;
 #else
     for(int cnt=0;cnt<sizen;cnt++){
         uint32_t tmp=__bswap_32 (data[cnt]);
@@ -336,7 +336,7 @@ static int vme_write16_uservme(vmewrap_window_t  handle,unsigned off,uint16_t* d
     int fd=handle->fd;
 
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    uint16_t tmp=data;
+ //   uint16_t tmp=data;
 #else
     for(int cnt=0;cnt<sizen;cnt++){
         uint16_t tmp=__bswap_16 (data[cnt]);
