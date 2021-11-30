@@ -94,7 +94,7 @@ static int vme_write32_sis3153_eth(vmewrap_window_t handle, unsigned off, uint32
 			ret += vme_crate->vme_A32D32_write(handle->add + off, *data);
 			return ret;
 		}
-		if (handle->opt | VME_OPT_BLT_ON)
+		if (handle->opt & VME_OPT_BLT_ON)
 		{
 			vme_crate->vme_A32BLT32_write(handle->add + off, data, sizen, &ret);
 		}
@@ -164,7 +164,7 @@ static int vme_read32_sis3153_eth(vmewrap_window_t handle, unsigned off, uint32_
 			ret += (vme_crate->vme_A32D32_read(handle->add + off, data) == 0) ? 1 : 0;
 			return ret;
 		}
-		if (handle->opt | VME_OPT_BLT_ON)
+		if (handle->opt & VME_OPT_BLT_ON)
 		{
 			vme_crate->vme_A32BLT32_read(handle->add + off, data, sizen, &ret);
 		}
