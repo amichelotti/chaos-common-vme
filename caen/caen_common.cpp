@@ -32,7 +32,7 @@ static void* caen_common_open(vmewrap_vme_handle_t vme,uint32_t address ){
   int size = 0x10000;
   int boardid,manufactureid;
   vmewrap_window_t window;
-  if((window=vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,( vme_opt)0))==0){
+  if((window=vmewrap_vme_open_master(vme,address,size,VME_ADDRESSING_A32,VME_ACCESS_D32,( vme_opt)VME_OPT_BLT_ON))==0){
   		ERR("cannot map vme");
   		return NULL;
   	}
