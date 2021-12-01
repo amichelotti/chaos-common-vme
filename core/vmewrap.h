@@ -5,7 +5,7 @@
  * */
 #ifndef _VMEWRAP_H_
 #define _VMEWRAP_H_
-
+#include <stdio.h>
 #include <stdint.h>
 #include "vmewrap_int.h"
 
