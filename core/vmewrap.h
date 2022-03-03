@@ -36,8 +36,13 @@
 #include <common/debug/core/debug.h>
 #else
 #include <stdio.h>
+#ifdef __DEBUG__
 #define DPRINT(str,...) printf("\033[38;5;148m%s\033[39m :" str "\n", __PRETTY_FUNCTION__, ##__VA_ARGS__)
 #define DERR(str,...) printf("# \033[38;5;148m%s\033[39m :" str "\n",__PRETTY_FUNCTION__,##__VA_ARGS__)
+#else
+#define DPRINT(str,...)
+#define DERR(str,...)
+#endif
 #define ERR DERR
 #define PRINT DPRINT
 #endif
