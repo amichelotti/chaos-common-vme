@@ -62,7 +62,7 @@ RTAbstractControlUnit(_control_unit_id,
          i++;
      }
 }
-void RTVme::unitDefineActionAndDataset() throw(chaos::CException) {
+void RTVme::unitDefineActionAndDataset()  {
     //insert your definition code here
 	 addAttributeToDataSet("VME_DRIVER",
 	                        "VME DRIVER TYPE (0=universe2, 1=caen)",
@@ -111,7 +111,7 @@ void RTVme::unitDefineActionAndDataset() throw(chaos::CException) {
 }
 
 
- void RTVme::unitInit() throw(chaos::CException){
+ void RTVme::unitInit() {
 	 int ret;
 	 vme_driver_type= (vme_driver_t)*getAttributeCache()->getROPtr<uint64_t>(DOMAIN_INPUT, "VME_DRIVER");
 	 vme_base_address = *getAttributeCache()->getROPtr<uint64_t>(DOMAIN_INPUT, "VME_BASE");
@@ -139,7 +139,7 @@ void RTVme::unitDefineActionAndDataset() throw(chaos::CException) {
 	}
  }
  
- void RTVme::unitStart() throw(chaos::CException){
+ void RTVme::unitStart() {
 	 int cnt;
 	 for(cnt=0;cnt<vme_offs.size();cnt++){
 		 uint32_t data=0;
@@ -151,10 +151,10 @@ void RTVme::unitDefineActionAndDataset() throw(chaos::CException) {
 	}
 
  }
- void RTVme::unitStop() throw(chaos::CException){
+ void RTVme::unitStop() {
 
  }
- void RTVme::unitDeinit() throw(chaos::CException){
+ void RTVme::unitDeinit() {
 	 if(window){
 		 vmewrap_vme_close(window);
 		 window=NULL;
@@ -164,7 +164,7 @@ void RTVme::unitDefineActionAndDataset() throw(chaos::CException) {
            vme=NULL;
       }
  }
- void RTVme::unitRun() throw(chaos::CException){}
+ void RTVme::unitRun() {}
  
 /*
  Destructor
