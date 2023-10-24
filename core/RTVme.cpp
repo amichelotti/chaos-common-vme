@@ -52,7 +52,8 @@ RTAbstractControlUnit(_control_unit_id,
     std::vector<std::string> soff;
     vme_driver_type=(vme_driver_t)0;
     vme=NULL;
-    boost::split(soff,_control_unit_param,boost::is_any_of(" \n"));
+    //boost::split(soff,_control_unit_param,boost::is_any_of(" \n"));
+    soff=chaos::split(_control_unit_param," \n");
     i=soff.begin();
     for(cnt=0;cnt<soff.size();cnt++){
     	if(i->size()){
